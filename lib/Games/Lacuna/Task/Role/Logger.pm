@@ -6,7 +6,7 @@ use Moose::Role;
 use IO::Interactive qw(is_interactive);
 use Term::ANSIColor;
 
-our @LEVELS = qw(debug info warn error);
+our @LEVELS = qw(debug info notice warn error);
 
 has 'loglevel' => (
     is              => 'ro',
@@ -43,19 +43,23 @@ sub log {
                 given ($level_name) {
                     when ('error') {
                         print color 'bold red';
-                        printf "%5s: ",$level_name;
+                        printf "%6s: ",$level_name;
                     }
                     when ('warning') {
                         print color 'bold bright_yellow';
-                        printf "%5s: ",$level_name;
+                        printf "%6s: ",$level_name;
+                    }
+                    when ('notice') {
+                        print color 'bold magenta';
+                        printf "%6s: ",$level_name;
                     }
                     when ('info') {
                         print color 'bold cyan';
-                        printf "%5s: ",$level_name;
+                        printf "%6s: ",$level_name;
                     }
                     when ('debug') {
                         print color 'bold white';
-                        printf "%5s: ",$level_name;
+                        printf "%6s: ",$level_name;
                     }
                 }
                 print color 'reset';
