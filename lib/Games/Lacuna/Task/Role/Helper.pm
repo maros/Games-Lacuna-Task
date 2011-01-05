@@ -3,6 +3,8 @@ package Games::Lacuna::Task::Role::Helper;
 use 5.010;
 use Moose::Role;
 
+use List::Util qw(max);
+
 use Games::Lacuna::Task::Cache;
 use Games::Lacuna::Task::Constants;
 use Data::Dumper;
@@ -38,6 +40,12 @@ sub body {
     )->{body};
 }
 
+sub building_class {
+    my ($self,$url) = @_;
+    
+    return "Games::Lacuna::Client::Buildings::".Games::Lacuna::Client::Buildings::type_from_url($url);
+}
+
 sub building_type_single {
     my ($self,$body,$type) = @_;
     
@@ -45,9 +53,9 @@ sub building_type_single {
     
     return
         unless scalar keys %{$buildings};
-        
-    my ($building) = (values %$buildings);
-    return $building;
+    
+    my @result = sort { $b->{level} <=> $a->{level} } values %{$buildings};
+    return $result[0];
 }
 
 sub building_type {
@@ -69,6 +77,19 @@ sub building_type {
     return \%buildings;
 }
 
+sub university_level {
+    my ($self) = @_;
+    
+    my @university_levels;
+    foreach my $planet ($self->planet_ids) {
+        my $university = $self->building_type_single($planet,'University');
+        next 
+            unless $university;
+        push(@university_levels,$university->{level});
+    }
+    return max(@university_levels);
+}
+
 sub buildings_body {
     my ($self,$body) = @_;
     
@@ -87,156 +108,13 @@ sub planet_ids {
     return keys %{$empire_status->{planets}};
 }
 
-
-#sub home_planet {
-#    my $self = shift;
-#    my $home_planet = $self->client->client->body( id => $self->home_planet_id );
-#}
-#
-#sub home_planet_id {
-#    my $self = shift;
-#    return $self->empire_stats->{home_planet_id};
-#}
-#
-
-#
-#sub empire_stats {
-#    my $self = shift;
-#    my $status = $self->cache_request(
-#        type    => 'empire',
-#        method  => 'get_status',
-#    );
-#    return $status->{empire}
-#        if defined $status;
-#}
-#
-#sub body_stats {
-#    my ($self,$id) = @_;
-#    $self->cache_request(
-#        type    => 'body',
-#        id      => $id || $self->home_planet_id,
-#        method  => 'get_status',
-#        max_age => 60*15,
-#        force   => 1,
-#    )->{body}
-#}
-#
-#sub building_stats {
-#    my ($self,$id) = @_;
-#    $self->cache_request(
-#        type    => 'building',
-#        id      => $id,
-#        method  => 'view',
-#        force   => 1,
-#    )->{building}
-#}
-#
-#sub cache_add {
-#    my ($self,$key,$value) = @_;
-#}
-
-sub request {
-    my ($self,%params) = @_;
+sub home_planet_id {
+    my $self = shift;
     
-    my $method = delete $params{method};
-    my $type = delete $params{type};
-    
-    $self->log('debug',"Run external request %s/%s",$type,$method);
-    my $request = $self
-        ->client
-        ->client
-        ->$type(%params,verbose_rpc => 1)
-        ->$method();
-    
-    my $status = $request->{status} || $request;
-    if ($status->{empire}) {
-        $self->write_cache(
-            key     => 'empire',
-            value   => $status->{empire},
-            max_age => 21600,
-        );
-    }
-    if ($status->{body}) {
-        $self->write_cache(
-            key     => 'body/'.$params{id},
-            value   => $status->{body},
-        );
-    }
-    if ($request->{buildings}) {
-        $self->write_cache(
-            key     => 'body/'.$params{id}.'/buildings',
-            value   => $request->{buildings},
-            max_age => 600,
-        );
-    }
-    
-    return $request;
+    my $empire_status = $self->empire_status;
+    return $empire_status->{home_planet_id};
 }
 
-sub lookup_cache {
-    my ($self,$key) = @_;
-    
-    my $storage = $self->client->storage;
-    my $cache = $storage->lookup($key);
-    return
-        unless defined $cache;
-    if (blessed $cache
-        && $cache->isa('Games::Lacuna::Task::Cache')) {
-        return $cache->value
-    } else {
-        return $cache;
-    }
-}
-
-sub write_cache {
-    my ($self,%params) = @_;
-    
-    my $storage = $self->client->storage;
-    $params{max_age} += time()
-        if $params{max_age};
-   
-    my $cache = Games::Lacuna::Task::Cache->new(
-        %params
-    );
-    
-    $cache->store($storage);
-    
-    return $cache;
-}
-
-
-#sub cache_request {
-#    my ($self,%params) = @_;
-#    
-#    
-#    my $type = $params{type};
-#    
-#    my $lookup_key = join ('/',grep { defined $_ } ($params{type},$params{method},$params{id}));
-#    my $cache = $storage->lookup($lookup_key);
-#    
-#    if ($cache) {
-#        return $cache->value
-#            if $cache->is_valid && ! $params{force};
-#    }
-#    
-#
-#    
-#
-#    
-#    my %cache_params = (
-#        key     => $lookup_key,
-#        value   => $request,
-#    );
-#    $cache_params{max_age} = $params{max_age} + time()
-#        if $cache_params{max_age};
-#    $cache = Games::Lacuna::Task::Cache->new(
-#        %cache_params
-#    );
-#    $storage->delete($lookup_key);
-#    $storage->store($lookup_key => $cache);
-#    
-#    return $request;
-#} 
 
 no Moose::Role;
 1;
