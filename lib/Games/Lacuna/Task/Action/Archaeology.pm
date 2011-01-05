@@ -3,6 +3,7 @@ package Games::Lacuna::Task::Action::Archaeology;
 use 5.010;
 
 use Moose;
+use List::Util qw(max);
 
 with qw(Games::Lacuna::Task::Role::Client
     Games::Lacuna::Task::Role::Helper
@@ -11,14 +12,59 @@ with qw(Games::Lacuna::Task::Role::Client
 sub run {
     my ($self) = @_;
     
-    # Loop all planets
-    foreach my $planet_stats ($self->planets) {
-        $self->log('debug',"Planet %s",$planet_stats->{name});
+    my $total_glyphs = 0;
+    my $max_glyphs = 0;
+    my $all_gylphs;
+    
+    unless ($all_gylphs = $self->lookup_cache('glyphs')) {
+        $all_gylphs = { map { $_ => 0 } @Games::Lacuna::Task::Constants::ORES };
         
+        # Loop all planets
+        PLANETS:
+        foreach my $planet_stats ($self->planets) {
+            # Get archaeology ministry
+            my $archaeology_ministry = $self->building_type_single($planet_stats->{id},'Archaeology Ministry');
+            
+            next
+                unless defined $archaeology_ministry;
+            
+            # Get all glyphs
+            my $archaeology_ministry_object = Games::Lacuna::Client::Buildings::Archaeology->new(
+                client      => $self->client->client,
+                id          => $archaeology_ministry->{id},
+            );
+            my $gylph_data = $self->request(
+                object  => $archaeology_ministry_object,
+                method  => 'get_glyphs',
+            );
+            
+            foreach my $glyph (@{$gylph_data->{glyphs}}) {
+                $all_gylphs->{$glyph->{type}} ||= 0;
+                $all_gylphs->{$glyph->{type}} ++;
+                $total_glyphs ++;
+            }
+        }
+        
+        $self->write_cache(
+            key     => 'glyphs',
+            value   => $all_gylphs,
+        );
+    }
+    
+    $max_glyphs = max(values %{$all_gylphs});
+    
+    # Loop all planets again
+    PLANETS:
+    foreach my $planet_stats ($self->planets) {
+        $self->log('info',"Processing planet %s",$planet_stats->{name});
+        
+        # Get archaeology ministry
         my $archaeology_ministry = $self->building_type_single($planet_stats->{id},'Archaeology Ministry');
         
         next
             unless defined $archaeology_ministry;
+        
+        # Check archaeology is busy
         next
             if defined $archaeology_ministry->{work};
         
@@ -32,11 +78,15 @@ sub run {
         # Get local ores form mining platforms
         my $mining_ministry = $self->building_type_single($planet_stats->{id},'Mining Ministry');
         if (defined $mining_ministry) {
-            my $mining_ministry_building = Games::Lacuna::Client::Buildings::MiningMinistry->new(
+            my $mining_ministry_object = Games::Lacuna::Client::Buildings::MiningMinistry->new(
                 client      => $self->client->client,
                 id          => $mining_ministry->{id},
             );
-            my $platforms = $mining_ministry_building->view_platforms;
+            
+            my $platforms = $self->request(
+                object  => $mining_ministry_object,
+                method  => 'view_platforms',
+            );
             
             if (defined $platforms
                 && $platforms->{platforms}) {
@@ -49,60 +99,41 @@ sub run {
             }
         }
         
-        # Get stored ores
-        my $ore_storage_tanks = $self->building_type_single($planet_stats->{id},'Ore Storage Tanks');
-        
-        next
-            unless $ore_storage_tanks;
-        
-        my $ore_storage_building = Games::Lacuna::Client::Buildings::OreStorage->new(
-            client      => $self->client->client,
-            id          => $ore_storage_tanks->{id},
-        );
-        
-        my $ore_storage_data = $ore_storage_building->view();
-        if ($ore_storage_data) {
-            foreach my $ore (keys %{$ore_storage_data->{ore_stored}}) {
-                next
-                    unless defined $ores{$ore};
-                $ores{$ore} = $ore_storage_data->{ore_stored}{$ore};
-                delete $ores{$ore}
-                    if $ores{$ore} < 10000;
-            }
-        }
-           
-        warn Data::Dumper::Dumper \%ores;
-        
-        my $archaeology_ministry_building = Games::Lacuna::Client::Buildings::Archaeology->new(
+        my $archaeology_ministry_object = Games::Lacuna::Client::Buildings::Archaeology->new(
             client      => $self->client->client,
             id          => $archaeology_ministry->{id},
         );
         
-        #warn Data::Dumper::Dumper $archaeology_ministry_building->view()
-
-
-
-#        foreach my $building_id (keys %{$recycling_buildings}) {
-#            my $building_data = $recycling_buildings->{$building_id};
-#            
-#            next
-#                if defined $building_data->{work};
-#            
-#            my $recycling_building = Games::Lacuna::Client::Buildings::WasteRecycling->new(
-#                client      => $self->client->client,
-#                id          => $building_id,
-#            );
-#            
-#            my $recycling_detail = $recycling_building->view();
-#            
-#            die Data::Dumper::Dumper $recycling_detail;
-#            
-#            $self->log('debug',"Recycling for %s",$planet_stats->{name});
-#            
-#            my %recycle = (map { $_ => $ressources{$_}[2] } keys %ressources);
-#            $recycling_building->recycle(\%recycle);
-#        }
+        my $archaeology_ores = $self->request(
+            object  => $archaeology_ministry_object,
+            method  => 'get_ores_available_for_processing',
+        );
         
+        foreach my $ore (keys %ores) {
+            if (defined $archaeology_ores->{ore}{$ore}) {
+                $ores{$ore} = $archaeology_ores->{ore}{$ore};
+            } else {
+                delete $ores{$ore}
+            }
+        }
+        
+        # Check best suited glyph
+        for my $max_glyph (0..$max_glyphs) {
+            foreach my $ore (keys %ores) {
+                next
+                    if $all_gylphs->{$ore} > $max_glyph;
+                $self->log('notice',"Searching for %s glyph on %s",$ore,$planet_stats->{name});
+                $self->request(
+                    object  => $archaeology_ministry_object,
+                    method  => 'search_for_glyph',
+                    params  => [$ore],
+                );
+                
+                $self->clear_cache('body/'.$planet_stats->{id}.'/buildings');
+                
+                next PLANETS;
+            }
+        }
     }
 }
 
