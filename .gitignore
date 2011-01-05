@@ -1,0 +1,15 @@
+blib
+_build
+Makefile
+inc
+Makefile
+META.yml
+pm_to_blib
+.project
+.settings
+MANIFEST.bak
+Makefile.old
+cover_db/
+Ganes-Lacuna-Task-*.tar.gz
+.DS_Store
+MANIFEST.bak

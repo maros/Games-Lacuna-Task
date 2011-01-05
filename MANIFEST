@@ -1,0 +1,24 @@
+bin/lacuna_task
+inc/Module/Install.pm
+inc/Module/Install/Base.pm
+inc/Module/Install/Can.pm
+inc/Module/Install/Fetch.pm
+inc/Module/Install/Makefile.pm
+inc/Module/Install/Metadata.pm
+inc/Module/Install/Scripts.pm
+inc/Module/Install/Win32.pm
+inc/Module/Install/WriteAll.pm
+lib/Games/Lacuna/Task.pm
+lib/Games/Lacuna/Task/Action/Archaeology.pm
+lib/Games/Lacuna/Task/Action/Recycle.pm
+lib/Games/Lacuna/Task/Action/Upgrade.pm
+lib/Games/Lacuna/Task/Cache.pm
+lib/Games/Lacuna/Task/Client.pm
+lib/Games/Lacuna/Task/Constants.pm
+lib/Games/Lacuna/Task/Role/Client.pm
+lib/Games/Lacuna/Task/Role/Helper.pm
+lib/Games/Lacuna/Task/Role/Logger.pm
+lib/Games/Lacuna/Task/Types.pm
+Makefile.PL
+MANIFEST			This list of files
+META.yml
