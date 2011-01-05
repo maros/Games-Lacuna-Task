@@ -12,8 +12,9 @@ sub run {
     my ($self) = @_;
     
     # Loop all planets
+    PLANETS:
     foreach my $planet_stats ($self->planets) {
-        $self->log('debug',"Planet %s",$planet_stats->{name});
+        $self->log('info',"Processing planet %s",$planet_stats->{name});
         
         my $buildings = $self->buildings_body($planet_stats->{id});
         
@@ -26,14 +27,21 @@ sub run {
                 if $building_data->{efficiency} == 100;
             
             # Repair building
-            $self->log('debug',"Repairing %s",$building_data->{name});
+            $self->log('notice',"Repairing %s on %s",$building_data->{name},$planet_stats->{name});
             
-            my $building_object = Games::Lacuna::Client::Buildings->new(
+            my $building_class = $self->building_class($building_data->{url});
+            
+            my $building_object = $building_class->new(
                 client      => $self->client->client,
                 id          => $building->{id},
             );
             
-            $building_object->repair();
+            $self->request(
+                object  => $building_object,
+                method  => 'repair',
+            );
+            
+            $self->clear_cache('body/'.$planet_stats->{id}.'/buildings');
         }
     }
 }
