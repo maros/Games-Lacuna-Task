@@ -1,0 +1,11 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use 5.010;
+
+use Games::Lacuna::Task;
+
+my $task = Games::Lacuna::Task->new_with_options();
+$task->run;
+
