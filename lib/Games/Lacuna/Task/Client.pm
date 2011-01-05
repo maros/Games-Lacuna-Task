@@ -9,6 +9,9 @@ use Games::Lacuna::Client;
 use KiokuDB;
 use Term::ReadKey;
 
+our $API_KEY = '261cb463-cff4-458a-bbc6-807a6ff59d3e';
+our $SERVER = 'https://us1.lacunaexpanse.com/';
+
 has 'client' => (
     is              => 'rw',
     isa             => 'Games::Lacuna::Client',
@@ -41,7 +44,6 @@ sub _build_storage {
     unless (-e $storage_file) {
         $self->log('info',"Initializing storage file %s",$storage_file);
         `sqlite3 --init hase.db --batch`;
-        
     }
     
     my $storage = KiokuDB->connect(
@@ -63,30 +65,51 @@ sub _build_client {
     my $config = $storage->lookup('config');
     
     unless (defined $config) {
-        my ($password,$name);
+        my ($password,$name,$server,$api);
         
         $self->log('info',"Initializing local database");
         
-        say 'Please enter the empire name:';
-        while ( not defined( $name = ReadLine(-1) ) ) {
-            # no key pressed yet
+        while (! defined $server || $server !~ m/https?:\/\//) {
+            say "Please enter the server url (leave empty for default: '$SERVER'):";
+            while ( not defined( $server = ReadLine(-1) ) ) {
+                # no key pressed yet
+            }
+            chomp($server);
+            $server ||= $SERVER;
         }
-        chomp($name);
         
-        ReadMode 2;
-        say 'Please enter the empire password:';
-        while ( not defined( $password = ReadLine(-1) ) ) {
+        say "Please enter the api key (leave empty for default: '$API_KEY'):";
+        while ( not defined( $api = ReadLine(-1) ) ) {
             # no key pressed yet
         }
-        ReadMode 0;
-        chomp($password);
+        chomp($api);
+        $api ||= $API_KEY;
+        
+        while (! defined $name || $name =~ m/^\s*$/) {
+            say 'Please enter the empire name:';
+            while ( not defined( $name = ReadLine(-1) ) ) {
+                # no key pressed yet
+            }
+            chomp($name);
+        }
+        
+        while (! defined $password || $password =~ m/^\s*$/) {
+            ReadMode 2;
+            say 'Please enter the empire password:';
+            while ( not defined( $password = ReadLine(-1) ) ) {
+                # no key pressed yet
+            }
+            ReadMode 0;
+            chomp($password);
+        }
         
         $config = {
             password    => $password,
             name        => $name,
-            api_key     => '261cb463-cff4-458a-bbc6-807a6ff59d3e',
-            uri         => 'https://us1.lacunaexpanse.com/'
+            api_key     => $api,
+            uri         => $server,
         };
+        
         $storage->store('config' => $config);
     }
     
