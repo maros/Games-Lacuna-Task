@@ -43,7 +43,7 @@ sub _build_storage {
     my $storage_file = $self->storage_file->stringify;
     unless (-e $storage_file) {
         $self->log('info',"Initializing storage file %s",$storage_file);
-        `sqlite3 --init hase.db --batch`;
+        #`sqlite3 --init $storage_file --batch`;
     }
     
     my $storage = KiokuDB->connect(

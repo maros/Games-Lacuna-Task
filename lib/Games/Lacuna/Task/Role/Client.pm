@@ -128,7 +128,6 @@ sub clear_cache {
     
     my $storage = $self->client->storage;
     $storage->delete($key);
-    
 }
 
 

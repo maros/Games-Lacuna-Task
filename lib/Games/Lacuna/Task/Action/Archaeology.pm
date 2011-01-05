@@ -16,6 +16,7 @@ sub run {
     my $max_glyphs = 0;
     my $all_gylphs;
     
+    # Fetch total glyph count from cache
     unless ($all_gylphs = $self->lookup_cache('glyphs')) {
         $all_gylphs = { map { $_ => 0 } @Games::Lacuna::Task::Constants::ORES };
         
@@ -104,6 +105,7 @@ sub run {
             id          => $archaeology_ministry->{id},
         );
         
+        # Get searchable ores
         my $archaeology_ores = $self->request(
             object  => $archaeology_ministry_object,
             method  => 'get_ores_available_for_processing',

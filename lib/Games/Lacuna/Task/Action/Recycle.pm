@@ -59,6 +59,7 @@ sub run {
         
         my $recycling_buildings = $self->building_type($planet_stats->{id},'Waste Recycling Center');
         
+        # Loop all recycling buildings
         foreach my $building_id (keys %{$recycling_buildings}) {
             my $building_data = $recycling_buildings->{$building_id};
             

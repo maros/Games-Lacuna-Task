@@ -13,7 +13,7 @@ has 'start_building_at' => (
     isa     => 'Int',
     is      => 'rw',
     required=> 1,
-    default => 1,
+    default => 2,
 );
 
 has 'upgrade_preference' => (
