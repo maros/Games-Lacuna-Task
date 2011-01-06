@@ -24,12 +24,12 @@ sub planets {
     
     my @planets;
     foreach my $planet ($self->planet_ids) {
-        push(@planets,$self->body($planet));
+        push(@planets,$self->body_status($planet));
     }
     return @planets;
 }
 
-sub body {
+sub body_status {
     my ($self,$body) = @_;
     
     my $key = 'body/'.$body;
@@ -40,41 +40,42 @@ sub body {
     )->{body};
 }
 
-sub building_class {
-    my ($self,$url) = @_;
-    
-    return "Games::Lacuna::Client::Buildings::".Games::Lacuna::Client::Buildings::type_from_url($url);
-}
-
-sub building_type_single {
+sub find_building {
     my ($self,$body,$type) = @_;
-    
-    my $buildings = $self->building_type($body,$type);
-    
-    return
-        unless scalar keys %{$buildings};
-    
-    my @result = sort { $b->{level} <=> $a->{level} } values %{$buildings};
-    return $result[0];
-}
-
-sub building_type {
-    my ($self,$body,$type) = @_;
-    
-    # Get recycling center
-    my $buildings = $self->buildings_body($body);
     
     # Get buildings
-    my %buildings;
-    foreach my $building_id (keys %{$buildings}) {
-        my $building_data = $buildings->{$building_id};
+    my @results;
+    foreach my $building_data ($self->buildings_body($body)) {
         next
             unless $building_data->{name} eq $type;
-        $building_data->{id} ||= $building_id;
-        $buildings{$building_id} = $building_data;
+        push (@results,$building_data);
     }
     
-    return \%buildings;
+    @results = (sort { $b->{level} <=> $a->{level} } @results);
+    return wantarray ? @results : $results[0];
+}
+
+sub buildings_body {
+    my ($self,$body) = @_;
+    
+    my $key = 'body/'.$body.'/buildings';
+    my $buildings = $self->lookup_cache($key) || $self->request(
+        type    => 'body',
+        id      => $body,
+        method  => 'get_buildings',
+    )->{buildings};
+    
+    my @results;
+    foreach my $building_id (keys %{$buildings}) {
+        $buildings->{$building_id}{id} = $building_id;
+        push(@results,$buildings->{$building_id});
+    }
+    return @results;
+}
+
+sub building_class {
+    my ($self,$url) = @_;
+    return "Games::Lacuna::Client::Buildings::".Games::Lacuna::Client::Buildings::type_from_url($url);
 }
 
 sub university_level {
@@ -90,17 +91,6 @@ sub university_level {
     return max(@university_levels);
 }
 
-sub buildings_body {
-    my ($self,$body) = @_;
-    
-    my $key = 'body/'.$body.'/buildings';
-    $self->lookup_cache($key) || $self->request(
-        type    => 'body',
-        id      => $body,
-        method  => 'get_buildings',
-    )->{buildings};
-}
-
 sub planet_ids {
     my $self = shift;
     
@@ -111,10 +101,25 @@ sub planet_ids {
 sub home_planet_id {
     my $self = shift;
     
-    my $empire_status = $self->empire_status;
+    my $empire_status = $self->empire_status();
+    
     return $empire_status->{home_planet_id};
 }
 
+sub can_afford {
+    my ($self,$planet_data,$cost) = @_;
+    
+    foreach my $ressource (qw(food ore water energy)) {
+        return 0
+            if ($planet_data->{$ressource.'_stored'} < $cost->{$ressource});
+    }
+    
+    return 0
+        if (defined $cost->{waste} 
+        && ($planet_data->{'waste_capacity'} - $planet_data->{'waste_stored'}) < $cost->{waste});
+    
+    return 1;
+}
 
 no Moose::Role;
 1;

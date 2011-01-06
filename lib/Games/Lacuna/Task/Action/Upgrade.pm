@@ -14,6 +14,7 @@ has 'start_building_at' => (
     is      => 'rw',
     required=> 1,
     default => 2,
+    documentation => 'Upgrade buildings if there are less than n buildings in the build queue',
 );
 
 has 'upgrade_preference' => (
@@ -30,6 +31,7 @@ has 'upgrade_preference' => (
             'Security Ministry',
         ]
     },
+    documentation => 'Building uprade preferences',
 );
 
 sub run {
@@ -58,9 +60,10 @@ sub run {
         
         # Check if build queue is filled
         if ($building_count <= $self->start_building_at) {
-            # Get first upgradeable building
             for my $check (1,0) {
+                # Loop all building types
                 foreach my $building_type (@{$self->{upgrade_preference}}) {
+                    # Loop all buildings
                     foreach my $building_id (keys %$buildings) {
                         my $building_data = $buildings->{$building_id};
                         next

@@ -6,13 +6,6 @@ use Moose;
 
 our $MAXAGE = 3600; # One hour
 
-#has 'client' => (
-#    is              => 'ro',
-#    isa             => 'Lacuna::Task::Client',
-#    traits          => ['KiokuDB::DoNotSerialize'],
-#    required        => 1,
-#);
-
 has 'key' => (
     is              => 'ro',
     isa             => 'Str',
