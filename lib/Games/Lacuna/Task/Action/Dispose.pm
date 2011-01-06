@@ -13,7 +13,7 @@ has 'dispose_percentage' => (
     is      => 'rw',
     required=>1,
     default => 90,
-    documentation => 'Dispose waste if waste storage is n-% filled',
+    documentation => 'Dispose waste if waste storage is n-% full',
 );
 
 sub run {

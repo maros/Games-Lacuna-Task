@@ -77,6 +77,8 @@ sub run {
                         
                         my $building_class = $self->building_class($building_data->{url});
                         
+                        
+                        # Check if we can build
                         my $building_object = $building_class->new(
                             client      => $self->client->client,
                             id          => $building_id,
@@ -90,6 +92,7 @@ sub run {
                         next
                             unless $building_detail->{building}{upgrade}{can};
                         
+                        # Upgrade request
                         $self->request(
                             object  => $building_object,
                             method  => 'upgrade',

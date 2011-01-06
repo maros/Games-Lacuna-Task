@@ -52,6 +52,7 @@ sub run {
             );
         }
         
+        # Check if we have idle foreign spies
         my $foreign_idle_spies = 0;
         if ($security_ministry) {
             my $security_ministry_object = Games::Lacuna::Client::Buildings::Security->new(
