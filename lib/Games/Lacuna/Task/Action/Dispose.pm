@@ -12,7 +12,7 @@ has 'dispose_percentage' => (
     isa     => 'Int',
     is      => 'rw',
     required=>1,
-    default => 90,
+    default => 85,
     documentation => 'Dispose waste if waste storage is n-% full',
 );
 
