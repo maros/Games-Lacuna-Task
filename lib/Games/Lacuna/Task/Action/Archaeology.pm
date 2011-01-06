@@ -3,56 +3,62 @@ package Games::Lacuna::Task::Action::Archaeology;
 use 5.010;
 
 use Moose;
-use List::Util qw(max);
+use List::Util qw(max sum);
 
 with qw(Games::Lacuna::Task::Role::Client
     Games::Lacuna::Task::Role::Helper
     Games::Lacuna::Task::Role::Logger);
 
+sub all_glyphs {
+    my ($self) = @_;
+    
+    my $all_gylphs = $self->lookup_cache('glyphs');
+    
+    return $all_gylphs
+        if defined $all_gylphs;
+    
+    # Fetch total glyph count from cache/server
+    $all_gylphs = { map { $_ => 0 } @Games::Lacuna::Task::Constants::ORES };
+    
+    # Loop all planets
+    PLANETS:
+    foreach my $planet_stats ($self->planets) {
+        # Get archaeology ministry
+        my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology Ministry');
+        
+        next
+            unless defined $archaeology_ministry;
+        
+        # Get all glyphs
+        my $archaeology_ministry_object = Games::Lacuna::Client::Buildings::Archaeology->new(
+            client      => $self->client->client,
+            id          => $archaeology_ministry->{id},
+        );
+        my $gylph_data = $self->request(
+            object  => $archaeology_ministry_object,
+            method  => 'get_glyphs',
+        );
+        
+        foreach my $glyph (@{$gylph_data->{glyphs}}) {
+            $all_gylphs->{$glyph->{type}} ||= 0;
+            $all_gylphs->{$glyph->{type}} ++;
+        }
+    }
+    
+    $self->write_cache(
+        key     => 'glyphs',
+        value   => $all_gylphs,
+    );
+    
+    return $all_gylphs;
+}
+
 sub run {
     my ($self) = @_;
     
-    my $total_glyphs = 0;
-    my $max_glyphs = 0;
-    my $all_gylphs;
-    
-    # Fetch total glyph count from cache/server
-    unless ($all_gylphs = $self->lookup_cache('glyphs')) {
-        $all_gylphs = { map { $_ => 0 } @Games::Lacuna::Task::Constants::ORES };
-        
-        # Loop all planets
-        PLANETS:
-        foreach my $planet_stats ($self->planets) {
-            # Get archaeology ministry
-            my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology Ministry');
-            
-            next
-                unless defined $archaeology_ministry;
-            
-            # Get all glyphs
-            my $archaeology_ministry_object = Games::Lacuna::Client::Buildings::Archaeology->new(
-                client      => $self->client->client,
-                id          => $archaeology_ministry->{id},
-            );
-            my $gylph_data = $self->request(
-                object  => $archaeology_ministry_object,
-                method  => 'get_glyphs',
-            );
-            
-            foreach my $glyph (@{$gylph_data->{glyphs}}) {
-                $all_gylphs->{$glyph->{type}} ||= 0;
-                $all_gylphs->{$glyph->{type}} ++;
-                $total_glyphs ++;
-            }
-        }
-        
-        $self->write_cache(
-            key     => 'glyphs',
-            value   => $all_gylphs,
-        );
-    }
-    
-    $max_glyphs = max(values %{$all_gylphs});
+    my $all_gylphs = $self->all_glyphs;
+    my $total_glyphs = sum(values %{$all_gylphs});
+    my $max_glyphs = max(values %{$all_gylphs});
     
     # Loop all planets again
     PLANETS:
