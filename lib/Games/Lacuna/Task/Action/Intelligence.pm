@@ -123,6 +123,8 @@ sub run {
                 if ($spy->{assignment} ~~ ['Idle','Counter Espionage']
                     && $foreign_spies_active >= $defensive_counter) {
                     $assignment = 'Security Sweep';
+                } elsif ($spy->{assignment} eq 'Idle') {
+                    $assignment = 'Counter Espionage';
                 }
             # Spy is on another planet in my empire
             } elsif ($spy->{assigned_to}{body_id} ~~ [ $self->planet_ids ]) {
