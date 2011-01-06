@@ -18,6 +18,8 @@ requires        'KiokuDB'                       => 0;
 requires        'Path::Class'                   => 0;
 requires        'MooseX::Types::Path::Class'    => 0;
 
+requires        'YAML'                          => 0;
+
 requires        'Term::ReadKey'                 => 0;
 requires        'Term::ANSIColor'               => 0;
 requires        'IO::Interactive'               => 0;
