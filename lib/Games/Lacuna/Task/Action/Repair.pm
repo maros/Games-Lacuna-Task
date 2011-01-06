@@ -16,25 +16,33 @@ sub run {
     foreach my $planet_stats ($self->planets) {
         $self->log('info',"Processing planet %s",$planet_stats->{name});
         
-        my $buildings = $self->buildings_body($planet_stats->{id});
+        my @buildings = $self->buildings_body($planet_stats->{id});
         
         # Loop all buildings
-        foreach my $building (keys %{$buildings}) {
-            my $building_data = $buildings->{$building};
+        foreach my $building_data (@buildings) {
             
             # Check if building needs to be repaired
             next
                 if $building_data->{efficiency} == 100;
             
-            # Repair building
-            $self->log('notice',"Repairing %s on %s",$building_data->{name},$planet_stats->{name});
-            
             my $building_class = $self->building_class($building_data->{url});
             
             my $building_object = $building_class->new(
                 client      => $self->client->client,
-                id          => $building->{id},
+                id          => $building_data->{id},
             );
+            
+            my $building_detail = $self->request(
+                object  => $building_object,
+                method  => 'view',
+            );
+            
+            # Check if we can afford repair
+            next
+                unless $self->can_afford($planet_stats,$building_detail->{building}{repair_costs});
+            
+            # Repair building
+            $self->log('notice',"Repairing %s on %s",$building_data->{name},$planet_stats->{name});
             
             $self->request(
                 object  => $building_object,

@@ -13,6 +13,7 @@ has 'dispose_percentage' => (
     is      => 'rw',
     required=>1,
     default => 90,
+    documentation => 'Dispose waste if waste storage is n-% filled',
 );
 
 sub run {
@@ -33,22 +34,23 @@ sub run {
             if ($waste_filled < $self->dispose_percentage);
         
         # Get space port
-        my $spaceport_building = $self->building_type_single($planet_stats->{id},'Space Port');
+        my ($spaceport) = $self->find_building($planet_stats->{id},'Space Port');
         
         next
-            unless $spaceport_building;
+            unless $spaceport;
             
         my $spaceport_object = Games::Lacuna::Client::Buildings::SpacePort->new(
             client      => $self->client->client,
-            id          => $spaceport_building->{id},
+            id          => $spaceport->{id},
         );
         
-        my $spaceport_data = $self->request(
+        my $spaceport_data = $self->paged_request(
             object  => $spaceport_object,
-            method  => 'view_all_ships'
+            method  => 'view_all_ships',
+            total   => 'number_of_ships',
+            data    => 'ships',
         );
         
-        # Search for scows
         foreach my $ship (@{$spaceport_data->{ships}}) {
             next
                 unless $ship->{task} eq 'Docked';

@@ -16,7 +16,7 @@ sub run {
     my $max_glyphs = 0;
     my $all_gylphs;
     
-    # Fetch total glyph count from cache
+    # Fetch total glyph count from cache/server
     unless ($all_gylphs = $self->lookup_cache('glyphs')) {
         $all_gylphs = { map { $_ => 0 } @Games::Lacuna::Task::Constants::ORES };
         
@@ -24,7 +24,7 @@ sub run {
         PLANETS:
         foreach my $planet_stats ($self->planets) {
             # Get archaeology ministry
-            my $archaeology_ministry = $self->building_type_single($planet_stats->{id},'Archaeology Ministry');
+            my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology Ministry');
             
             next
                 unless defined $archaeology_ministry;
@@ -60,7 +60,7 @@ sub run {
         $self->log('info',"Processing planet %s",$planet_stats->{name});
         
         # Get archaeology ministry
-        my $archaeology_ministry = $self->building_type_single($planet_stats->{id},'Archaeology Ministry');
+        my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology Ministry');
         
         next
             unless defined $archaeology_ministry;
@@ -77,7 +77,7 @@ sub run {
         }
         
         # Get local ores form mining platforms
-        my $mining_ministry = $self->building_type_single($planet_stats->{id},'Mining Ministry');
+        my $mining_ministry = $self->find_building($planet_stats->{id},'Mining Ministry');
         if (defined $mining_ministry) {
             my $mining_ministry_object = Games::Lacuna::Client::Buildings::MiningMinistry->new(
                 client      => $self->client->client,

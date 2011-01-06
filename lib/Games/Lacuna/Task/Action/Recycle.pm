@@ -21,9 +21,15 @@ sub run {
         my $total_ressources = 0;
         my $total_ressources_coeficient = 0;
         my $total_waste_coeficient = 0;
-        
-        # Get stored waste
+        my $recycleable_waste = 0;
         my $waste = $planet_stats->{waste_stored};
+        
+        # Get recycleable waste
+        if ($planet_stats->{waste_hour} > 0) {
+            $recycleable_waste = $waste;
+        } else {
+            $recycleable_waste = $waste + ($planet_stats->{waste_hour} * 12)
+        }
         
         # Get stored ressources
         foreach my $ressource (@Games::Lacuna::Task::Constants::RESSOURCES) {
@@ -57,18 +63,17 @@ sub run {
             $ressources{$ressource}[2] = ($ressources{$ressource}[1] / $total_ressources_coeficient);
         }
         
-        my $recycling_buildings = $self->building_type($planet_stats->{id},'Waste Recycling Center');
+        my @recycling_buildings = $self->find_building($planet_stats->{id},'Waste Recycling Center');
         
         # Loop all recycling buildings
-        foreach my $building_id (keys %{$recycling_buildings}) {
-            my $building_data = $recycling_buildings->{$building_id};
+        foreach my $recycling_building (@recycling_buildings) {
             
             next
-                if defined $building_data->{work};
+                if defined $recycling_building->{work};
             
             my $recycling_object = Games::Lacuna::Client::Buildings::WasteRecycling->new(
                 client      => $self->client->client,
-                id          => $building_id,
+                id          => $recycling_building->{id},
             );
             
             my $recycling_data = $self->request(
@@ -76,7 +81,7 @@ sub run {
                 method  => 'view',
             );
             
-            my $recycle_quantity = min($waste,$recycling_data->{recycle}{max_recycle});
+            my $recycle_quantity = min($recycleable_waste,$recycling_data->{recycle}{max_recycle});
             
             my %recycle = (map { $_ => int($ressources{$_}[2] * $recycle_quantity) } keys %ressources);
             
