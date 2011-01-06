@@ -8,6 +8,7 @@ use List::Util qw(max);
 use Games::Lacuna::Task::Cache;
 use Games::Lacuna::Task::Constants;
 use Data::Dumper;
+use DateTime;
 
 sub empire_status {
     my $self = shift;
@@ -83,7 +84,7 @@ sub university_level {
     
     my @university_levels;
     foreach my $planet ($self->planet_ids) {
-        my $university = $self->building_type_single($planet,'University');
+        my $university = $self->find_building($planet,'University');
         next 
             unless $university;
         push(@university_levels,$university->{level});
@@ -106,12 +107,38 @@ sub home_planet_id {
     return $empire_status->{home_planet_id};
 }
 
+sub parse_date {
+    my ($self,$date) = @_;
+    
+    return
+        unless defined $date;
+    
+    if ($date =~ m/^
+        (?<day>\d{2}) \s
+        (?<month>\d{2}) \s
+        (?<year>20\d{2}) \s
+        (?<hour>\d{2}) :
+        (?<minute>\d{2}) :
+        (?<second>\d{2}) \s
+        \+(?<timezoneoffset>\d{4})
+        $/x) {
+        $self->log('warn','Unexpected timezone offset %04i',$+{timezoneoffset})
+            if $+{timezoneoffset} != 0;
+        return DateTime->new(
+            (map { $_ => $+{$_} } qw(year month day hour minute second)),
+            time_zone   => 'UTC',
+        );
+    }
+    
+    return;
+}
+
 sub can_afford {
     my ($self,$planet_data,$cost) = @_;
     
     foreach my $ressource (qw(food ore water energy)) {
         return 0
-            if ($planet_data->{$ressource.'_stored'} < $cost->{$ressource});
+            if (( $planet_data->{$ressource.'_stored'} - 1000 ) < $cost->{$ressource});
     }
     
     return 0
