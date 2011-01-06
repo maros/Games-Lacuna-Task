@@ -101,6 +101,8 @@ sub lookup_cache {
         unless defined $cache;
     if (blessed $cache
         && $cache->isa('Games::Lacuna::Task::Cache')) {
+        return
+            unless $cache->is_valid;
         return $cache->value
     } else {
         return $cache;
