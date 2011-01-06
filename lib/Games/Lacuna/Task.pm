@@ -7,9 +7,10 @@ use version;
 our $AUTHORITY = 'cpan:MAROS';
 our $VERSION = version->new("1.00");
 
+use Games::Lacuna::Task::Types;
+
 use Moose;
 use Try::Tiny;
-use Games::Lacuna::Task::Types;
 use YAML qw(LoadFile);
 
 with qw(Games::Lacuna::Task::Role::Client
@@ -50,9 +51,11 @@ sub run {
     foreach my $task (@{$self->task}) {
         $self->log('notice',("-" x $WIDTH));
         $self->log('notice',"Running task %s",$task);
+        
         my $element = join('',map { ucfirst(lc($_)) } split(/_/,$task));
         my $class = 'Games::Lacuna::Task::Action::'.$element;
         
+        # Get task config
         my $task_config = {};
         my $task_config_file = Path::Class::File->new($database_dir,lc($task).'.yml');
         if (-e $task_config_file) {
@@ -64,17 +67,20 @@ sub run {
         try {
             Class::MOP::load_class($class);
         } catch {
-            $self->log('error',"Could not load tasks %s",$class,);
-            $self->log('debug',"%s",$_);
+            $self->log('error',"Could not load task %s: %s",$task,$_);
             $ok = 0;
         };
         if ($ok) {
-            my $task = $class->new(
-                %{$task_config},
-                client  => $client,
-                loglevel=> $self->loglevel,
-            );
-            $task->run;
+            try {
+                my $task = $class->new(
+                    %{$task_config},
+                    client  => $client,
+                    loglevel=> $self->loglevel,
+                );
+                $task->run;
+            } catch {
+                $self->log('error',"An error occured while processing %s: %s",$task,$_);
+            }
         }
     }
     $self->log('notice',("=" x $WIDTH));
