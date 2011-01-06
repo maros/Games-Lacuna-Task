@@ -12,6 +12,8 @@ with qw(Games::Lacuna::Task::Role::Client
 sub run {
     my ($self) = @_;
     
+    my $timestamp = DateTime->now->set_time_zone('UTC');
+    
     # Loop all planets
     PLANETS:
     foreach my $planet_stats ($self->planets) {
@@ -68,8 +70,13 @@ sub run {
         # Loop all recycling buildings
         foreach my $recycling_building (@recycling_buildings) {
             
-            next
-                if defined $recycling_building->{work};
+            # Check recycling is busy
+            if (defined $recycling_building->{work}) {
+                my $work_end = $self->parse_date($recycling_building->{work}{end});
+                if ($work_end > $timestamp) {
+                    next;
+                }
+            }
             
             my $recycling_object = Games::Lacuna::Client::Buildings::WasteRecycling->new(
                 client      => $self->client->client,

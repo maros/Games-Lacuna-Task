@@ -48,6 +48,7 @@ sub all_glyphs {
     $self->write_cache(
         key     => 'glyphs',
         value   => $all_gylphs,
+        max_age => (60*60*24),
     );
     
     return $all_gylphs;
@@ -59,6 +60,8 @@ sub run {
     my $all_gylphs = $self->all_glyphs;
     my $total_glyphs = sum(values %{$all_gylphs});
     my $max_glyphs = max(values %{$all_gylphs});
+    
+    my $timestamp = DateTime->now->set_time_zone('UTC');
     
     # Loop all planets again
     PLANETS:
@@ -72,8 +75,12 @@ sub run {
             unless defined $archaeology_ministry;
         
         # Check archaeology is busy
-        next
-            if defined $archaeology_ministry->{work};
+        if (defined $archaeology_ministry->{work}) {
+            my $work_end = $self->parse_date($archaeology_ministry->{work}{end});
+            if ($work_end > $timestamp) {
+                next;
+            }
+        }
         
         # Get local ores
         my %ores;
