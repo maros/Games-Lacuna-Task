@@ -20,6 +20,8 @@ has 'offensive_assignment' => (
 sub run {
     my ($self) = @_;
     
+    my $timestamp = DateTime->now->set_time_zone('UTC');
+    
     # Loop all planets
     PLANETS:
     foreach my $planet_stats ($self->planets) {
@@ -52,8 +54,8 @@ sub run {
             );
         }
         
-        # Check if we have idle foreign spies
-        my $foreign_idle_spies = 0;
+        # Check if we have active foreign spies (not idle)
+        my $foreign_spies_active = 0;
         if ($security_ministry) {
             my $security_ministry_object = Games::Lacuna::Client::Buildings::Security->new(
                 client      => $self->client->client,
@@ -70,12 +72,13 @@ sub run {
                 $self->log('warn',"There are %i foreign spies on %s",$foreign_spy_data->{spy_count},$planet_stats->{name});
                 
                 foreach my $spy (@{$foreign_spy_data->{spies}}) {
-                    $foreign_idle_spies ++
-                        if $spy->{next_mission} ne $foreign_spy_data->{status}{server}{time};
+                    my $next_mission = $self->parse_date($spy->{next_mission});
+                    if ($next_mission > $timestamp) {
+                        $foreign_spies_active ++
+                    }
                 }
             }
         }
-        
         
         # Get intelligence ministry
         my $security_ministry_object = Games::Lacuna::Client::Buildings::Intelligence->new(
@@ -118,7 +121,7 @@ sub run {
             if ($spy->{assigned_to}{body_id} == $planet_stats->{id}) {
                 $defensive_counter ++;
                 if ($spy->{assignment} ~~ ['Idle','Counter Espionage']
-                    && $foreign_idle_spies >= $defensive_counter) {
+                    && $foreign_spies_active >= $defensive_counter) {
                     $assignment = 'Security Sweep';
                 }
             # Spy is on another planet in my empire
