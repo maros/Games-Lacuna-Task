@@ -43,25 +43,21 @@ sub log {
                 given ($level_name) {
                     when ('error') {
                         print color 'bold red';
-                        printf "%6s: ",$level_name;
                     }
-                    when ('warning') {
+                    when ('warn') {
                         print color 'bold bright_yellow';
-                        printf "%6s: ",$level_name;
                     }
                     when ('notice') {
                         print color 'bold magenta';
-                        printf "%6s: ",$level_name;
                     }
                     when ('info') {
                         print color 'bold cyan';
-                        printf "%6s: ",$level_name;
                     }
                     when ('debug') {
                         print color 'bold white';
-                        printf "%6s: ",$level_name;
                     }
                 }
+                printf "%6s: ",$level_name;
                 print color 'reset';
                 say $logmessage;
             }
