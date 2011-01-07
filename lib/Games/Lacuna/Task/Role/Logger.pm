@@ -13,6 +13,7 @@ has 'loglevel' => (
     isa             => Moose::Util::TypeConstraints::enum(\@LEVELS),
     traits          => ['KiokuDB::DoNotSerialize'],
     default         => 'info',
+    documentation   => 'Print all messages equal or above the given level [Default: info, Accepted: '.join(',',@LEVELS).']',
 );
 
 sub log {

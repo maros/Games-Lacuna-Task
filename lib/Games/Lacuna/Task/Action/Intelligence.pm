@@ -41,7 +41,7 @@ has 'execute_prisoners' => (
 );
 
 sub description {
-    return q[This task automates the management of spies];
+    return q[This task automates the training and assignment of spies];
 }
 
 sub process_planet {

@@ -10,6 +10,10 @@ with qw(Games::Lacuna::Task::Role::Client
     Games::Lacuna::Task::Role::Stars
     Games::Lacuna::Task::Role::Ships);
 
+sub description {
+    return q[This task automates building and sending excavators];
+}
+
 sub process_planet {
     my ($self,$planet_stats) = @_;
     

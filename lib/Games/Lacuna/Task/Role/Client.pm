@@ -12,7 +12,7 @@ has 'database' => (
     is              => 'ro',
     isa             => 'Path::Class::File',
     coerce          => 1,
-    documentation   => 'Path to the lacuna database file',
+    documentation   => 'Path to the lacuna database file [Default '.$DEFAULT_DATABASE.']',
     default         => sub { return $DEFAULT_DATABASE },
     traits          => ['KiokuDB::DoNotSerialize'],
 );

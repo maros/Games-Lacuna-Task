@@ -22,7 +22,7 @@ has 'task'  => (
     is              => 'ro',
     isa             => 'ArrayRef[Str]',
     required        => 1,
-    documentation   => q[Select whick tasks to run],
+    documentation   => 'Select whick tasks to run [Reqired, Multiple]',
 );
 
 has '+database' => (

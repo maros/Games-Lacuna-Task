@@ -11,7 +11,7 @@ with qw(Games::Lacuna::Task::Role::Client
     Games::Lacuna::Task::Role::Ships);
 
 sub description {
-    return q[This task automates the task of probing stars];
+    return q[This task automates probing of stars];
 }
 
 after 'run' => sub {
