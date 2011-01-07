@@ -19,6 +19,8 @@ requires        'Path::Class'                   => 0;
 requires        'MooseX::Types::Path::Class'    => 0;
 
 requires        'YAML'                          => 0;
+requires        'LWP'                           => 0;
+requires        'Text::CSV'                     => 0;
 
 requires        'Term::ReadKey'                 => 0;
 requires        'Term::ANSIColor'               => 0;
