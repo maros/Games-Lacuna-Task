@@ -6,7 +6,8 @@ use warnings;
 # do not change order
 our @RESSOURCES = qw(water ore energy);
 
-our @ORES = qw(fluorite 
+our @ORES = qw(
+    fluorite 
     anthracite 
     zircon 
     chromite 

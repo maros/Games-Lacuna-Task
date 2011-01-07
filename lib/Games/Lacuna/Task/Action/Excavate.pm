@@ -11,7 +11,7 @@ with qw(Games::Lacuna::Task::Role::Client
     Games::Lacuna::Task::Role::Ships);
 
 sub description {
-    return q[This task automates building and sending excavators];
+    return q[This task automates building and dispatching of excavators];
 }
 
 sub process_planet {

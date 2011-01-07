@@ -46,6 +46,7 @@ sub process_planet {
         data    => 'ships',
     );
     
+    # Get all available scows
     foreach my $ship (@{$spaceport_data->{ships}}) {
         next
             unless $ship->{task} eq 'Docked';

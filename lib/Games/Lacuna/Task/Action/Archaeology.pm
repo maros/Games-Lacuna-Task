@@ -17,12 +17,13 @@ sub description {
 sub all_glyphs {
     my ($self) = @_;
     
+    # Fetch total glyph count from cache
     my $all_gylphs = $self->lookup_cache('glyphs');
     
     return $all_gylphs
         if defined $all_gylphs;
     
-    # Fetch total glyph count from cache/server
+    # Set all glyphs to zero
     $all_gylphs = { map { $_ => 0 } @Games::Lacuna::Task::Constants::ORES };
     
     # Loop all planets
@@ -47,6 +48,7 @@ sub all_glyphs {
         }
     }
     
+    # Write total glyph count to cache
     $self->write_cache(
         key     => 'glyphs',
         value   => $all_gylphs,
@@ -58,7 +60,6 @@ sub all_glyphs {
 
 sub process_planet {
     my ($self,$planet_stats) = @_;
-    
     
     my $all_gylphs = $self->all_glyphs;
     my $total_glyphs = sum(values %{$all_gylphs});
@@ -115,8 +116,10 @@ sub process_planet {
     );
     
     foreach my $ore (keys %ores) {
+        # Local ore
         if (defined $archaeology_ores->{ore}{$ore}) {
             $ores{$ore} = $archaeology_ores->{ore}{$ore};
+        # This ore has been imported
         } else {
             delete $ores{$ore}
         }

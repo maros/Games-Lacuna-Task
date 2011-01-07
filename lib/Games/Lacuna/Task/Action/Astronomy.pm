@@ -24,6 +24,7 @@ sub process_planet {
         
     # Get observatory
     my $observatory = $self->find_building($planet_stats->{id},'Observatory');
+    
     # Get space port
     my $spaceport = $self->find_building($planet_stats->{id},'Space Port');
     
@@ -34,7 +35,6 @@ sub process_planet {
     my $max_probes = $observatory->{level} * 3;
     
     # Get observatory probed stars
-    
     my $observatory_object = $self->build_object($observatory);
     my $observatory_data = $self->request(
         object  => $observatory_object,

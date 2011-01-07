@@ -193,7 +193,7 @@ sub process_planet {
             && ! defined $defensive_spy_assignments{'Gather Operative Intelligence'}
             && ! defined $defensive_spy_assignments{'Gather Ressource Intelligence'}
             && ! defined $defensive_spy_assignments{'Gather Empire Intelligence'}) {
-            $assignment = 'Gather Operative Intelligence';
+            $assignment = $self->prisoners_interogation_assignment;
         # Run security sweep
         } elsif (scalar @foreign_spies_active
             && ! defined $defensive_spy_assignments{'Security Sweep'}

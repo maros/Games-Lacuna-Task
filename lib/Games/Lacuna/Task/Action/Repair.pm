@@ -8,6 +8,10 @@ with qw(Games::Lacuna::Task::Role::Client
     Games::Lacuna::Task::Role::Helper
     Games::Lacuna::Task::Role::Logger);
 
+sub description {
+    return q[This task automates the repair of damaged buildings];
+}
+
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
