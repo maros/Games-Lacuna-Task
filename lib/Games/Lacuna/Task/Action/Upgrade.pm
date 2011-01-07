@@ -14,7 +14,7 @@ has 'start_building_at' => (
     is      => 'rw',
     required=> 1,
     default => 1,
-    documentation => 'Upgrade buildings if there are less than n buildings in the build queue',
+    documentation => 'Upgrade buildings if there are less than N buildings in the build queue',
 );
 
 has 'upgrade_preference' => (
