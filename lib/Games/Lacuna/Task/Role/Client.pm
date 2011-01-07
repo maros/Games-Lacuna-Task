@@ -80,20 +80,11 @@ sub request {
     my ($self,%params) = @_;
     
     my $method = delete $params{method};
-    my $type = delete $params{type};
     my $object = delete $params{object};
     my $params = delete $params{params} || [];
     
-    unless (defined $object) {
-        $object = $self
-            ->client
-            ->client
-            ->$type(%params,verbose_rpc => 1);
-    
-        $self->log('debug',"Run external request %s/%s",$type,$method);
-    } else {
-        $self->log('debug',"Run external request %s/%s",ref($object),$method);
-    }
+    $self->log('debug',"Run external request %s->%s",ref($object),$method);
+
     my $request = $object->$method(@$params);
     
     my $status = $request->{status} || $request;
@@ -120,7 +111,6 @@ sub request {
     
     return $request;
 }
-
 
 sub lookup_cache {
     my ($self,$key) = @_;

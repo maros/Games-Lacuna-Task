@@ -10,13 +10,37 @@ use Games::Lacuna::Task::Constants;
 use Data::Dumper;
 use DateTime;
 
+sub build_object {
+    my ($self,$class,@params) = @_;
+    
+    # Get class and id from status hash
+    if (ref $class eq 'HASH') {
+        push(@params,'id',$class->{id});
+        $class = $class->{url};
+    }
+    
+    # Get class from url
+    if ($class =~ m/^\//) {
+        $class = 'Buildings::'.Games::Lacuna::Client::Buildings::type_from_url($class);
+    }
+    
+    # Build class name
+    $class = 'Games::Lacuna::Client::'.ucfirst($class)
+        unless $class =~ m/^Games::Lacuna::Client::(.+)$/;
+    
+    return $class->new(
+        client  => $self->client->client,
+        @params
+    );
+}
+
 sub empire_status {
     my $self = shift;
     
     return $self->lookup_cache('empire')
         || $self->request(
-            type    => 'empire',
-            method  => 'get_status',
+            object      => $self->build_object('Empire'),
+            method      => 'get_status',
         )->{empire};
 }
 
@@ -34,11 +58,16 @@ sub body_status {
     my ($self,$body) = @_;
     
     my $key = 'body/'.$body;
-    $self->lookup_cache($key) || $self->request(
-        type    => 'body',
-        id      => $body,
+    my $body_status = $self->lookup_cache($key);
+    return $body_status
+        if $body_status;
+    
+    $body_status = $self->request(
+        object  => $self->build_object('Body', id => $body),
         method  => 'get_status',
     )->{body};
+    
+    return $body_status;
 }
 
 sub find_building {
@@ -61,8 +90,7 @@ sub buildings_body {
     
     my $key = 'body/'.$body.'/buildings';
     my $buildings = $self->lookup_cache($key) || $self->request(
-        type    => 'body',
-        id      => $body,
+        object  => $self->build_object('Body', id => $body),
         method  => 'get_buildings',
     )->{buildings};
     
@@ -72,11 +100,6 @@ sub buildings_body {
         push(@results,$buildings->{$building_id});
     }
     return @results;
-}
-
-sub building_class {
-    my ($self,$url) = @_;
-    return "Games::Lacuna::Client::Buildings::".Games::Lacuna::Client::Buildings::type_from_url($url);
 }
 
 sub university_level {
