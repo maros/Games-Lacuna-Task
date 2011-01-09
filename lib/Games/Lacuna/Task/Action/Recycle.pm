@@ -66,6 +66,9 @@ sub process_planet {
     # Loop all recycling buildings
     foreach my $recycling_building (@recycling_buildings) {
         
+        last
+            if $recycleable_waste == 0;
+        
         # Check recycling is busy
         if (defined $recycling_building->{work}) {
             my $work_end = $self->parse_date($recycling_building->{work}{end});
@@ -91,6 +94,8 @@ sub process_planet {
             method  => 'recycle',
             params  => [ (map { $recycle{$_} } @Games::Lacuna::Task::Constants::RESSOURCES) ],
         );
+        
+        $recycleable_waste -= $recycle_quantity;
         
         $self->clear_cache('body/'.$planet_stats->{id}.'/buildings');
     }
