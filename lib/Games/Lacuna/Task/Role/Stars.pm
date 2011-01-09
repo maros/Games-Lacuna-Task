@@ -66,6 +66,16 @@ sub _build_stars {
     return \@stars;
 }
 
+sub find_star_by_xy {
+    my ($self,$x,$y) = @_;
+    
+    foreach my $star (@{$self->stars}) {
+        return $star->{id}
+            if $star->{x} == $x
+            && $star->{y} == $y;
+    }
+}
+
 sub add_probed_star {
     my ($self,$star) = @_;
     return
