@@ -25,6 +25,8 @@ lacuna_task - Automate various tasks in the Lacuna MMPOG
 
 Specify which tasks to run
 
+C<--task ALL> runs all avaliable tasks
+
 Reqired
 Multiple
 

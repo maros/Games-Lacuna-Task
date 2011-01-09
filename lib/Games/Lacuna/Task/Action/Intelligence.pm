@@ -127,6 +127,7 @@ sub process_planet {
             # Foreign planet
             } else {
                 # TODO Check if empire is ally
+                # TODO Some way to configure offensive assignment
                 $assignment = $self->offensive_assignment
             }
             $self->log('notice',"Assigning spy %s from %s on %s to %s",$spy->{name},$planet_stats->{name},$spy->{assigned_to}{name},$assignment);

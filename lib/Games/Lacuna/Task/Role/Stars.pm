@@ -155,5 +155,60 @@ sub stars_by_distance {
         @star_distance;
 }
 
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Role::Stars - Astronomy helper methods
+
+=head1 SYNOPSIS
+
+    package Games::Lacuna::Task::Action::MyTask;
+    use Moose;
+    extends qw(Games::Lacuna::Task::Action);
+    with qw(Games::Lacuna::Task::Role::Stars);
+    
+=head1 DESCRIPTION
+
+This role provides astronomy-related helper methods.
+
+=head1 METHODS
+
+=head2 add_probed_star
+
+Adds a star to the list of known/probed stars
+
+=head2 add_unprobed_star
+
+Adds a star to the list of currently unprobed stars
+
+=head2 is_probed_star
+
+Check if a star is known to be probed
+
+=head2 is_unprobed_star
+
+Check if a star is known to be unprobed
+
+=head2 save_probed_star
+
+Save list of probed stars
+
+=head2 save_unprobed_star
+
+Save list of unprobed stars
+
+=head2 stars_by_distance
+
+    my @stars = $self->stars_by_distance($x,$y,$inverse)
+
+Returns a list of stars ordered by distance to the given point
+
+=head2 stars
+
+List of all stars on the current game server
+
+=cut
+
 no Moose::Role;
 1;

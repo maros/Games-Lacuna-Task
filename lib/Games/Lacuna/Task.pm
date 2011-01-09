@@ -104,4 +104,40 @@ sub run {
     $self->log('notice',("=" x $WIDTH));
 }
 
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task - Automation framework for the Lacuna Expanse MMOPG
+
+=head1 SYNOPSIS
+
+    my $task   = Games::Lacuna::Task->new(
+        task    => ['recycle','repair'],
+    );
+    $task->run();
+
+or via commandline (see bin/lacuna_task)
+
+=head1 DESCRIPTION
+
+This module provides a framework for implementing various automation tasks for
+the Lacuna Expanse. It provides 
+
+=over
+
+=item * a way of customizing which tasks to run in which order
+
+=item * a logging mechanism
+
+=item * storage (KiokuDB)
+
+=item * simple access to the Lacuna API (via Games::Lacuna::Client)
+
+=item * many useful helper methods and roles
+
+=cut
+
+__PACKAGE__->meta->make_immutable;
+no Moose;
 1;

@@ -208,5 +208,84 @@ sub can_afford {
     return 1;
 }
 
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Role::Helper - Various helper method
+
+=head1 METHODS
+
+=head2 body_status
+
+ my $body_status = $self->body_status($body_id);
+
+Returns the status hash of a given body/planet.
+
+=head2 buildings_body
+
+ my $body_buildings = $self->buildings_body($body_id);
+
+Returns all buildings for a given planet.
+
+=head2 empire_status
+
+Returns the empire status hash
+
+=head2 build_object
+
+ my $glc_object = $self->build_object('/university');
+ OR
+ my $glc_object = $self->build_object($building_status_response);
+ OR
+ my $glc_object = $self->build_object('Spareport', id => $building_id);
+ OR
+ my $glc_object = $self->build_object('Map');
+
+Returns a L<Game::Lacuna::Client> object
+
+=head2 can_afford
+
+ $self->can_afford($planet_id,$cost_hash);
+ OR
+ $self->can_afford($planet_stats_hash,$cost_hash);
+
+Calculates if the upgrade/repair can be afforded
+
+=head2 find_building
+
+ my @spaceports = $self->buildings_body('Space Port');
+
+Finds all buildings of a given type ordered by level.
+
+=head2 home_planet_id
+
+Returns the id of the empire' home planet
+
+=head2 planet_ids
+
+Returns the empire' planet ids
+
+=head2 planets
+
+Returns the empire' planet status hashes
+
+=head2 university_level
+
+Returns your empire' university level
+
+=head2 delta_date
+
+ $self->delta_date($date);
+
+Returns a human readable delta for the given date
+
+=head2 parse_date
+
+Returns a DateTime object for the given date
+
+=cut
+
+
 no Moose::Role;
 1;

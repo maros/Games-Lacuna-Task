@@ -94,5 +94,37 @@ sub ships {
     return @avaliable_ships;
 }
 
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Role::Ships - Ship helper methods
+
+=head1 SYNOPSIS
+
+    package Games::Lacuna::Task::Action::MyTask;
+    use Moose;
+    extends qw(Games::Lacuna::Task::Action);
+    with qw(Games::Lacuna::Task::Role::Ships);
+    
+=head1 DESCRIPTION
+
+This role provides ship-related helper methods.
+
+=head1 METHODS
+
+=head2 ships
+
+    my @avaliable_scows = $self->ships(
+        planet          => $planet_stats,
+        ships_needed    => 3, # get there
+        ship_type       => 'scow',
+    );
+
+Tries to fetch the given number of available ships. If there are not enough 
+ships available then the missing ships are built.
+
+=cut
+
 no Moose::Role;
 1;
