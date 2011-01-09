@@ -196,6 +196,10 @@ sub parse_date {
 sub can_afford {
     my ($self,$planet_data,$cost) = @_;
     
+    unless (ref($planet_data) eq 'HASH') {
+        $planet_data = $self->body_status($planet_data);
+    }
+    
     foreach my $ressource (qw(food ore water energy)) {
         return 0
             if (( $planet_data->{$ressource.'_stored'} - 1000 ) < $cost->{$ressource});
