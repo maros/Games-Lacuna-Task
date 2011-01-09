@@ -130,6 +130,43 @@ sub home_planet_id {
     return $empire_status->{home_planet_id};
 }
 
+sub delta_date {
+    my ($self,$date) = @_;
+    
+    $date = $self->parse_date($date)
+        unless blessed($date) && $date->isa('DateTime');
+    
+    my $timestamp = DateTime->now->set_time_zone('UTC');
+    my $date_delta_ms = $timestamp->delta_ms( $date );
+    
+    my $delta_days = int($date_delta_ms->delta_minutes / (24*60));
+    my $delta_days_rest = $date_delta_ms->delta_minutes % (24*60);
+    my $delta_hours = int($delta_days_rest / 60);
+    my $delta_hours_rest = $delta_days_rest % 60;
+    
+    my $return = sprintf('%02im:%02is',$delta_hours_rest,$date_delta_ms->seconds);
+    
+    if ($delta_hours) {
+        $return = sprintf('%02ih:%s',$delta_hours,$return);
+    }
+    if ($delta_days) {
+        $return = sprintf('%02id %s',$delta_days,$return);
+    }
+    
+    return $return;
+    
+    
+#    return DateTime::Duration->new(
+#        years       => 0,
+#        months      => 0,
+#        weeks       => 0,
+#        days        => $delta_days,
+#        hours       => $delta_hours,
+#        minutes     => $delta_hours_rest,
+#        seconds     => $date_delta_ms->seconds,
+#    );
+}
+
 sub parse_date {
     my ($self,$date) = @_;
     
