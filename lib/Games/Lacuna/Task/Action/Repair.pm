@@ -26,6 +26,10 @@ sub process_planet {
             method  => 'view',
         );
         
+        # Check if building really needs repair
+        next
+            if $building_detail->{efficiency} == 100;
+        
         # Check if we can afford repair
         next
             unless $self->can_afford($planet_stats,$building_detail->{building}{repair_costs});
