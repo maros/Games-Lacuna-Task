@@ -6,9 +6,6 @@ use List::Util qw(min);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-with qw(Games::Lacuna::Task::Role::Client
-    Games::Lacuna::Task::Role::Helper
-    Games::Lacuna::Task::Role::Logger);
 
 sub description {
     return q[This task automates the recycling of waste in the Waste Recycling Center];

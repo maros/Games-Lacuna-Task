@@ -6,9 +6,6 @@ use List::Util qw(max);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-with qw(Games::Lacuna::Task::Role::Client
-    Games::Lacuna::Task::Role::Helper
-    Games::Lacuna::Task::Role::Logger);
 
 has 'start_building_at' => (
     isa     => 'Int',

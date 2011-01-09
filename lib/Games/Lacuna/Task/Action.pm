@@ -3,6 +3,9 @@ package Games::Lacuna::Task::Action;
 use 5.010;
 
 use Moose;
+with qw(Games::Lacuna::Task::Role::Client
+    Games::Lacuna::Task::Role::Helper
+    Games::Lacuna::Task::Role::Logger);
 
 sub run {
     my ($self) = @_;
