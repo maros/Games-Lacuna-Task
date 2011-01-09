@@ -79,6 +79,7 @@ sub add_unprobed_star {
     return
         unless $star;
     $self->unprobed_stars->{$star} = 1;
+    delete $self->probed_stars->{$star};
 }
 
 sub is_probed_star {
@@ -86,6 +87,8 @@ sub is_probed_star {
     
     return
         unless $star;
+    return 0 
+        if $star ~~ $self->unprobed_stars;
     return $star ~~ $self->probed_stars;
 }
 
@@ -94,6 +97,8 @@ sub is_unprobed_star {
     
     return
         unless $star;
+    return 0 
+        if $star ~~ $self->probed_stars;
     return $star ~~ $self->unprobed_stars;
 }
 
