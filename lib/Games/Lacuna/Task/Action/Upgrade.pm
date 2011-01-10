@@ -71,8 +71,6 @@ sub process_planet {
                     next
                         if $building_data->{level} >= $max_level && $check;
                     
-                    my $building_class = $self->building_class();
-                    
                     my $building_object = $self->build_object($building_data);
                     my $building_detail = $self->request(
                         object  => $building_object,
