@@ -131,11 +131,14 @@ sub process_planet {
                 $assignment = $self->offensive_assignment
             }
             $self->log('notice',"Assigning spy %s from %s on %s to %s",$spy->{name},$planet_stats->{name},$spy->{assigned_to}{name},$assignment);
-            $self->request(
+            my $response = $self->request(
                 object  => $intelligence_ministry_object,
                 method  => 'assign_spy',
                 params  => [$spy->{id},$assignment],
             );
+            unless ($response->{mission}{result} eq 'Success') {
+                $self->log('warn',"Mission of spy %s from %s on %s failed:",$spy->{name},$planet_stats->{name},$spy->{assigned_to}{name},$response->{reason});
+            }
         }
         $counter ++;
     }
