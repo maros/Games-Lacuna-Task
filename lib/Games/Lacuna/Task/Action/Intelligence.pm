@@ -8,10 +8,10 @@ use Moose;
 extends qw(Games::Lacuna::Task::Action);
 
 has 'offensive_assignment' => (
-    isa             => 'Str',
+    isa             => 'ArrayRef',
     is              => 'rw',
     required        => 1,
-    default         => 'Gather Resource Intelligence',
+    default         => sub { ['Gather Resource Intelligence','Gather Empire Intelligence','Gather Operative Intelligence'] },
     documentation   => 'Default offensive spy assignment',
 );
 
@@ -128,7 +128,8 @@ sub process_planet {
             } else {
                 # TODO Check if empire is ally
                 # TODO Some way to configure offensive assignment
-                $assignment = $self->offensive_assignment
+                my $assignment_index = rand(scalar @{$self->offensive_assignment});
+                $assignment = $self->offensive_assignment->[$assignment_index];
             }
             $self->log('notice',"Assigning spy %s from %s on %s to %s",$spy->{name},$planet_stats->{name},$spy->{assigned_to}{name},$assignment);
             my $response = $self->request(
