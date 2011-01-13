@@ -77,6 +77,17 @@ sub process_planet {
         }
     }
     
+    my $archaeology_ministry_object = $self->build_object($archaeology_ministry);
+    
+    # Get searchable ores
+    my $archaeology_view = $self->request(
+        object  => $archaeology_ministry_object,
+        method  => 'view',
+    );
+    
+    next
+        if defined $archaeology_view->{building}{work}{seconds_remaining};
+    
     # Get local ores
     my %ores;
     foreach my $ore (keys %{$planet_stats->{ore}}) {
@@ -103,8 +114,6 @@ sub process_planet {
             }
         }
     }
-    
-    my $archaeology_ministry_object = $self->build_object($archaeology_ministry);
     
     # Get searchable ores
     my $archaeology_ores = $self->request(
@@ -134,7 +143,7 @@ sub process_planet {
                 params  => [$ore],
             );
             
-            $self->clear_cache('body/'.$planet_stats->{id}.'/buildings');
+            #$self->clear_cache('body/'.$planet_stats->{id}.'/buildings');
             
             return;
         }
