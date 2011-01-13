@@ -138,7 +138,7 @@ sub process_planet {
                 params  => [$spy->{id},$assignment],
             );
             unless ($response->{mission}{result} eq 'Success') {
-                $self->log('warn',"Mission of spy %s from %s on %s failed:",$spy->{name},$planet_stats->{name},$spy->{assigned_to}{name},$response->{reason});
+                $self->log('warn',"Mission of spy %s from %s on %s failed:",$spy->{name},$planet_stats->{name},$spy->{assigned_to}{name},$response->{mission}{reason});
             }
         }
         $counter ++;
