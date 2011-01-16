@@ -9,6 +9,7 @@ has 'email' => (
     is              => 'rw',
     isa             => 'Str',
     documentation   => q[Notification e-mail address],
+    required        => 1,
 );
 
 has 'email_send' => (
