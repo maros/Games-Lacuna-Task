@@ -99,32 +99,41 @@ sub check_for_destroyed_probes {
     foreach my $message (@{$inbox_data->{messages}}) {
         next
             unless $message->{from_id} == $message->{to_id};
-        next
-            unless $message->{subject} eq 'Probe Destroyed';
         
-        # Get message
-        my $message_data = $self->request(
-            object  => $inbox_object,
-            method  => 'read_message',
-            params  => [$message->{id}],
-        );
-        
-        next
-            unless $message_data->{message}{body} =~ m/{Starmap\s(?<x>-*\d+)\s(?<y>-*\d+)\s(?<star_name>[^}]+)}/;
-        
-        my $star_name = $+{star_name};
-        my $star_id = $self->find_star_by_xy($+{x},$+{y});
-        next
-            unless $star_id;
-        
-        next
-            unless $message_data->{message}{body} =~ m/{Empire\s(?<empire_id>\d+)\s(?<empire_name>[^}]+)}/;
-        
-        $self->add_unprobed_star($star_id);
-        
-        $self->log('warn','A probe in the %s system was shot down by %s',$star_name,$+{empire_name});
-        
-        push(@archive_messages,$message->{id});
+        given ($message->{subject}) {
+            when('Probe Detected!') {
+                push(@archive_messages,$message->{id});
+            }
+            when ('Probe Destroyed') {
+                
+                # TODO check last run so that we do not process old messages
+                #$self->parse_date($message->{date});
+                
+                # Get message
+                my $message_data = $self->request(
+                    object  => $inbox_object,
+                    method  => 'read_message',
+                    params  => [$message->{id}],
+                );
+                
+                next
+                    unless $message_data->{message}{body} =~ m/{Starmap\s(?<x>-*\d+)\s(?<y>-*\d+)\s(?<star_name>[^}]+)}/;
+                
+                my $star_name = $+{star_name};
+                my $star_id = $self->find_star_by_xy($+{x},$+{y});
+                next
+                    unless $star_id;
+                
+                next
+                    unless $message_data->{message}{body} =~ m/{Empire\s(?<empire_id>\d+)\s(?<empire_name>[^}]+)}/;
+                
+                $self->add_unprobed_star($star_id);
+                
+                $self->log('warn','A probe in the %s system was shot down by %s',$star_name,$+{empire_name});
+                
+                push(@archive_messages,$message->{id});
+            }
+        }
     }
     
     # Archive
