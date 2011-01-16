@@ -9,6 +9,7 @@ sub ships {
     my $planet_stats = $params{planet};
     my $ship_type = $params{ship_type};
     my $ships_needed = $params{ships_needed} // 1;
+    my $ships_travelling = $params{ship_travelling} // 0;
     
     return
         unless $ship_type;
@@ -33,6 +34,7 @@ sub ships {
     
     my @avaliable_ships;
     my $building_ships = 0;
+    my $travelling_ships = 0;
     
     # Find all avaliable and buildings ships
     SHIPS:
@@ -43,12 +45,14 @@ sub ships {
             push(@avaliable_ships,$ship->{id});
         } elsif ($ship->{task} eq 'Building') {
             $building_ships ++;
+        } elsif ($ship->{task} eq 'Travelling' && $ships_travelling) {
+            $travelling_ships ++;
         }
         last SHIPS
             if scalar(@avaliable_ships) == $ships_needed;
     }
     
-    my $total_ships = scalar(@avaliable_ships) + $building_ships;
+    my $total_ships = scalar(@avaliable_ships) + $building_ships + $travelling_ships;
     
     # We have to build new probes
     if ($total_ships < $ships_needed

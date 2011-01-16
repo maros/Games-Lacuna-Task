@@ -54,6 +54,7 @@ sub process_planet {
         planet          => $planet_stats,
         ships_needed    => $can_send_probes,
         ship_type       => 'probe',
+        ships_travelling=> 1,
     );
     
     # Send available probes to stars
