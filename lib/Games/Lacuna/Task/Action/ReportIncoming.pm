@@ -47,12 +47,6 @@ after 'run' => sub {
         
         $self->add_known_incoming(map { $_->{id} } @{$self->new_incoming});
         
-        $self->write_cache(
-            key     => 'ships/known_incoming',
-            value   => $self->known_incoming,
-            max_age => (60*60*24*7), # Cache one week
-        );
-        
         my $message = join ("\n",map { 
             sprintf('%s: %s from %s in %s (%s %s)',$_->{planet},$_->{ship},$_->{from_empire},$_->{arrives}->ymd('.'),$_->{arrives}->hms(':'))
         } @{$self->new_incoming});
@@ -60,6 +54,11 @@ after 'run' => sub {
         $self->notify(
             "Incoming ship(s) detected!",
             $message
+        );
+        $self->write_cache(
+            key     => 'ships/known_incoming',
+            value   => $self->known_incoming,
+            max_age => (60*60*24*7), # Cache one week
         );
     }
 };
@@ -101,23 +100,23 @@ sub process_planet {
         next
             if ($ship->{type} ~~ [qw(hulk cargo_ship galleon barge freighter)]);
         
-        my $arrives = $self->parse_date($ship->{arrives});
+        my $arrives = $self->parse_date($ship->{date_arrives});
         
         my $incoming = {
             arrives_delta   => $self->delta_date($arrives),
             arrives         => $arrives,
             planet          => $planet_stats->{name},
             ship            => $ship->{type},
-            from_empire    => ($from || 'unknown'),
+            from_empire     => ($from || 'unknown'),
             id              => $ship->{id},
         };
         
-        $self->log('warn','Incoming %s from %s arriving in % detected on %s',$incoming->{ship},$incoming->{from_empire},$incoming->{arrives_delta} ,$planet_stats->{name});
+        $self->log('warn','Incoming %s ship from %s arriving in %s detected on %s',$incoming->{ship},$incoming->{from_empire},$incoming->{arrives_delta} ,$planet_stats->{name});
         
         # Check if we already know this ship
         next
             if $ship->{id} ~~ $self->known_incoming;
-            
+        
         $self->add_new_incoming($incoming);
     }
 }
