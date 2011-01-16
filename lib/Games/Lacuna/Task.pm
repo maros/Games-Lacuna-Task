@@ -22,6 +22,13 @@ with qw(Games::Lacuna::Task::Role::Client
     Games::Lacuna::Task::Role::Logger
     MooseX::Getopt);
 
+has 'config' => (
+    is              => 'ro',
+    isa             => 'HashRef',
+    traits          => ['NoGetopt'],
+    lazy_build      => 1,
+);
+
 has 'task'  => (
     is              => 'ro',
     isa             => 'ArrayRef[Str]',
@@ -35,6 +42,32 @@ has '+database' => (
 
 our $WIDTH = 62;
 
+sub _build_config {
+    my ($self) = @_;
+    
+    my $database_dir = $self->database->dir;
+    
+    # Get global config
+    my $global_config = {};
+    
+    foreach my $file (qw(lacuna config default)) {
+        my $global_config_file = Path::Class::File->new($database_dir,$file.'.yml');
+        if (-e $global_config_file) {
+            $self->log('debug',"Loading config from %s",$global_config_file);
+            $global_config = LoadFile($global_config_file->stringify);
+            last;
+        }
+    }
+    
+    
+    return $global_config;
+}
+
+sub task_config {
+    my ($self,$task) = @_;
+    return $self->config->{$task} || {};
+}
+
 sub run {
     my ($self) = @_;
     
@@ -47,8 +80,6 @@ sub run {
     
     $self->log('notice',("=" x $WIDTH));
     $self->log('notice',"Running tasks for empire %s",$empire_name);
-    
-    my $database_dir = $self->database->dir;
     
     my @tasks;
     if (scalar @{$self->task} == 1
@@ -73,14 +104,6 @@ sub run {
         $self->log('notice',("-" x $WIDTH));
         $self->log('notice',"Running task %s",$task_name);
         
-        # Get task config
-        my $task_config = {};
-        my $task_config_file = Path::Class::File->new($database_dir,$task_name.'.yml');
-        if (-e $task_config_file) {
-            $self->log('debug',"Loading task %s config from",$task_name,$task_config_file);
-            $task_config = LoadFile($task_config_file->stringify);
-        }
-        
         my $ok = 1;
         try {
             Class::MOP::load_class($task_class);
@@ -91,7 +114,7 @@ sub run {
         if ($ok) {
             try {
                 my $task = $task_class->new(
-                    %{$task_config},
+                    %{$self->task_config($task_name)},
                     client  => $client,
                     loglevel=> $self->loglevel,
                 );
