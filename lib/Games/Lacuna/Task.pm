@@ -137,6 +137,9 @@ Games::Lacuna::Task - Automation framework for the Lacuna Expanse MMOPG
 
     my $task   = Games::Lacuna::Task->new(
         task    => ['recycle','repair'],
+        config  => {
+            recycle => ...
+        },
     );
     $task->run();
 
@@ -152,6 +155,8 @@ the Lacuna Expanse. It provides
 =item * a way of customizing which tasks to run in which order
 
 =item * a logging mechanism
+
+=item * configuration handling
 
 =item * storage (KiokuDB)
 
