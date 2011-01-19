@@ -85,7 +85,7 @@ sub process_planet {
         method  => 'view',
     );
     
-    next
+    return
         if defined $archaeology_view->{building}{work}{seconds_remaining};
     
     # Get local ores
