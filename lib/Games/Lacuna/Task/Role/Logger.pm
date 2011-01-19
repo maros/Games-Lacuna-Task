@@ -46,7 +46,7 @@ sub log {
                         print color 'bold red';
                     }
                     when ('warn') {
-                        print color 'bold bright_yellow';
+                        print color 'bold yellow';
                     }
                     when ('notice') {
                         print color 'bold magenta';
