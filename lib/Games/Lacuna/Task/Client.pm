@@ -43,7 +43,10 @@ sub _build_storage {
     my $storage_file = $self->storage_file->stringify;
     unless (-e $storage_file) {
         $self->log('info',"Initializing storage file %s",$storage_file);
-        #`sqlite3 --init $storage_file --batch`;
+        my $storage_dir = $self->storage_file->parent->stringify;
+        mkdir($storage_dir)
+           or $self->log('error','Could not create storage directors %s',$storage_dir);
+        `sqlite --init $storage_file --batch`;
     }
     
     my $storage = KiokuDB->connect(
