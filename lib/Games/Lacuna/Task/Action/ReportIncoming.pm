@@ -49,13 +49,16 @@ after 'run' => sub {
         $self->add_known_incoming(map { $_->{id} } @{$self->new_incoming});
         
         my $message = join ("\n",map { 
-            sprintf('%s: %s from %s in %s (%s %s)',$_->{planet},$_->{ship},$_->{from_empire},$_->{arrives}->ymd('.'),$_->{arrives}->hms(':'))
+            sprintf('%s: %s from %s arrives at %s %s',$_->{planet},$_->{ship},$_->{from_empire},$_->{arrives}->ymd('.'),$_->{arrives}->hms(':'))
         } @{$self->new_incoming});
         
+        my $empire_name = $self->lookup_cache('config')->{name};
+        
         $self->notify(
-            "Incoming ship(s) detected!",
+            "[$empire_name] Incoming ship(s) detected!",
             $message
         );
+        
         $self->write_cache(
             key     => 'ships/known_incoming',
             value   => $self->known_incoming,
@@ -63,7 +66,6 @@ after 'run' => sub {
         );
     }
 };
-
 
 sub process_planet {
     my ($self,$planet_stats) = @_;
