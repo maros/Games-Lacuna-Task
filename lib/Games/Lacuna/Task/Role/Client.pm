@@ -154,6 +154,69 @@ sub clear_cache {
     $storage->delete($key);
 }
 
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Role::Client - Basic methods to access the Lacuna API
+
+=head1 ACCESSORS
+
+=head2 database
+
+Path to the database directory.
+
+=head2 client
+
+L<Games::Lacuna::Task::Client> object
+
+=head1 METHODS
+
+=head2 request
+
+Runs a request, caches the response and returns the response.
+
+ my $response =  $self->request(
+    object  => Games::Lacuna::Client::* object,
+    method  => Method name,
+    params  => [ Params ],
+ );
+
+=head2 paged_request
+
+Runs a paged request (eg. list all trades)
+
+ my $response =  $self->paged_request(
+    object  => Games::Lacuna::Client::* object,
+    method  => Method name,
+    params  => [ Params ],
+    total   => Field containing the number of items,
+    data    => Data field,
+ );
+
+=head2 lookup_cache
+
+Fetches the value with the given key from the cache.
+
+ my $value = $self->lookup_cache($key);
+
+=head2 write_cache
+
+Writes a value to the cache.
+
+ $self->write_cache(
+    key     => Cache key,
+    data    => Data,
+    max_age => Max cache age (optional),
+ );
+
+=head2 clear_cache
+
+Removes a value from the cache
+
+ $self->clear_cache($key);
+
+=cut
 
 no Moose::Role;
 1;

@@ -1,0 +1,79 @@
+=encoding utf8
+
+=head1 NAME
+
+HOWTO for the Games::Lacuna::Task automation framework
+
+=head1 USERS
+
+After installing Games::Lacuna::Task you need to start the C<lacuna_task> 
+script. It will prompt you your empire name, server and password and store
+them to in a sqlite database in the C<database> directory (Defaults to
+~/.lacuna)
+
+Optionally you can create a configuration file called config.yml in the same
+directory. The file should have the following format:
+
+ ---
+ task1_name:
+   task1_option1: 80
+   task1_option2: ...
+ task2_name:
+   task2_option1: 
+     - "some"
+     - "value"
+
+Information about available tasks and their configuration options is available
+when running the following command C<lacuna_task --task_info>
+
+=head1 DEVELOPERS
+
+It is easy to create your own tasks. First you need to create a package
+in the C<Games::Lacuna::Task::Action::*> namespace which should inherit from 
+L<Games::Lacuna::Task::Action>.
+
+If your tasks is "planet-centric" you need to implement a C<process_planet>
+method, otherwise you need to override the C<run> method. With Moose method
+modificatiors (e.g. C<after>) you can modify the behaviour of the C<run> 
+method and for example add some cleanup code. The C<process_planet> method 
+will recieve the planet stat hash as the first argument.
+
+Furthermore your task class has to implement a C<documentation> function
+that returns a short task description.
+
+If your tasks requires configuration values you can specify moose accessors.
+Accessors should have a documentation string and meaningfull defaults. You
+can add the 'NoIntrospection' trait if you do not want to display an
+accessor in the task info.
+
+In your task class you have access to various helper methods that are provided
+by several roles:
+
+=head2 Games::Lacuna::Task::Role::Client
+
+Basic methods to access the Lacuna API via L<Games::Lacuna::Task::Client>.
+Is always loaded.
+
+=head2 Games::Lacuna::Task::Role::Notify
+
+Print log messages. Is always loaded.
+
+=head2 Games::Lacuna::Task::Role::Helper
+
+Various helper methods. Is always loaded.
+
+=head2 Games::Lacuna::Task::Role::Stars
+
+Helper methods for working with the star map.
+
+=head2 Games::Lacuna::Task::Role::Ships
+
+Helper methods for dispatching and building ships.
+
+=head2 Games::Lacuna::Task::Role::Notify
+
+Helper methods for sending notification e-mails to the user.
+
+=back
+
+=cut

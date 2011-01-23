@@ -34,9 +34,9 @@ Multiple
 
 =head3 database
 
-Path to a sqlite database (will be created if it does not exist)
+Path to the lacuna directory (will be created if it does not exist)
 
-Default: ~/.lacuna/default.db
+Default: ~/.lacuna/
 
 =head3 loglevel
 

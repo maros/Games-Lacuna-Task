@@ -216,7 +216,7 @@ sub can_afford {
 
 =head1 NAME
 
-Games::Lacuna::Task::Role::Helper - Various helper method
+Games::Lacuna::Task::Role::Helper - Various helper methods
 
 =head1 METHODS
 
@@ -246,7 +246,7 @@ Returns the empire status hash
  OR
  my $glc_object = $self->build_object('Map');
 
-Returns a L<Game::Lacuna::Client> object
+Returns a L<Game::Lacuna::Client::*> object
 
 =head2 can_afford
 

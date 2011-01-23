@@ -13,7 +13,7 @@ has 'loglevel' => (
     isa             => Moose::Util::TypeConstraints::enum(\@LEVELS),
     traits          => ['KiokuDB::DoNotSerialize','NoIntrospection'],
     default         => 'info',
-    documentation   => 'Print all messages equal or above the given level [Default: info, Accepted: '.join(',',@LEVELS).']',
+    documentation   => 'Print all messages equal or above the given level [Default: info, Available: '.join(',',@LEVELS).']',
 );
 
 sub log {
@@ -66,6 +66,28 @@ sub log {
     }
 }
 
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Role::Logger - Prints log messages
+
+=head1 ACCESSORS
+
+=head2 loglevel
+
+Specify the loglevel. Will print all log messages equal or above the given
+level if running in an interactive shell. 
+
+=head1 METHODS
+
+=head2 log
+
+Print a log message. You can use the sprintf syntax.
+
+ $self->log($loglevel,$message,@sprintf_params);
+
+=cut
 
 no Moose::Role;
 1;
