@@ -148,10 +148,11 @@ sub run {
                                 my $default = $attribute->default;
                                 $default = $default->()
                                     if (ref($default) eq 'CODE');
-                                $default = Data::Dumper::Dumper($default);
-                                chomp($default);
-                                $default =~ s/^\$VAR1\s=\s(.+);$/$1/;
-                                $self->log('info',"  Default: %s",$default);
+                                $self->log('info',"  Default: %s",_pretty_dump($default));
+                            }
+                            my $current_config = $self->task_config($task_name);
+                            if (exists $current_config->{$attribute->name}) {
+                                $self->log('info',"  Current configtation: %s",_pretty_dump($current_config->{$attribute->name}));
                             }
                         }
                     } else {
@@ -174,6 +175,14 @@ sub run {
     }
     $self->log('notice',("=" x $WIDTH));
 }
+
+sub _pretty_dump {
+    my $dump = Data::Dumper::Dumper($_[0]);
+    chomp($dump);
+    $dump =~ s/^\$VAR1\s=\s(.+);$/$1/s;
+    return $dump;
+}
+
 
 =encoding utf8
 
