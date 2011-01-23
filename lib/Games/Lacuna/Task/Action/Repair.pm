@@ -28,7 +28,7 @@ sub process_planet {
         
         # Check if building really needs repair
         next
-            if $building_detail->{efficiency} == 100;
+            if $building_detail->{building}{efficiency} == 100;
         
         # Check if we can afford repair
         next
