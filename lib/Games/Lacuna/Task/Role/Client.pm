@@ -14,13 +14,13 @@ has 'database' => (
     coerce          => 1,
     documentation   => 'Path to the lacuna database file [Default '.$DEFAULT_DATABASE.']',
     default         => sub { return $DEFAULT_DATABASE },
-    traits          => ['KiokuDB::DoNotSerialize'],
+    traits          => ['KiokuDB::DoNotSerialize','NoIntrospection'],
 );
 
 has 'client' => (
     is              => 'ro',
     isa             => 'Games::Lacuna::Task::Client',
-    traits          => ['NoGetopt','KiokuDB::DoNotSerialize'],
+    traits          => ['NoGetopt','KiokuDB::DoNotSerialize','NoIntrospection'],
     lazy_build      => 1,
 );
 

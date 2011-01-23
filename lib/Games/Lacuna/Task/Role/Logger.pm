@@ -11,7 +11,7 @@ our @LEVELS = qw(debug info notice warn error);
 has 'loglevel' => (
     is              => 'ro',
     isa             => Moose::Util::TypeConstraints::enum(\@LEVELS),
-    traits          => ['KiokuDB::DoNotSerialize'],
+    traits          => ['KiokuDB::DoNotSerialize','NoIntrospection'],
     default         => 'info',
     documentation   => 'Print all messages equal or above the given level [Default: info, Accepted: '.join(',',@LEVELS).']',
 );

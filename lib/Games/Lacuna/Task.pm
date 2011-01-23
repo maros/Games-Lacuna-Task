@@ -8,6 +8,7 @@ our $AUTHORITY = 'cpan:MAROS';
 our $VERSION = version->new("1.00");
 
 use Games::Lacuna::Task::Types;
+use Games::Lacuna::Task::Meta::Attribute::Trait::NoIntrospection;
 
 use Moose;
 use Try::Tiny;
@@ -32,8 +33,15 @@ has 'config' => (
 has 'task'  => (
     is              => 'ro',
     isa             => 'ArrayRef[Str]',
-    required        => 1,
-    documentation   => 'Select whick tasks to run [Reqired, Multiple]',
+    documentation   => 'Select which tasks to run [Multiple]',
+    predicate       => 'has_task',
+);
+
+has 'task_info'  => (
+    is              => 'ro',
+    isa             => 'Bool',
+    default         => 0,
+    documentation   => 'Show task info and configuration',
 );
 
 has '+database' => (
@@ -59,7 +67,6 @@ sub _build_config {
         }
     }
     
-    
     return $global_config;
 }
 
@@ -82,8 +89,8 @@ sub run {
     $self->log('notice',"Running tasks for empire %s",$empire_name);
     
     my @tasks;
-    if (scalar @{$self->task} == 1
-        && lc($self->task->[0]) eq 'all') {
+    if (! $self->has_task
+        || 'all' ~~ $self->task) {
         @tasks = __PACKAGE__->all_tasks;
     } else {
         foreach my $task (@{$self->task}) {
@@ -102,7 +109,6 @@ sub run {
         $task_name = lc($task_name);
         
         $self->log('notice',("-" x $WIDTH));
-        $self->log('notice',"Running task %s",$task_name);
         
         my $ok = 1;
         try {
@@ -113,12 +119,54 @@ sub run {
         };
         if ($ok) {
             try {
-                my $task = $task_class->new(
-                    %{$self->task_config($task_name)},
-                    client  => $client,
-                    loglevel=> $self->loglevel,
-                );
-                $task->run;
+                if ($self->task_info) {
+                    $self->log('notice',"Info for task %s",$task_name);
+                    my $task_meta = $task_class->meta;
+                    
+                    $self->log('info',$task_class->description);
+                    
+                    my @attributes;
+                    foreach my $attribute ($task_meta->get_all_attributes) {
+                        next
+                            if $attribute->does('NoIntrospection');
+                        push (@attributes,$attribute);
+                    }
+                    if (scalar @attributes) {
+                        $self->log('info','Available configuration options for task %s',$task_name);
+                        foreach my $attribute (@attributes) {
+                            $self->log('info',"- %s",$attribute->name);
+                            if ($attribute->has_documentation) {
+                                $self->log('info',"  Desctiption: %s",$attribute->documentation);
+                            }
+                            if ($attribute->is_required) {
+                                $self->log('info',"  Is required");
+                            }
+                            if ($attribute->has_type_constraint) {
+                                $self->log('info',"  Type: %s",$attribute->type_constraint->name);
+                            }
+                            if ($attribute->has_default) {
+                                my $default = $attribute->default;
+                                $default = $default->()
+                                    if (ref($default) eq 'CODE');
+                                $default = Data::Dumper::Dumper($default);
+                                chomp($default);
+                                $default =~ s/^\$VAR1\s=\s(.+);$/$1/;
+                                $self->log('info',"  Default: %s",$default);
+                            }
+                        }
+                    } else {
+                        $self->log('info','Task %s does not take any options',$task_name);
+                    }
+                } else {
+                    $self->log('notice',"Running task %s",$task_name);
+                    my $task = $task_class->new(
+                        %{$self->task_config($task_name)},
+                        client  => $client,
+                        loglevel=> $self->loglevel,
+                    );
+                    $task->run;
+                } 
+                
             } catch {
                 $self->log('error',"An error occured while processing %s: %s",$task_class,$_);
             }

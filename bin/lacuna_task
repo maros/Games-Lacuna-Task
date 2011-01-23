@@ -21,13 +21,15 @@ lacuna_task - Automate various tasks in the Lacuna MMPOG
 
 =head2 OPTIONS
 
+=head3 task_info
+
+Displays information about the selected tasks.
+
 =head3 task
 
-Specify which tasks to run
+Specify which tasks to run. If not specified all available tasks will be 
+executed.
 
-C<--task ALL> runs all avaliable tasks
-
-Reqired
 Multiple
 
 =head3 database

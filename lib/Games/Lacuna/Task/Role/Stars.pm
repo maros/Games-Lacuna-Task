@@ -11,6 +11,7 @@ has 'stars' => (
     is              => 'rw',
     isa             => 'ArrayRef',
     lazy_build      => 1,
+    traits          => ['NoIntrospection'],
     documentation   => q[List of all known stars],
 );
 
@@ -18,13 +19,15 @@ has 'probed_stars' => (
     is              => 'rw',
     isa             => 'HashRef[Int]',
     lazy_build      => 1,
+    traits          => ['NoIntrospection'],
     documentation   => q[Cache of all probed stars],
 );
 
 has 'unprobed_stars' => (
-    is          => 'rw',
-    isa         => 'HashRef[Int]',
-    lazy_build  => 1,
+    is              => 'rw',
+    isa             => 'HashRef[Int]',
+    lazy_build      => 1,
+    traits          => ['NoIntrospection'],
     documentation   => q[Cache of all unprobed stars],
 );
 
