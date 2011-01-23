@@ -127,8 +127,16 @@ sub _build_client {
     return $client;
 }
 
-after 'client' => sub {
+sub login {
     my ($self) = @_;
+    my $config = $self->storage->lookup('config');
+    $self->client->empire->login($config->{name}, $config->{password}, $config->{api_key});
+    $self->_update_session;
+}
+
+sub _update_session {
+    my ($self) = @_;
+    
     my $client = $self->meta->get_attribute('client')->get_raw_value($self);
     my $config = $self->storage->lookup('config');
     
@@ -139,6 +147,11 @@ after 'client' => sub {
     }
     
     return $client;
+}
+
+after 'client' => sub {
+    my ($self) = @_;
+    return $self->_update_session();
 };
 
 __PACKAGE__->meta->make_immutable;

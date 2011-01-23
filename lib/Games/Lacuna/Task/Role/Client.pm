@@ -4,6 +4,7 @@ use 5.010;
 use Moose::Role;
 
 use Games::Lacuna::Task::Client;
+use Try::Tiny;
 
 my %CLIENTS;
 our $DEFAULT_DIRECTORY = Path::Class::Dir->new($ENV{HOME}.'/.lacuna');
@@ -86,10 +87,33 @@ sub request {
     my $params = delete $params{params} || [];
     
     $self->log('debug',"Run external request %s->%s",ref($object),$method);
-
-    my $request = $object->$method(@$params);
     
-    my $status = $request->{status} || $request;
+    my $response;
+    my $retry = 1;
+    
+    while ($retry) {
+        $retry = 0;
+        try {
+            $response = $object->$method(@$params);
+        } catch {
+            my $error = $_;
+            if (blessed($error)
+                && $error->isa('Exeption::Class')) {
+                if ($error->isa('LacunaRPCException')
+                    && $error->code() == 1006) {
+                    $self->log('debug','Session expired unexpectedly');
+                    $self->client->login;
+                    $retry = 1;
+                } else {
+                    $error->rethrow;
+                }
+            } else {
+                die($error);
+            }
+        };
+    }
+    
+    my $status = $response->{status} || $response;
     if ($status->{empire}) {
         $self->write_cache(
             key     => 'empire',
@@ -103,15 +127,15 @@ sub request {
             value   => $status->{body},
         );
     }
-    if ($request->{buildings}) {
+    if ($response->{buildings}) {
         $self->write_cache(
             key     => 'body/'.$status->{body}{id}.'/buildings',
-            value   => $request->{buildings},
+            value   => $response->{buildings},
             max_age => 600,
         );
     }
     
-    return $request;
+    return $response;
 }
 
 sub lookup_cache {
