@@ -25,8 +25,9 @@ has 'upgrade_preference' => (
             'Water Storage Tank',
             'Food Reserve',
             'Energy Reserve',
-            'Oversight Ministry',
             'Security Ministry',
+            'Planetary Command Center',
+            'Stockpile',
         ]
     },
     documentation => 'Building uprade preferences',
