@@ -53,13 +53,11 @@ our $WIDTH = 62;
 sub _build_config {
     my ($self) = @_;
     
-    my $database_dir = $self->database->dir;
-    
     # Get global config
     my $global_config = {};
     
     foreach my $file (qw(lacuna config default)) {
-        my $global_config_file = Path::Class::File->new($database_dir,$file.'.yml');
+        my $global_config_file = Path::Class::File->new($self->database,$file.'.yml');
         if (-e $global_config_file) {
             $self->log('debug',"Loading config from %s",$global_config_file);
             $global_config = LoadFile($global_config_file->stringify);

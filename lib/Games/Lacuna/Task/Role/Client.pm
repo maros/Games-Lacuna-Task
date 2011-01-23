@@ -6,14 +6,14 @@ use Moose::Role;
 use Games::Lacuna::Task::Client;
 
 my %CLIENTS;
-our $DEFAULT_DATABASE= Path::Class::File->new($ENV{HOME}.'/.lacuna/default.db');
+our $DEFAULT_DIRECTORY = Path::Class::Dir->new($ENV{HOME}.'/.lacuna');
 
 has 'database' => (
     is              => 'ro',
-    isa             => 'Path::Class::File',
+    isa             => 'Path::Class::Dir',
     coerce          => 1,
-    documentation   => 'Path to the lacuna database file [Default '.$DEFAULT_DATABASE.']',
-    default         => sub { return $DEFAULT_DATABASE },
+    documentation   => 'Path to the lacuna directory [Default '.$DEFAULT_DIRECTORY.']',
+    default         => sub { return $DEFAULT_DIRECTORY },
     traits          => ['KiokuDB::DoNotSerialize','NoIntrospection'],
 );
 
@@ -34,10 +34,12 @@ sub _build_client {
         return $CLIENTS{$database_stringify};
     }
     
+    my $database_file = Path::Class::File->new($self->database,'default.db');
+    
     # Build new client
     my $client = Games::Lacuna::Task::Client->new(
         loglevel        => $self->loglevel,
-        storage_file    => $self->database,
+        storage_file    => $database_file,
         debug           => 1,
     );
     
