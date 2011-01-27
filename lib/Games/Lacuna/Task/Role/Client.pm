@@ -104,6 +104,10 @@ sub request {
                     $self->log('debug','Session expired unexpectedly');
                     $self->client->login;
                     $retry = 1;
+                } elsif ($error->isa('LacunaRPCException')
+                    && $error->code() == 1004) {
+                    $self->get_config_from_user();
+                    $retry = 1;
                 } else {
                     $error->rethrow;
                 }

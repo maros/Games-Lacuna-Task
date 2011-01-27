@@ -69,52 +69,7 @@ sub _build_client {
     my $config = $storage->lookup('config');
     
     unless (defined $config) {
-        my ($password,$name,$server,$api);
-        
-        $self->log('info',"Initializing local database");
-        
-        while (! defined $server || $server !~ m/https?:\/\//) {
-            say "Please enter the server url (leave empty for default: '$SERVER'):";
-            while ( not defined( $server = ReadLine(-1) ) ) {
-                # no key pressed yet
-            }
-            chomp($server);
-            $server ||= $SERVER;
-        }
-        
-        say "Please enter the api key (leave empty for default: '$API_KEY'):";
-        while ( not defined( $api = ReadLine(-1) ) ) {
-            # no key pressed yet
-        }
-        chomp($api);
-        $api ||= $API_KEY;
-        
-        while (! defined $name || $name =~ m/^\s*$/) {
-            say 'Please enter the empire name:';
-            while ( not defined( $name = ReadLine(-1) ) ) {
-                # no key pressed yet
-            }
-            chomp($name);
-        }
-        
-        while (! defined $password || $password =~ m/^\s*$/) {
-            ReadMode 2;
-            say 'Please enter the empire password:';
-            while ( not defined( $password = ReadLine(-1) ) ) {
-                # no key pressed yet
-            }
-            ReadMode 0;
-            chomp($password);
-        }
-        
-        $config = {
-            password    => $password,
-            name        => $name,
-            api_key     => $api,
-            uri         => $server,
-        };
-        
-        $storage->store('config' => $config);
+        $self->get_config_from_user();
     }
     
     my $client = Games::Lacuna::Client->new(
@@ -125,6 +80,56 @@ sub _build_client {
     $client->assert_session();
 
     return $client;
+}
+
+sub get_config_from_user {
+    my ($self) = @_;
+    my ($password,$name,$server,$api);
+    
+    $self->log('info',"Initializing local database");
+    
+    while (! defined $server || $server !~ m/https?:\/\//) {
+        say "Please enter the server url (leave empty for default: '$SERVER'):";
+        while ( not defined( $server = ReadLine(-1) ) ) {
+            # no key pressed yet
+        }
+        chomp($server);
+        $server ||= $SERVER;
+    }
+    
+    say "Please enter the api key (leave empty for default: '$API_KEY'):";
+    while ( not defined( $api = ReadLine(-1) ) ) {
+        # no key pressed yet
+    }
+    chomp($api);
+    $api ||= $API_KEY;
+    
+    while (! defined $name || $name =~ m/^\s*$/) {
+        say 'Please enter the empire name:';
+        while ( not defined( $name = ReadLine(-1) ) ) {
+            # no key pressed yet
+        }
+        chomp($name);
+    }
+    
+    while (! defined $password || $password =~ m/^\s*$/) {
+        ReadMode 2;
+        say 'Please enter the empire password:';
+        while ( not defined( $password = ReadLine(-1) ) ) {
+            # no key pressed yet
+        }
+        ReadMode 0;
+        chomp($password);
+    }
+    
+    $config = {
+        password    => $password,
+        name        => $name,
+        api_key     => $api,
+        uri         => $server,
+    };
+    
+    $storage->store('config' => $config);
 }
 
 sub login {
