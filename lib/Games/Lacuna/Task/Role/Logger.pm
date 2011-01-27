@@ -24,12 +24,9 @@ sub log {
     my $level_name = shift(@msgs)
         if $msgs[0] ~~ \@LEVELS;
     
-    my $format = shift(@msgs) // '';
+    @msgs = map { _pretty_dump($_) } @msgs;
     
-    if (ref($format)) {
-        $format = Data::Dumper::Dumper($format);
-        $format =~ s/^\$VAR1\s=\s(.+);/$1/s;
-    }
+    my $format = shift(@msgs) // '';
     my $logmessage = sprintf( $format, map { $_ // '000000' } @msgs );
     
     if ( $INC{'Test/More.pm'} ) {
@@ -70,6 +67,17 @@ sub log {
         }
     }
 }
+
+sub _pretty_dump {
+    my $value = shift;
+    return $value
+        unless ref $value;
+    my $dump = Data::Dumper::Dumper($value);
+    chomp($dump);
+    $dump =~ s/^\$VAR1\s=\s(.+);$/$1/s;
+    return $dump;
+}
+
 
 =encoding utf8
 

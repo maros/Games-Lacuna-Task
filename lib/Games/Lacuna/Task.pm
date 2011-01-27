@@ -157,17 +157,21 @@ sub run {
                                 my $default = $attribute->default;
                                 $default = $default->()
                                     if (ref($default) eq 'CODE');
-                                $self->log('info',"  Default: %s",_pretty_dump($default));
+                                $self->log('info',"  Default: %s",$default);
                             }
                             my $current_config = $self->task_config($task_name);
                             if (exists $current_config->{$attribute->name}) {
-                                $self->log('info',"  Current configtation: %s",_pretty_dump($current_config->{$attribute->name}));
+                                $self->log('info',"  Current configtation: %s",$current_config->{$attribute->name});
                             }
                         }
                     } else {
                         $self->log('info','Task %s does not take any options',$task_name);
                     }
                 } else {
+                    local $SIG{TERM} = sub {
+                        $self->log('warn','Aborted by user');
+                        die('ABORT');
+                    };
                     $self->log('notice',"Running task %s",$task_name);
                     my $task = $task_class->new(
                         %{$self->task_config($task_name)},
@@ -185,12 +189,6 @@ sub run {
     $self->log('notice',("=" x $WIDTH));
 }
 
-sub _pretty_dump {
-    my $dump = Data::Dumper::Dumper($_[0]);
-    chomp($dump);
-    $dump =~ s/^\$VAR1\s=\s(.+);$/$1/s;
-    return $dump;
-}
 
 
 =encoding utf8
