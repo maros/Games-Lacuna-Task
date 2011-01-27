@@ -14,6 +14,7 @@ requires        'Moose'                         => 0;
 requires        'Games::Lacuna::Client'         => 0;
 
 requires        'KiokuDB'                       => 0;
+requires        'KiokuDB::Backend::DBI'         => 0;
 
 requires        'Path::Class'                   => 0;
 requires        'MooseX::Types::Path::Class'    => 0;
