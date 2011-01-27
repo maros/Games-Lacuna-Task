@@ -69,6 +69,11 @@ sub _build_stars {
     return \@stars;
 }
 
+after 'run' => sub {
+    my $self = shift;
+    $self->save_probed_stars()
+};
+
 sub find_star_by_xy {
     my ($self,$x,$y) = @_;
     

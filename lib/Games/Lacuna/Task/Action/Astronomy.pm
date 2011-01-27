@@ -11,13 +11,10 @@ sub description {
     return q[This task automates probing of stars];
 }
 
-around 'run' => sub {
-    my $orig = shift;
+before 'run' => sub {
     my $self = shift;
     
     $self->check_for_destroyed_probes();
-    $self->$orig(@_);
-    $self->save_probed_stars()
 };
 
 sub process_planet {
