@@ -25,7 +25,6 @@ has 'upgrade_preference' => (
             'Water Storage Tank',
             'Food Reserve',
             'Energy Reserve',
-            'Security Ministry',
             'Planetary Command Center',
             'Stockpile',
         ]
@@ -44,13 +43,14 @@ sub process_planet {
     my @levels;
     my @buildings_end;
     my @buildings = $self->buildings_body($planet_stats->{id});
+    my $timestamp = DateTime->now->set_time_zone('UTC');
     
     # Get build queue size
     foreach my $building_data (@buildings) {
         if (defined $building_data->{pending_build}) {
+            my $date_end = $self->parse_date($building_data->{pending_build}{end});
             $building_count ++
-            #my $date_end = $self->parse_date($building_data->{pending_build}{end});
-            #push(@buildings_end,$date_end);
+                if $timestamp < $date_end;
         }
         push(@levels,$building_data->{level});
     }
