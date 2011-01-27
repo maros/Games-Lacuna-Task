@@ -24,7 +24,7 @@ directory. The file should have the following format:
      - "value"
 
 Information about available tasks and their configuration options is available
-when running the following command C<lacuna_task --task_info>
+when running C<lacuna_task> with the C<--task_info> option.
 
 =head1 DEVELOPERS
 
@@ -54,9 +54,9 @@ by several roles:
 Basic methods to access the Lacuna API via L<Games::Lacuna::Task::Client>.
 Is always loaded.
 
-=head2 Games::Lacuna::Task::Role::Notify
+=head2 Games::Lacuna::Task::Role::Logger
 
-Print log messages. Is always loaded.
+Prints log messages. Is always loaded.
 
 =head2 Games::Lacuna::Task::Role::Helper
 
@@ -68,12 +68,10 @@ Helper methods for working with the star map.
 
 =head2 Games::Lacuna::Task::Role::Ships
 
-Helper methods for dispatching and building ships.
+Helper methods for fetching and building ships.
 
 =head2 Games::Lacuna::Task::Role::Notify
 
 Helper methods for sending notification e-mails to the user.
-
-=back
 
 =cut
