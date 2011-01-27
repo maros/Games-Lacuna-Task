@@ -25,6 +25,11 @@ sub log {
         if $msgs[0] ~~ \@LEVELS;
     
     my $format = shift(@msgs) // '';
+    
+    if (ref($format)) {
+        $format = Data::Dumper::Dumper($format);
+        $format =~ s/^\$VAR1\s=\s(.+);/$1/s;
+    }
     my $logmessage = sprintf( $format, map { $_ // '000000' } @msgs );
     
     if ( $INC{'Test/More.pm'} ) {
