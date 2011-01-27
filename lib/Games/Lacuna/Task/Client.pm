@@ -122,13 +122,15 @@ sub get_config_from_user {
         chomp($password);
     }
     
-    $config = {
+    my $config = {
         password    => $password,
         name        => $name,
         api_key     => $api,
         uri         => $server,
     };
     
+    my $storage = $self->storage;
+    $storage->delete('config');
     $storage->store('config' => $config);
 }
 
