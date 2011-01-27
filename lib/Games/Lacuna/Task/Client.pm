@@ -40,18 +40,18 @@ has 'storage_scope' => (
 sub _build_storage {
     my ($self) = @_;
     
-    my $storage_file = $self->storage_file->stringify;
-    unless (-e $storage_file) {
-        $self->log('info',"Initializing storage file %s",$storage_file);
+    my $storage_file = $self->storage_file;
+    unless (-e $storage_file->stringify) {
+        $self->log('info',"Initializing storage file %s",$storage_file->stringify);
         my $storage_dir = $self->storage_file->parent->stringify;
         mkdir($storage_dir)
            or $self->log('error','Could not create storage directory %s: %s',$storage_dir,$!);
         $storage_file->touch
-            or $self->log('error','Could not create storage file %s: %s',$storage_file,$!);
+            or $self->log('error','Could not create storage file %s: %s',$storage_file->stringify,$!);
     }
     
     my $storage = KiokuDB->connect(
-        'dbi:SQLite:dbname='.$storage_file,
+        'dbi:SQLite:dbname='.$storage_file->stringify,
         create          => 1,
         transactions    => 0,
     );
