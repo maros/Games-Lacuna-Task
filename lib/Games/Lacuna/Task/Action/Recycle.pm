@@ -29,6 +29,9 @@ sub process_planet {
         $recycleable_waste = $waste + ($planet_stats->{waste_hour} * 12)
     }
     
+    return
+        if $recycleable_waste <= 0;
+    
     # Get stored ressources
     foreach my $ressource (@Games::Lacuna::Task::Constants::RESSOURCES) {
         my $stored = $planet_stats->{$ressource.'_stored'}+0;
