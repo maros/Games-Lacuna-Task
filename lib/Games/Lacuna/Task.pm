@@ -30,6 +30,13 @@ has 'config' => (
     lazy_build      => 1,
 );
 
+has 'exclude'  => (
+    is              => 'ro',
+    isa             => 'ArrayRef[Str]',
+    documentation   => 'Select which tasks NOT to run [Multiple]',
+    predicate       => 'has_exclude',
+);
+
 has 'task'  => (
     is              => 'ro',
     isa             => 'ArrayRef[Str]',
@@ -104,7 +111,11 @@ sub run {
     foreach my $task_class (@tasks) {
         my $task_name = $task_class;
         $task_name =~ s/^.+::([^:]+)$/$1/;
+        $task_name =~ s/(\p{Lower})(\p{Upper}\p{Lower})/$1_$2/g;
         $task_name = lc($task_name);
+        
+        next
+            if $self->has_exclude && $task_name ~~ $self->exclude;
         
         $self->log('notice',("-" x $WIDTH));
         
