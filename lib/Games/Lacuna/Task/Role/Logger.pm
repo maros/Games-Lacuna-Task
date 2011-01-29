@@ -72,6 +72,10 @@ sub _pretty_dump {
     my $value = shift;
     return $value
         unless ref $value;
+    return $value->stringify
+        if blessed $value && $value->can('stringify');
+    return $value->message
+        if blessed $value && $value->can('message');
     my $dump = Data::Dumper::Dumper($value);
     chomp($dump);
     $dump =~ s/^\$VAR1\s=\s(.+);$/$1/s;
