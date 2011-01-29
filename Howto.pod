@@ -15,6 +15,13 @@ Optionally you can create a configuration file called config.yml in the same
 directory. The file should have the following format:
 
  ---
+ global:
+    # Which tasks should be run (if not provided via commandline options)
+    task:
+      - task1_name
+    # Which tasks should be excluded (if not provided via commandline options)
+    exclude:
+      - task2_name
  task1_name:
    task1_option1: 80
    task1_option2: ...
@@ -74,4 +81,17 @@ Helper methods for fetching and building ships.
 
 Helper methods for sending notification e-mails to the user.
 
+=end
+
+Tasks can also be called/embedded/executed directly
+
+ use Games::Lacuna::Task::Action::Archaeology;
+ my $task = Games::Lacuna::Task::Action::Archaeology->new(
+    database    => $path_to_config_dir, # only needed if client is not provided
+    client      => $game_lacuna_task_client, # will be auto-built if not provided
+    other options ...
+ );
+ $task->run;
+
 =cut
+
