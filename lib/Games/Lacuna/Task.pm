@@ -187,8 +187,6 @@ sub run {
                     my $config_final = {};
                     foreach my $attribute ($task_meta->get_all_attributes) {
                         my $attribute_name = $attribute->name;
-                        next
-                            if $attribute_name ~~ [qw(client loglevel)];
                         $config_final->{$attribute_name} = $config_task->{$attribute_name}
                             if defined $config_task->{$attribute_name};
                         $config_final->{$attribute_name} //= $config_global->{$attribute_name}
@@ -198,7 +196,7 @@ sub run {
                     }
                     
                     $self->log('notice',"Running task %s",$task_name);
-                    $self->log('debug',"Task config %s",$config_final);
+                    #$self->log('debug',"Task config %s",$config_final);
                     my $task = $task_class->new(
                         %{$config_final}
                     );
