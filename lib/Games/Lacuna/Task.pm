@@ -95,6 +95,13 @@ sub run {
     
     my $global_config = $self->task_config('global');
     
+    $self->task($global_config->{task})
+        if (defined $global_config->{task}
+        && ! $global_config->has_task);
+    $self->exclude($global_config->{exclude})
+        if (defined $global_config->{exclude}
+        && ! $global_config->has_exclude);
+    
     my @tasks;
     if (! $self->has_task
         || 'all' ~~ $self->task) {
@@ -186,14 +193,14 @@ sub run {
                             if defined $config_task->{$attribute_name};
                         $config_final->{$attribute_name} //= $config_global->{$attribute_name}
                             if defined $config_global->{$attribute_name};
+                        $config_final->{$attribute_name} //= $self->$attribute_name
+                            if $self->can($attribute_name);
                     }
                     
                     $self->log('notice',"Running task %s",$task_name);
                     $self->log('debug',"Task config %s",$config_final);
                     my $task = $task_class->new(
-                        %{$config_final},
-                        client  => $client,
-                        loglevel=> $self->loglevel,
+                        %{$config_final}
                     );
                     $task->run;
                 } 
