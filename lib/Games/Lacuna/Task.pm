@@ -66,7 +66,7 @@ sub _build_config {
     foreach my $file (qw(lacuna config default)) {
         my $global_config_file = Path::Class::File->new($self->database,$file.'.yml');
         if (-e $global_config_file) {
-            $self->log('debug',"Loading config from %s",$global_config_file);
+            $self->log('debug',"Loading config from %s",$global_config_file->stringify);
             $global_config = LoadFile($global_config_file->stringify);
             last;
         }
@@ -92,6 +92,8 @@ sub run {
     
     $self->log('notice',("=" x $WIDTH));
     $self->log('notice',"Running tasks for empire %s",$empire_name);
+    
+    my $global_config = $self->task_config('global');
     
     my @tasks;
     if (! $self->has_task
@@ -127,10 +129,10 @@ sub run {
             $ok = 0;
         };
         if ($ok) {
+            my $task_meta = $task_class->meta;
             try {
                 if ($self->task_info) {
                     $self->log('notice',"Info for task %s",$task_name);
-                    my $task_meta = $task_class->meta;
                     
                     $self->log('info',$task_class->description);
                     
@@ -172,9 +174,24 @@ sub run {
                         $self->log('warn','Aborted by user');
                         die('ABORT');
                     };
+                    
+                    my $config_task = $self->task_config($task_name);
+                    my $config_global = $global_config;
+                    my $config_final = {};
+                    foreach my $attribute ($task_meta->get_all_attributes) {
+                        my $attribute_name = $attribute->name;
+                        next
+                            if $attribute_name ~~ [qw(client loglevel)];
+                        $config_final->{$attribute_name} = $config_task->{$attribute_name}
+                            if defined $config_task->{$attribute_name};
+                        $config_final->{$attribute_name} //= $config_global->{$attribute_name}
+                            if defined $config_global->{$attribute_name};
+                    }
+                    
                     $self->log('notice',"Running task %s",$task_name);
+                    $self->log('debug',"Task config %s",$config_final);
                     my $task = $task_class->new(
-                        %{$self->task_config($task_name)},
+                        %{$config_final},
                         client  => $client,
                         loglevel=> $self->loglevel,
                     );
