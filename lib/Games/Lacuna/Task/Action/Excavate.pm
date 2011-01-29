@@ -65,33 +65,21 @@ sub farthest_known_planets {
     foreach my $star ($self->stars_by_distance($x,$y,1)) {
         # Check if star known to be unprobed
         next STARS
-            if $self->is_unprobed_star($star->{id});
+            unless $self->is_probed_star($star->{id});
         
         # Get star info
-        my $star_info = $self->request(
-            object  => $self->build_object('Map'),
-            params  => [ $star->{id} ],
-            method  => 'get_star',
-        );
+        my $star_info = $self->get_star($star->{id});
         
-        # Star is probed
-        if (defined $star_info->{star}{bodies}
-            && scalar(@{$star_info->{star}{bodies}})) {
-            $self->add_probed_star($star->{id});
+        # Loop all bodies
+        BODIES:
+        foreach my $body (@{$star_info->{bodies}}) {
+            next BODIES
+                if defined $body->{empire};
+            next BODIES
+                unless defined $body->{type} eq 'habitable planet';
             
-            # Loop all bodies
-            BODIES:
-            foreach my $body (@{$star_info->{star}{bodies}}) {
-                next BODIES
-                    if defined $body->{empire};
-                next BODIES
-                    unless defined $body->{type} eq 'habitable planet';
-                # TODO: Check if excavator has been sent to this body is the last 30 days
-                push (@planets,$body->{id});
-            }
-        # Star is not probed
-        } else {
-            $self->add_unprobed_star($star->{id});
+            # TODO: Check if excavator has been sent to this body is the last 30 days
+            push (@planets,$body->{id});
         }
         
         last STARS
