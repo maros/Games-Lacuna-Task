@@ -40,17 +40,18 @@ has 'storage_scope' => (
 sub _build_storage {
     my ($self) = @_;
     
-    my $storage_file = $self->storage_file->stringify;
-    unless (-e $storage_file) {
-        $self->log('info',"Initializing storage file %s",$storage_file);
+    my $storage_file = $self->storage_file;
+    unless (-e $storage_file->stringify) {
+        $self->log('info',"Initializing storage file %s",$storage_file->stringify);
         my $storage_dir = $self->storage_file->parent->stringify;
         mkdir($storage_dir)
-           or $self->log('error','Could not create storage directors %s',$storage_dir);
-        `sqlite --init $storage_file --batch`;
+           or $self->log('error','Could not create storage directory %s: %s',$storage_dir,$!);
+        $storage_file->touch
+            or $self->log('error','Could not create storage file %s: %s',$storage_file->stringify,$!);
     }
     
     my $storage = KiokuDB->connect(
-        'dbi:SQLite:dbname='.$storage_file,
+        'dbi:SQLite:dbname='.$storage_file->stringify,
         create          => 1,
         transactions    => 0,
     );
@@ -68,52 +69,7 @@ sub _build_client {
     my $config = $storage->lookup('config');
     
     unless (defined $config) {
-        my ($password,$name,$server,$api);
-        
-        $self->log('info',"Initializing local database");
-        
-        while (! defined $server || $server !~ m/https?:\/\//) {
-            say "Please enter the server url (leave empty for default: '$SERVER'):";
-            while ( not defined( $server = ReadLine(-1) ) ) {
-                # no key pressed yet
-            }
-            chomp($server);
-            $server ||= $SERVER;
-        }
-        
-        say "Please enter the api key (leave empty for default: '$API_KEY'):";
-        while ( not defined( $api = ReadLine(-1) ) ) {
-            # no key pressed yet
-        }
-        chomp($api);
-        $api ||= $API_KEY;
-        
-        while (! defined $name || $name =~ m/^\s*$/) {
-            say 'Please enter the empire name:';
-            while ( not defined( $name = ReadLine(-1) ) ) {
-                # no key pressed yet
-            }
-            chomp($name);
-        }
-        
-        while (! defined $password || $password =~ m/^\s*$/) {
-            ReadMode 2;
-            say 'Please enter the empire password:';
-            while ( not defined( $password = ReadLine(-1) ) ) {
-                # no key pressed yet
-            }
-            ReadMode 0;
-            chomp($password);
-        }
-        
-        $config = {
-            password    => $password,
-            name        => $name,
-            api_key     => $api,
-            uri         => $server,
-        };
-        
-        $storage->store('config' => $config);
+        $self->get_config_from_user();
     }
     
     my $client = Games::Lacuna::Client->new(
@@ -126,8 +82,68 @@ sub _build_client {
     return $client;
 }
 
-after 'client' => sub {
+sub get_config_from_user {
     my ($self) = @_;
+    my ($password,$name,$server,$api);
+    
+    $self->log('info',"Initializing local database");
+    
+    while (! defined $server || $server !~ m/https?:\/\//) {
+        say "Please enter the server url (leave empty for default: '$SERVER'):";
+        while ( not defined( $server = ReadLine(-1) ) ) {
+            # no key pressed yet
+        }
+        chomp($server);
+        $server ||= $SERVER;
+    }
+    
+    say "Please enter the api key (leave empty for default: '$API_KEY'):";
+    while ( not defined( $api = ReadLine(-1) ) ) {
+        # no key pressed yet
+    }
+    chomp($api);
+    $api ||= $API_KEY;
+    
+    while (! defined $name || $name =~ m/^\s*$/) {
+        say 'Please enter the empire name:';
+        while ( not defined( $name = ReadLine(-1) ) ) {
+            # no key pressed yet
+        }
+        chomp($name);
+    }
+    
+    while (! defined $password || $password =~ m/^\s*$/) {
+        ReadMode 2;
+        say 'Please enter the empire password:';
+        while ( not defined( $password = ReadLine(-1) ) ) {
+            # no key pressed yet
+        }
+        ReadMode 0;
+        chomp($password);
+    }
+    
+    my $config = {
+        password    => $password,
+        name        => $name,
+        api_key     => $api,
+        uri         => $server,
+    };
+    
+    my $storage = $self->storage;
+    $storage->delete('config');
+    $storage->store('config' => $config);
+}
+
+sub login {
+    my ($self) = @_;
+    my $config = $self->storage->lookup('config');
+    $self->client->empire->login($config->{name}, $config->{password}, $config->{api_key});
+    $self->_update_session;
+}
+
+sub _update_session {
+    my ($self) = @_;
+    
     my $client = $self->meta->get_attribute('client')->get_raw_value($self);
     my $config = $self->storage->lookup('config');
     
@@ -138,6 +154,11 @@ after 'client' => sub {
     }
     
     return $client;
+}
+
+after 'client' => sub {
+    my ($self) = @_;
+    return $self->_update_session();
 };
 
 __PACKAGE__->meta->make_immutable;

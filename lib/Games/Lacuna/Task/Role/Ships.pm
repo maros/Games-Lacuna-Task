@@ -15,7 +15,7 @@ sub ships {
         unless $ship_type;
     
     # Get space port
-    my $spaceport = $self->find_building($planet_stats->{id},'Space Port');
+    my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');
     # Get shipyard
     my @shipyards = $self->find_building($planet_stats->{id},'Shipyard');
     
@@ -102,7 +102,7 @@ sub ships {
 
 =head1 NAME
 
-Games::Lacuna::Task::Role::Ships - Ship helper methods
+Games::Lacuna::Task::Role::Ships - Helper methods for fetching and building ships
 
 =head1 SYNOPSIS
 
@@ -121,12 +121,12 @@ This role provides ship-related helper methods.
 
     my @avaliable_scows = $self->ships(
         planet          => $planet_stats,
-        ships_needed    => 3, # get there
+        ships_needed    => 3, # get three
         ship_type       => 'scow',
     );
 
 Tries to fetch the given number of available ships. If there are not enough 
-ships available then the missing ships are built.
+ships available then the required number of ships are built.
 
 =cut
 

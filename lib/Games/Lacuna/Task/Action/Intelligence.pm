@@ -32,7 +32,7 @@ sub process_planet {
     my $timestamp = DateTime->now->set_time_zone('UTC');
     
     # Get intelligence ministry
-    my ($intelligence_ministry) = $self->find_building($planet_stats->{id},'Intelligence Ministry');
+    my ($intelligence_ministry) = $self->find_building($planet_stats->{id},'Intelligence');
     my $intelligence_ministry_object = $self->build_object($intelligence_ministry);
     
     return
@@ -57,7 +57,7 @@ sub process_planet {
     }
     
     # Get security ministry
-    my ($security_ministry) = $self->find_building($planet_stats->{id},'Security Ministry');
+    my ($security_ministry) = $self->find_building($planet_stats->{id},'Security');
     my @foreign_spies_active;
     my $foreign_spies_count = 0;
     if ($security_ministry) {

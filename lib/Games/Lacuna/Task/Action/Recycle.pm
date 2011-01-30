@@ -29,6 +29,9 @@ sub process_planet {
         $recycleable_waste = $waste + ($planet_stats->{waste_hour} * 12)
     }
     
+    return
+        if $recycleable_waste <= 0;
+    
     # Get stored ressources
     foreach my $ressource (@Games::Lacuna::Task::Constants::RESSOURCES) {
         my $stored = $planet_stats->{$ressource.'_stored'}+0;
@@ -61,7 +64,7 @@ sub process_planet {
         $ressources{$ressource}[2] = ($ressources{$ressource}[1] / $total_ressources_coeficient);
     }
     
-    my @recycling_buildings = $self->find_building($planet_stats->{id},'Waste Recycling Center');
+    my @recycling_buildings = $self->find_building($planet_stats->{id},'WasteRecycling');
     
     # Loop all recycling buildings
     foreach my $recycling_building (@recycling_buildings) {

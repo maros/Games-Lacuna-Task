@@ -12,7 +12,7 @@ sub description {
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
-    my (@bleeders) = $self->find_building($planet_stats->{id},'Deployed Bleeder'); # TODO - Check if name matches
+    my (@bleeders) = $self->find_building($planet_stats->{id},'DeployedBleeder'); # TODO - Check if name matches
     
     if (scalar @bleeders) {
         $self->log('warn','There are %i bleeders on %s',scalar(@bleeders),$planet_stats->{name});

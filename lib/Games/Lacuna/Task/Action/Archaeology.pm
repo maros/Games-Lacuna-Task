@@ -21,13 +21,14 @@ sub all_glyphs {
         if defined $all_gylphs;
     
     # Set all glyphs to zero
+    no warnings 'once';
     $all_gylphs = { map { $_ => 0 } @Games::Lacuna::Task::Constants::ORES };
     
     # Loop all planets
     PLANETS:
     foreach my $planet_stats ($self->planets) {
         # Get archaeology ministry
-        my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology Ministry');
+        my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology');
         
         next
             unless defined $archaeology_ministry;
@@ -64,7 +65,7 @@ sub process_planet {
     my $timestamp = DateTime->now->set_time_zone('UTC');
     
     # Get archaeology ministry
-    my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology Ministry');
+    my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology');
     
     return
         unless defined $archaeology_ministry;
@@ -96,7 +97,7 @@ sub process_planet {
     }
     
     # Get local ores form mining platforms
-    my $mining_ministry = $self->find_building($planet_stats->{id},'Mining Ministry');
+    my $mining_ministry = $self->find_building($planet_stats->{id},'MiningMinistry');
     if (defined $mining_ministry) {
         my $mining_ministry_object = $self->build_object($mining_ministry);
         my $platforms = $self->request(

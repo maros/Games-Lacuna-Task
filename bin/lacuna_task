@@ -21,20 +21,22 @@ lacuna_task - Automate various tasks in the Lacuna MMPOG
 
 =head2 OPTIONS
 
+=head3 task_info
+
+Displays information about the selected tasks.
+
 =head3 task
 
-Specify which tasks to run
+Specify which tasks to run. If not specified all available tasks will be 
+executed.
 
-C<--task ALL> runs all avaliable tasks
-
-Reqired
 Multiple
 
 =head3 database
 
-Path to a sqlite database (will be created if it does not exist)
+Path to the lacuna directory (will be created if it does not exist)
 
-Default: ~/.lacuna/default.db
+Default: ~/.lacuna/
 
 =head3 loglevel
 

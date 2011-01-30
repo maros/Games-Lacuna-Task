@@ -11,23 +11,17 @@ has 'stars' => (
     is              => 'rw',
     isa             => 'ArrayRef',
     lazy_build      => 1,
+    traits          => ['NoIntrospection'],
     documentation   => q[List of all known stars],
 );
 
-has 'probed_stars' => (
+has 'stars_cache' => (
     is              => 'rw',
-    isa             => 'HashRef[Int]',
-    lazy_build      => 1,
-    documentation   => q[Cache of all probed stars],
+    isa             => 'HashRef',
+    default         => sub { return{} },
+    traits          => ['NoIntrospection'],
+    documentation   => q[Temporary cache for star data],
 );
-
-has 'unprobed_stars' => (
-    is          => 'rw',
-    isa         => 'HashRef[Int]',
-    lazy_build  => 1,
-    documentation   => q[Cache of all unprobed stars],
-);
-
 
 sub _build_stars {
     my ($self) = @_;
@@ -76,76 +70,66 @@ sub find_star_by_xy {
     }
 }
 
-sub add_probed_star {
+sub get_star {
     my ($self,$star) = @_;
+    
     return
-        unless $star;
-    $self->probed_stars->{$star} = 1;
-    delete $self->unprobed_stars->{$star};
-}
-
-sub add_unprobed_star {
-    my ($self,$star) = @_;
-    return
-        unless $star;
-    $self->unprobed_stars->{$star} = 1;
-    delete $self->probed_stars->{$star};
+        unless $star && $star =~ m/^\d+$/;
+    
+    my $star_cache;
+    # Get from runtime cache
+    $star_cache = $self->stars_cache->{$star};
+    # Get from local cache
+    $star_cache ||= $self->lookup_cache('stars/'.$star);
+    # Get from api
+    $star_cache ||= $self->check_star($star);
+    
+    return $star_cache;
 }
 
 sub is_probed_star {
     my ($self,$star) = @_;
     
     return
-        unless $star;
-    return 0 
-        if $star ~~ $self->unprobed_stars;
-    return $star ~~ $self->probed_stars;
+        unless $star && $star =~ m/^\d+$/;
+    
+    my $star_data = $self->get_star($star);
+    
+    return 1 
+        if defined $star_data->{bodies}
+        && scalar @{$star_data->{bodies}} > 0;
+    return 0;
 }
 
-sub is_unprobed_star {
+sub check_star {
     my ($self,$star) = @_;
     
     return
-        unless $star;
-    return 0 
-        if $star ~~ $self->probed_stars;
-    return $star ~~ $self->unprobed_stars;
-}
-
-sub save_unprobed_stars {
-    my ($self) = @_;
+        unless $star && $star =~ m/^\d+$/;
     
-    $self->write_cache(
-        key     => 'stars/unprobed',
-        value   => $self->unprobed_stars,
-        max_age => (60*60*24*7*2), # Cache two weeks
+    return $self->stars_cache->{$star}
+        if defined $self->stars_cache->{$star};
+    
+    my $star_cache_key = 'stars/'.$star;
+    
+    my $star_info = $self->request(
+        object  => $self->build_object('Map'),
+        params  => [ $star ],
+        method  => 'get_star',
     );
-}
-
-sub save_probed_stars {
-    my ($self) = @_;
+    my $star_data = $star_info->{star};
     
+    # Write to local cache
     $self->write_cache(
-        key     => 'stars/probed',
-        value   => $self->probed_stars,
-        max_age => (60*60*24*7*2), # Cache two weeks
+        key     => $star_cache_key,
+        value   => $star_data,
+        max_age => (60*60*24*7*4), # Cache four weeks
     );
-}
-
-sub _build_probed_stars {
-    my ($self) = @_;
     
-    my $probed_stars = $self->lookup_cache('stars/probed');
-    $probed_stars ||= {};
-    return $probed_stars;
-}
-
-sub _build_unprobed_stars {
-    my ($self) = @_;
+    # Write to runtime cache
+    $self->stars_cache->{$star} = $star_data;
     
-    my $unprobed_stars = $self->lookup_cache('stars/unprobed');
-    $unprobed_stars ||= {};
-    return $unprobed_stars;
+    return $star_data;
 }
 
 sub stars_by_distance {
@@ -189,35 +173,29 @@ This role provides astronomy-related helper methods.
 
 =head1 METHODS
 
-=head2 add_probed_star
+=head2 check_star
 
-Adds a star to the list of known/probed stars
+Fetches star data from the API for the given star id
 
-=head2 add_unprobed_star
+=head2 get_star
 
-Adds a star to the list of currently unprobed stars
+Like L<check_star> but queries local caches first
 
 =head2 is_probed_star
 
-Check if a star is known to be probed
-
-=head2 is_unprobed_star
-
-Check if a star is known to be unprobed
-
-=head2 save_probed_star
-
-Save list of probed stars
-
-=head2 save_unprobed_star
-
-Save list of unprobed stars
+Check if a star is probed or not
 
 =head2 stars_by_distance
 
-    my @stars = $self->stars_by_distance($x,$y,$inverse)
+ my @stars = $self->stars_by_distance($x,$y,$inverse)
 
 Returns a list of stars ordered by distance to the given point
+
+=head2 find_star_by_xy
+
+ my $star_info = $self->find_star_by_xy($x,$y)
+
+Returns a star for the given coordinates
 
 =head2 stars
 

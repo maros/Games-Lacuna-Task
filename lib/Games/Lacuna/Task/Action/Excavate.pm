@@ -14,8 +14,11 @@ sub description {
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
+    my $timestamp = DateTime->now->set_time_zone('UTC');
+    my $max_age = $timestamp->subtract( days => 30 );
+    
     # Get archaeology ministry
-    my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology Ministry');
+    my $archaeology_ministry = $self->find_building($planet_stats->{id},'ArchaeologyMinistry');
     # Get space port
     my $spaceport = $self->find_building($planet_stats->{id},'Space Port');
     
@@ -33,14 +36,40 @@ sub process_planet {
         ship_type       => 'excavator',
     );
     
-    if (scalar @avaliable_excavators) {
-        # Get spaceport
-        my $spaceport_object = $self->build_object($spaceport);
-        # Get unprobed stars
-        my @planets = $self->farthest_known_planets($planet_stats->{x},$planet_stats->{y},scalar(@avaliable_excavators));
+    # Check if we have available excavators
+    next
+        unless (scalar @avaliable_excavators);
+    
+    # Get spaceport
+    my $spaceport_object = $self->build_object($spaceport);
+    
+    # Get excavator cache
+    my $excavate_cache_key = 'excavate/'.$planet_stats->{id};
+    my $excavate_cache = $self->lookup_cache($excavate_cache_key) || {};
+    
+    # Get unprobed stars
+    STARS:
+    foreach my $star ($self->stars_by_distance($planet_stats->{x},$planet_stats->{y},1)) {
+        # Check if star known to be unprobed
+        next STARS
+            unless $self->is_probed_star($star->{id});
         
-        foreach my $body (@planets) {
+        # Get star info
+        my $star_info = $self->get_star($star->{id});
+        
+        # Loop all bodies
+        BODIES:
+        foreach my $body (@{$star_info->{bodies}}) {
+            next BODIES
+                if defined $body->{empire};
+            next BODIES
+                unless defined $body->{type} eq 'habitable planet';
+            next BODIES
+                if defined $excavate_cache->{$body->{id}}
+                && $excavate_cache->{$body->{id}} >= $max_age;
+            
             my $excavator = pop(@avaliable_excavators);
+            
             if (defined $excavator) {
                 
                 # Send excavator to body
@@ -49,56 +78,20 @@ sub process_planet {
                     method  => 'send_ship',
                     params  => [ $excavator,{ "body_id" => $body } ],
                 );
+                
+                $excavate_cache->{$body} = $timestamp;
             }
         }
-    }
-}
-
-sub farthest_known_planets {
-    my ($self,$x,$y,$limit) = @_;
-    
-    $limit //= 1;
-    
-    my @planets;
-    
-    STARS:
-    foreach my $star ($self->stars_by_distance($x,$y,1)) {
-        # Check if star known to be unprobed
-        next STARS
-            if $self->is_unprobed_star($star->{id});
-        
-        # Get star info
-        my $star_info = $self->request(
-            object  => $self->build_object('Map'),
-            params  => [ $star->{id} ],
-            method  => 'get_star',
-        );
-        
-        # Star is probed
-        if (defined $star_info->{star}{bodies}
-            && scalar(@{$star_info->{star}{bodies}})) {
-            $self->add_probed_star($star->{id});
-            
-            # Loop all bodies
-            BODIES:
-            foreach my $body (@{$star_info->{star}{bodies}}) {
-                next BODIES
-                    if defined $body->{empire};
-                next BODIES
-                    unless defined $body->{type} eq 'habitable planet';
-                # TODO: Check if excavator has been sent to this body is the last 30 days
-                push (@planets,$body->{id});
-            }
-        # Star is not probed
-        } else {
-            $self->add_unprobed_star($star->{id});
-        }
-        
         last STARS
-            if scalar(@planets) >= $limit;
+            if scalar(@avaliable_excavators) == 0;
     }
     
-    return @planets;
+    # Write to local cache
+    $self->write_cache(
+        key     => $excavate_cache_key,
+        value   => $excavate_cache,
+        max_age => (60*60*24*30), # Cache for 30 days
+    );
 }
 
 1;

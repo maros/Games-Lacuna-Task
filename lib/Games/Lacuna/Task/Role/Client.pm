@@ -4,23 +4,24 @@ use 5.010;
 use Moose::Role;
 
 use Games::Lacuna::Task::Client;
+use Try::Tiny;
 
 my %CLIENTS;
-our $DEFAULT_DATABASE= Path::Class::File->new($ENV{HOME}.'/.lacuna/default.db');
+our $DEFAULT_DIRECTORY = Path::Class::Dir->new($ENV{HOME}.'/.lacuna');
 
 has 'database' => (
     is              => 'ro',
-    isa             => 'Path::Class::File',
+    isa             => 'Path::Class::Dir',
     coerce          => 1,
-    documentation   => 'Path to the lacuna database file [Default '.$DEFAULT_DATABASE.']',
-    default         => sub { return $DEFAULT_DATABASE },
-    traits          => ['KiokuDB::DoNotSerialize'],
+    documentation   => 'Path to the lacuna directory [Default '.$DEFAULT_DIRECTORY.']',
+    default         => sub { return $DEFAULT_DIRECTORY },
+    traits          => ['KiokuDB::DoNotSerialize','NoIntrospection'],
 );
 
 has 'client' => (
     is              => 'ro',
     isa             => 'Games::Lacuna::Task::Client',
-    traits          => ['NoGetopt','KiokuDB::DoNotSerialize'],
+    traits          => ['NoGetopt','KiokuDB::DoNotSerialize','NoIntrospection'],
     lazy_build      => 1,
 );
 
@@ -34,10 +35,12 @@ sub _build_client {
         return $CLIENTS{$database_stringify};
     }
     
+    my $database_file = Path::Class::File->new($self->database,'default.db');
+    
     # Build new client
     my $client = Games::Lacuna::Task::Client->new(
         loglevel        => $self->loglevel,
-        storage_file    => $self->database,
+        storage_file    => $database_file,
         debug           => 1,
     );
     
@@ -84,10 +87,37 @@ sub request {
     my $params = delete $params{params} || [];
     
     $self->log('debug',"Run external request %s->%s",ref($object),$method);
-
-    my $request = $object->$method(@$params);
     
-    my $status = $request->{status} || $request;
+    my $response;
+    my $retry = 1;
+    
+    while ($retry) {
+        $retry = 0;
+        try {
+            $response = $object->$method(@$params);
+        } catch {
+            my $error = $_;
+            if (blessed($error)
+                && $error->isa('Exeption::Class')) {
+                if ($error->isa('LacunaRPCException')
+                    && $error->code() == 1006) {
+                    $self->log('debug','Session expired unexpectedly');
+                    $self->client->login;
+                    $retry = 1;
+                } elsif ($error->isa('LacunaRPCException')
+                    && $error->code() == 1004) {
+                    $self->get_config_from_user();
+                    $retry = 1;
+                } else {
+                    $error->rethrow;
+                }
+            } else {
+                die($error);
+            }
+        };
+    }
+    
+    my $status = $response->{status} || $response;
     if ($status->{empire}) {
         $self->write_cache(
             key     => 'empire',
@@ -101,15 +131,15 @@ sub request {
             value   => $status->{body},
         );
     }
-    if ($request->{buildings}) {
+    if ($response->{buildings}) {
         $self->write_cache(
             key     => 'body/'.$status->{body}{id}.'/buildings',
-            value   => $request->{buildings},
+            value   => $response->{buildings},
             max_age => 600,
         );
     }
     
-    return $request;
+    return $response;
 }
 
 sub lookup_cache {
@@ -152,6 +182,69 @@ sub clear_cache {
     $storage->delete($key);
 }
 
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Role::Client - Basic methods to access the Lacuna API
+
+=head1 ACCESSORS
+
+=head2 database
+
+Path to the database directory.
+
+=head2 client
+
+L<Games::Lacuna::Task::Client> object
+
+=head1 METHODS
+
+=head2 request
+
+Runs a request, caches the response and returns the response.
+
+ my $response =  $self->request(
+    object  => Games::Lacuna::Client::* object,
+    method  => Method name,
+    params  => [ Params ],
+ );
+
+=head2 paged_request
+
+Runs a paged request (eg. list all trades)
+
+ my $response =  $self->paged_request(
+    object  => Games::Lacuna::Client::* object,
+    method  => Method name,
+    params  => [ Params ],
+    total   => Field containing the number of items,
+    data    => Data field,
+ );
+
+=head2 lookup_cache
+
+Fetches the value with the given key from the cache.
+
+ my $value = $self->lookup_cache($key);
+
+=head2 write_cache
+
+Writes a value to the cache.
+
+ $self->write_cache(
+    key     => Cache key,
+    data    => Data,
+    max_age => Max cache age (optional),
+ );
+
+=head2 clear_cache
+
+Removes a value from the cache
+
+ $self->clear_cache($key);
+
+=cut
 
 no Moose::Role;
 1;

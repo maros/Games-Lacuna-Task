@@ -14,7 +14,7 @@ has 'known_incoming' => (
     is              => 'rw',
     isa             => 'ArrayRef',
     lazy_build      => 1,
-    traits          => ['Array'],
+    traits          => ['Array','NoIntrospection'],
     handles         => {
         add_known_incoming  => 'push',
     }
@@ -24,7 +24,7 @@ has 'new_incoming' => (
     is              => 'rw',
     isa             => 'ArrayRef',
     default         => sub { [] },
-    traits          => ['Array'],
+    traits          => ['Array','NoIntrospection'],
     handles         => {
         add_new_incoming    => 'push',
         has_new_incoming   => 'count',
@@ -70,8 +70,11 @@ after 'run' => sub {
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
+    return
+        unless defined($planet_stats->{incoming_foreign_ships});
+    
     # Get space port
-    my $spaceport = $self->find_building($planet_stats->{id},'Space Port');
+    my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');
     
     return 
         unless $spaceport;
