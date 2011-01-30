@@ -20,13 +20,13 @@ has 'upgrade_preference' => (
     is      => 'rw',
     default => sub {
         [
-            'Waste Sequestration Well',
-            'Ore Storage Tanks',
-            'Water Storage Tank',
-            'Food Reserve',
-            'Energy Reserve',
-            'Planetary Command Center',
+            'WasteSequestration',
+            'OreStorage',
+            'WaterStorage',
+            'FoodReserve',
+            'EnergyReserve',
             'Stockpile',
+            'PlanetaryCommand',
         ]
     },
     documentation => 'Building uprade preferences',

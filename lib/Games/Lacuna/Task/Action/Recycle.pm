@@ -64,7 +64,7 @@ sub process_planet {
         $ressources{$ressource}[2] = ($ressources{$ressource}[1] / $total_ressources_coeficient);
     }
     
-    my @recycling_buildings = $self->find_building($planet_stats->{id},'Waste Recycling Center');
+    my @recycling_buildings = $self->find_building($planet_stats->{id},'WasteRecycling');
     
     # Loop all recycling buildings
     foreach my $recycling_building (@recycling_buildings) {

@@ -181,6 +181,12 @@ sub run {
                         $self->log('warn','Aborted by user');
                         die('ABORT');
                     };
+                    local $SIG{__WARN__} = sub {
+                        my $warning = $_[0];
+                        chomp($warning)
+                            unless ref ($warning); # perl 5.14 ready
+                        $self->log('warn',$warning);
+                    };
                     
                     my $config_task = $self->task_config($task_name);
                     my $config_global = $global_config;

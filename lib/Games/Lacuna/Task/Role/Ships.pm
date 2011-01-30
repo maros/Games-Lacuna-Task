@@ -15,7 +15,7 @@ sub ships {
         unless $ship_type;
     
     # Get space port
-    my $spaceport = $self->find_building($planet_stats->{id},'Space Port');
+    my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');
     # Get shipyard
     my @shipyards = $self->find_building($planet_stats->{id},'Shipyard');
     

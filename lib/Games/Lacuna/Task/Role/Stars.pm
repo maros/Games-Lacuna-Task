@@ -23,23 +23,6 @@ has 'stars_cache' => (
     documentation   => q[Temporary cache for star data],
 );
 
-#has 'probed_stars' => (
-#    is              => 'rw',
-#    isa             => 'HashRef[Int]',
-#    lazy_build      => 1,
-#    traits          => ['NoIntrospection'],
-#    documentation   => q[Cache of all probed stars],
-#);
-#
-#has 'unprobed_stars' => (
-#    is              => 'rw',
-#    isa             => 'HashRef[Int]',
-#    lazy_build      => 1,
-#    traits          => ['NoIntrospection'],
-#    documentation   => q[Cache of all unprobed stars],
-#);
-
-
 sub _build_stars {
     my ($self) = @_;
     

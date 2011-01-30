@@ -23,7 +23,7 @@ sub process_planet {
     my $observatory = $self->find_building($planet_stats->{id},'Observatory');
     
     # Get space port
-    my $spaceport = $self->find_building($planet_stats->{id},'Space Port');
+    my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');
     
     return 
         unless $observatory && $spaceport;

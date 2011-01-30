@@ -18,7 +18,7 @@ sub process_planet {
     my $max_age = $timestamp->subtract( days => 30 );
     
     # Get archaeology ministry
-    my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology Ministry');
+    my $archaeology_ministry = $self->find_building($planet_stats->{id},'ArchaeologyMinistry');
     # Get space port
     my $spaceport = $self->find_building($planet_stats->{id},'Space Port');
     

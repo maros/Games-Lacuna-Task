@@ -17,10 +17,10 @@ sub process_planet {
     my ($self,$planet_stats) = @_;
         
     # Get observatory
-    my $mining = $self->find_building($planet_stats->{id},'Mining Ministry');
+    my $mining = $self->find_building($planet_stats->{id},'MiningMinistry');
     
     # Get space port
-    my $spaceport = $self->find_building($planet_stats->{id},'Space Port');
+    my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');
     
     return 
         unless $mining && $spaceport;

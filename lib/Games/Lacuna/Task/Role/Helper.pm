@@ -73,11 +73,14 @@ sub body_status {
 sub find_building {
     my ($self,$body,$type) = @_;
     
+    my $type_url = '/'.lc($type);
+    
     # Get buildings
     my @results;
     foreach my $building_data ($self->buildings_body($body)) {
         next
-            unless $building_data->{name} eq $type;
+            unless $building_data->{name} eq $type
+            || $building_data->{url} eq $type_url;
         push (@results,$building_data);
     }
     

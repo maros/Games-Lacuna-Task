@@ -30,7 +30,7 @@ sub process_planet {
         if ($waste_filled < $self->dispose_percentage);
     
     # Get space port
-    my ($spaceport) = $self->find_building($planet_stats->{id},'Space Port');
+    my ($spaceport) = $self->find_building($planet_stats->{id},'SpacePort');
     
     return
         unless $spaceport;
