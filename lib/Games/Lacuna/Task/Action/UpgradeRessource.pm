@@ -92,6 +92,9 @@ sub process_planet {
     return
         if (min(values %ressources_coeficient) > $self->ressource_avg);
     
+    #TODO: check if buildings are less than $max_ressouce_level
+    #TODO: check if build queue is not full
+    #TODO: check if ressource buildings are already being upgraded
     
 #    # Check if build queue is filled
 #    if ($building_count <= $self->start_building_at) {
