@@ -8,6 +8,7 @@ with qw(Games::Lacuna::Task::Role::Logger);
 use Games::Lacuna::Client;
 use KiokuDB;
 use Term::ReadKey;
+use IO::Interactive qw(is_interactive);
 
 our $API_KEY = '261cb463-cff4-458a-bbc6-807a6ff59d3e';
 our $SERVER = 'https://us1.lacunaexpanse.com/';
@@ -17,6 +18,7 @@ has 'client' => (
     isa             => 'Games::Lacuna::Client',
     lazy_build      => 1,
     predicate       => 'has_client',
+    clearer         => 'reset_client',
 );
 
 has 'storage_file' => (
@@ -44,8 +46,10 @@ sub _build_storage {
     unless (-e $storage_file->stringify) {
         $self->log('info',"Initializing storage file %s",$storage_file->stringify);
         my $storage_dir = $self->storage_file->parent->stringify;
-        mkdir($storage_dir)
-           or $self->log('error','Could not create storage directory %s: %s',$storage_dir,$!);
+        unless (-e $storage_dir) {
+            mkdir($storage_dir)
+                or $self->log('error','Could not create storage directory %s: %s',$storage_dir,$!);
+        }
         $storage_file->touch
             or $self->log('error','Could not create storage file %s: %s',$storage_file->stringify,$!);
     }
@@ -66,18 +70,16 @@ sub _build_client {
     my ($self) = @_;
     
     my $storage = $self->storage;
-    my $config = $storage->lookup('config');
-    
-    unless (defined $config) {
-        $self->get_config_from_user();
-    }
-    
+    my $config = $storage->lookup('config') || $self->get_config_from_user();
+    my $session = $storage->lookup('session') || {};
+
     my $client = Games::Lacuna::Client->new(
         %{$config},
+        %{$session},
         session_persistent  => 1,
     );
     
-    $client->assert_session();
+    #$client->assert_session();
 
     return $client;
 }
@@ -86,9 +88,13 @@ sub get_config_from_user {
     my ($self) = @_;
     my ($password,$name,$server,$api);
     
+    unless (is_interactive()) {
+        die('Could not initialize config since we are not running in interactive mode');
+    }
+
     $self->log('info',"Initializing local database");
     
-    while (! defined $server || $server !~ m/https?:\/\//) {
+    while (! defined $server || $server !~ m/^https?:\/\//) {
         say "Please enter the server url (leave empty for default: '$SERVER'):";
         while ( not defined( $server = ReadLine(-1) ) ) {
             # no key pressed yet
@@ -132,11 +138,16 @@ sub get_config_from_user {
     my $storage = $self->storage;
     $storage->delete('config');
     $storage->store('config' => $config);
+    return $config;
 }
 
 sub login {
     my ($self) = @_;
+    
     my $config = $self->storage->lookup('config');
+    $self->client->name($config->{name});
+    $self->client->password($config->{password});
+    $self->client->api_key($config->{api_key});
     $self->client->empire->login($config->{name}, $config->{password}, $config->{api_key});
     $self->_update_session;
 }
@@ -145,13 +156,21 @@ sub _update_session {
     my ($self) = @_;
     
     my $client = $self->meta->get_attribute('client')->get_raw_value($self);
-    my $config = $self->storage->lookup('config');
+
+    return
+        unless defined $client && $client->session_id;
+
+    my $session = $self->storage->lookup('session') || {};
     
-    if ($client && $client->session_id) {
-        $config->{session_id} = $client->session_id;
-        $config->{session_start} = $client->session_start;
-        $self->storage->update($config);
-    }
+    return $client
+        if defined $session->{session_id} && $session->{session_id} ne $client->session_id;
+
+    $session->{session_id} = $client->session_id;
+    $session->{session_start} = $client->session_start;
+    $session->{session_timeout} = $client->session_timeout;
+    
+    $self->storage->delete('session');
+    $self->storage->store('session' => $session);
     
     return $client;
 }
