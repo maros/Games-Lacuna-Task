@@ -98,18 +98,24 @@ sub request {
         } catch {
             my $error = $_;
             if (blessed($error)
-                && $error->isa('Exeption::Class')) {
-                if ($error->isa('LacunaRPCException')
-                    && $error->code() == 1006) {
-                    $self->log('debug','Session expired unexpectedly');
-                    $self->client->login;
-                    $retry = 1;
-                } elsif ($error->isa('LacunaRPCException')
-                    && $error->code() == 1004) {
-                    $self->get_config_from_user();
-                    $retry = 1;
-                } else {
-                    $error->rethrow;
+                && $error->isa('LacunaRPCException')) {
+                given ($error->code) {
+                    when(1006) {
+                        $self->log('debug','Session expired unexpectedly');
+                        $self->client->reset_client();
+                        $self->client->storage->delete('session');
+                        $self->client->login;
+                        $retry = 1;
+                    }
+                    when(1004) {
+                        $self->log('error','Password incorrect');
+                        $self->client->get_config_from_user();
+                        $self->client->reset_client;
+                        $retry = 1;
+                    }
+                    default {
+                        $error->rethrow;
+                    }
                 }
             } else {
                 die($error);
