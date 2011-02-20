@@ -73,6 +73,14 @@ sub _build_client {
     my $config = $storage->lookup('config') || $self->get_config_from_user();
     my $session = $storage->lookup('session') || {};
 
+    # Check session
+    if (defined $session 
+        && defined $session->{session_start}
+        && $session->{session_start} + $session->{session_timeout} < time()) {
+        $self->log('debug','Session %s has expired',$session->{session_id});
+        $session = {};
+    }
+
     my $client = Games::Lacuna::Client->new(
         %{$config},
         %{$session},
@@ -165,9 +173,12 @@ sub _update_session {
     return $client
         if defined $session->{session_id} && $session->{session_id} ne $client->session_id;
 
+    $self->log('debug','New session %s',$session->{session_id});
+
     $session->{session_id} = $client->session_id;
     $session->{session_start} = $client->session_start;
     $session->{session_timeout} = $client->session_timeout;
+    $session->{session_start} = $client->session_start;
     
     $self->storage->delete('session');
     $self->storage->store('session' => $session);
