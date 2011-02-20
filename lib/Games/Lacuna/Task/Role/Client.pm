@@ -6,7 +6,6 @@ use Moose::Role;
 use Games::Lacuna::Task::Client;
 use Try::Tiny;
 
-my %CLIENTS;
 our $DEFAULT_DIRECTORY = Path::Class::Dir->new($ENV{HOME}.'/.lacuna');
 
 has 'database' => (
@@ -28,13 +27,6 @@ has 'client' => (
 sub _build_client {
     my ($self) = @_;
     
-    my $database_stringify = $self->database->stringify;
-    
-    # See if we have client in cache
-    if (defined $CLIENTS{$database_stringify}) {
-        return $CLIENTS{$database_stringify};
-    }
-    
     my $database_file = Path::Class::File->new($self->database,'default.db');
     
     # Build new client
@@ -43,8 +35,6 @@ sub _build_client {
         storage_file    => $database_file,
         debug           => 1,
     );
-    
-    $CLIENTS{$database_stringify} = $client;
     
     return $client;
 }
