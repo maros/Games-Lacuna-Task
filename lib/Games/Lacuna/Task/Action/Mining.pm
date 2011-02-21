@@ -155,9 +155,9 @@ sub closest_asteroids {
     STARS:
     foreach my $star ($self->stars_by_distance($x,$y)) {
         
-        # Check if star has not yet been probed
+        # Check if star has yet been probed
         next STARS
-            if $self->is_unprobed_star($star->{id});
+            unless $self->is_probed_star($star->{id});
         
         # Get star info
         my $star_info = $self->request(
@@ -165,8 +165,6 @@ sub closest_asteroids {
             params  => [ $star->{id} ],
             method  => 'get_star',
         );
-        
-        $self->add_probed_star($star->{id});
         
         foreach my $body (@{$star_info->{star}{bodies}}) {
             next 
