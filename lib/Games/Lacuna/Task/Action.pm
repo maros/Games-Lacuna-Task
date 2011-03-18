@@ -12,6 +12,8 @@ sub run {
     
     PLANETS:
     foreach my $planet_stats ($self->planets) {
+        next
+            unless $planet_stats->{type} eq 'habitable planet';
         $self->log('info',"Processing planet %s",$planet_stats->{name});
         $self->process_planet($planet_stats);
     }
