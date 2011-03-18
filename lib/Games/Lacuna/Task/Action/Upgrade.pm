@@ -11,7 +11,7 @@ has 'start_building_at' => (
     isa     => 'Int',
     is      => 'rw',
     required=> 1,
-    default => 1,
+    default => 2,
     documentation => 'Upgrade buildings if there are less than N buildings in the build queue',
 );
 
@@ -58,13 +58,14 @@ sub process_planet {
     
     # Check if build queue is filled
     if ($building_count <= $self->start_building_at) {
+        $self->log('debug','Start building');
         for my $check (1,0) {
             # Loop all building types
             foreach my $building_type (@{$self->{upgrade_preference}}) {
                 # Loop all buildings
                 foreach my $building_data (@buildings) {
                     next
-                        unless $building_data->{name} eq $building_type;
+                        unless Games::Lacuna::Client::Buildings::type_from_url($building_data->{url}) eq $building_type;
                     next
                         if $building_data->{pending_build};
                     next
@@ -87,11 +88,11 @@ sub process_planet {
                         next
                             if ($planet_stats->{$ressource.'_hour'} + $ressource_difference <= 0);
                     }
-                    
+
                     # Check if we really can afford the upgrade
                     next
                         unless $self->can_afford($planet_stats,$building_detail->{'building'}{upgrade}{cost});
-                    
+
                     $self->log('notice',"Upgrading %s on %s",$building_type,$planet_stats->{name});
                     
                     # Upgrade request
