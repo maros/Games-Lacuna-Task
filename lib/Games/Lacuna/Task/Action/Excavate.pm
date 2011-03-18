@@ -7,6 +7,13 @@ extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Stars
     Games::Lacuna::Task::Role::Ships);
 
+has 'excavator_count' => (
+    isa             => 'Int',
+    is              => 'rw',
+    documentation   => 'Defines how many excavators should be dispatched simulaneously',
+    default         => 2,
+);
+
 sub description {
     return q[This task automates building and dispatching of excavators];
 }
@@ -18,7 +25,7 @@ sub process_planet {
     my $max_age = $timestamp->subtract( days => 30 );
     
     # Get archaeology ministry
-    my $archaeology_ministry = $self->find_building($planet_stats->{id},'ArchaeologyMinistry');
+    my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology');
     # Get space port
     my $spaceport = $self->find_building($planet_stats->{id},'Space Port');
     
@@ -32,12 +39,12 @@ sub process_planet {
     # Get available excavators
     my @avaliable_excavators = $self->ships(
         planet          => $planet_stats,
-        ships_needed    => 1, # TODO: set some reasonable value
+        ships_needed    => $self->excavator_count,
         ship_type       => 'excavator',
     );
     
     # Check if we have available excavators
-    next
+    return
         unless (scalar @avaliable_excavators);
     
     # Get spaceport
