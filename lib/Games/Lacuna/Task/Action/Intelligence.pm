@@ -15,6 +15,14 @@ has 'offensive_assignment' => (
     documentation   => 'Default offensive spy assignment',
 );
 
+has 'max_missions' => (
+    isa             => 'Int',
+    is              => 'rw',
+    required        => 1,
+    default         => 25,
+    documentation   => 'Max offensive missions per spy',
+);
+
 has 'rename_spies' => (
     isa             => 'Bool',
     is              => 'rw',
@@ -117,15 +125,17 @@ sub process_planet {
         # Spy is on another planet
         } else {
             next
-                 unless $spy->{is_available};
+                unless $spy->{is_available};
             next
-                 unless $spy->{assignment} eq 'Idle';
+                unless $spy->{assignment} eq 'Idle';
             my $assignment;
             # My planet
             if ($spy->{assigned_to}{body_id} ~~ [ $self->planet_ids ]) {
                 $assignment = 'Counter Espionage';
             # Foreign planet
             } else {
+                next 
+                    if $spy->{mission_count}{offensive} > $self->max_missions;
                 # TODO Check if empire is ally
                 # TODO Some way to configure offensive assignment
                 my $assignment_index = rand(scalar @{$self->offensive_assignment});
@@ -157,7 +167,8 @@ sub process_planet {
         if (scalar @foreign_spies_active
             && ! defined $defensive_spy_assignments{'Security Sweep'}
             && min(@foreign_spies_active)-1 <= $spy->{level} 
-            && $defensive_spy_count > $foreign_spies_count) {
+            && $defensive_spy_count > $foreign_spies_count
+            && $spy->{mission_count}{defensive} <= $self->max_missions) {
             $assignment = 'Security Sweep';
         # Assign to counter espionage
         } elsif ($spy->{assignment} eq 'Idle') {
