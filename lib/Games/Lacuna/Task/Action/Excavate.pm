@@ -65,12 +65,20 @@ sub process_planet {
         my $star_info = $self->get_star($star->{id});
         
         # Loop all bodies
+        foreach my $body (@{$star_info->{bodies}}) {
+            # Do not excavate habited solar system as excavators will be shot down
+            next STARS
+                if defined $body->{empire} && $body->{type} eq 'habitable planet';;
+        }
+
+        # Loop all bodies again
         BODIES:
         foreach my $body (@{$star_info->{bodies}}) {
+            # Only excavate habitable planets
             next BODIES
-                if defined $body->{empire};
-            next BODIES
-                unless defined $body->{type} eq 'habitable planet';
+                unless $body->{type} eq 'habitable planet';
+
+            # Do not excavate body that has been excavated in past 30 days
             next BODIES
                 if defined $excavate_cache->{$body->{id}}
                 && $excavate_cache->{$body->{id}} >= $max_age;
@@ -88,6 +96,9 @@ sub process_planet {
                 
                 $excavate_cache->{$body} = $timestamp;
             }
+
+            last STARS
+                if scalar(@avaliable_excavators) == 0;
         }
         last STARS
             if scalar(@avaliable_excavators) == 0;
