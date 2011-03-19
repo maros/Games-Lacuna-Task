@@ -103,6 +103,11 @@ sub request {
                         $self->client->reset_client;
                         $retry = 1;
                     }
+                    when(1010) {
+                        $self->log('warn','Too many requests');
+                        sleep 60;
+                        $retry = 1;
+                    }
                     default {
                         $error->rethrow;
                     }
