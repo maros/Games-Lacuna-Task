@@ -14,6 +14,8 @@ has 'excavator_count' => (
     default         => 2,
 );
 
+use Try::Tiny;
+
 sub description {
     return q[This task automates building and dispatching of excavators];
 }
@@ -54,7 +56,7 @@ sub process_planet {
     my $excavate_cache_key = 'excavate/'.$planet_stats->{id};
     my $excavate_cache = $self->lookup_cache($excavate_cache_key) || {};
     
-    # Get unprobed stars
+    # Get probed stars
     STARS:
     foreach my $star ($self->stars_by_distance($planet_stats->{x},$planet_stats->{y},1)) {
         # Check if star known to be unprobed
@@ -68,7 +70,7 @@ sub process_planet {
         foreach my $body (@{$star_info->{bodies}}) {
             # Do not excavate habited solar system as excavators will be shot down
             next STARS
-                if defined $body->{empire} && $body->{type} eq 'habitable planet';;
+                if defined $body->{empire} && $body->{type} eq 'habitable planet';
         }
 
         # Loop all bodies again
@@ -87,13 +89,31 @@ sub process_planet {
             
             if (defined $excavator) {
                 
-                # Send excavator to body
-                my $response = $self->request(
-                    object  => $spaceport_object,
-                    method  => 'send_ship',
-                    params  => [ $excavator,{ "body_id" => $body } ],
-                );
+                try {
+                    # Send excavator to body
+                    my $response = $self->request(
+                        object  => $spaceport_object,
+                        method  => 'send_ship',
+                        params  => [ $excavator,{ "body_id" => $body->{id} } ],
+                    );
                 
+                    $self->log('notice',"Sending excavator from %s to %s",$planet_stats->{name},$body->{name});
+                } catch {
+                    my $error = $_;
+                    if (blessed($error)
+                        && $error->isa('LacunaRPCException')) {
+                        if ($error->code == 1010) {
+                            $excavate_cache->{$body} = $timestamp;
+                            push(@avaliable_excavators,$excavator);
+                            next;
+                        } else {
+                            $error->rethrow();
+                        }    
+                    } else {
+                        die($error);
+                    }
+                };
+
                 $excavate_cache->{$body} = $timestamp;
             }
 
