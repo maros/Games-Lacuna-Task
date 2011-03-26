@@ -80,6 +80,7 @@ sub request {
     
     my $response;
     my $retry = 1;
+    my $retry_count = 0;
     
     while ($retry) {
         $retry = 0;
@@ -103,15 +104,22 @@ sub request {
                         $self->client->reset_client;
                         $retry = 1;
                     }
-                    when(1010) {
-                        $self->log('warn','Too many requests');
-                        sleep 60;
-                        $retry = 1;
-                    }
+#                    when(?) { # too many requests
+#                        if ($retry_count < 3) {
+#                            $self->log('warn',$error);
+#                            $self->log('warn','Too many requests (wait a while)');
+#                            sleep 60;
+#                            $retry = 1;
+#                        } else {
+#                            $self->log('error','Too many requests (abort)');
+#                        }
+#                    }
                     default {
                         $error->rethrow;
                     }
                 }
+                $retry_count ++
+                    if $retry;
             } else {
                 die($error);
             }
