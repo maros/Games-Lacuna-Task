@@ -13,6 +13,8 @@ sub process_planet {
     my ($self,$planet_stats) = @_;
     
     my @buildings = $self->buildings_body($planet_stats->{id});
+    my $waste_hour = $planet_stats->{waste_hour}+0;
+    my $waste_stored = $planet_stats->{waste_stored}+0;
     
     # Loop all buildings
     foreach my $building_data (@buildings) {
@@ -27,13 +29,21 @@ sub process_planet {
         );
         
         # Check if building really needs repair
-
         next
             if $building_detail->{building}{efficiency} == 100;
-        
+
         # Check if we can afford repair
         next
             unless $self->can_afford($planet_stats,$building_detail->{building}{repair_costs});
+        
+        # Calc buildings repair impact on waste
+        my $waste_hour_calc = $waste_hour + ($building_detail->{building}{waste_hour} * (100 - $building_detail->{building}{efficiency}));
+
+        # Check if repair of waste recycling building is sustainable
+        return
+            if $building_detail->{id} ~~ [qw(WaterReclamation WasteDigester WasteEnergy WasteRecycling)]
+            && $waste_hour_calc < 0
+            && $waste_stored < ($waste_hour_calc * 24);
         
         # Repair building
         $self->log('notice',"Repairing %s on %s",$building_data->{name},$planet_stats->{name});
@@ -42,6 +52,8 @@ sub process_planet {
             object  => $building_object,
             method  => 'repair',
         );
+
+        $waste_hour = $waste_hour_calc;
         
         $self->clear_cache('body/'.$planet_stats->{id}.'/buildings');
     }

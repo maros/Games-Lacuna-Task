@@ -26,7 +26,7 @@ sub process_planet {
     if ($planet_stats->{waste_hour} > 0) {
         $recycleable_waste = $waste;
     } else {
-        $recycleable_waste = $waste + ($planet_stats->{waste_hour} * 12)
+        $recycleable_waste = $waste + ($planet_stats->{waste_hour} * 24)
     }
     
     return
