@@ -39,10 +39,17 @@ has 'energy_buildings' => (
 has 'ressource_avg' => (
     isa     => 'Int',
     is      => 'rw',
-    default => '75',
-    documentation => 'Start upgradeing a ressource building if production reaces only n-% of the planets average production',
+    default => '50',
+    documentation => 'Start upgrading a ressource building if production reaces only n-% of the planets average production',
 );
 
+has 'start_building_at' => (
+    isa     => 'Int',
+    is      => 'rw',
+    required=> 1,
+    default => 1,
+    documentation => 'Upgrade buildings if there are less than N buildings in the build queue',
+);
 
 sub description {
     return q[This task handles the upgrade of ressource buildings if a ressource is running low];
@@ -75,6 +82,9 @@ sub process_planet {
         push(@levels,$building_data->{level});
     }
     my $max_level = max(@levels);
+
+    return
+        if $building_count < $self->start_building_at;
     
     # Get current ressource production
     my %ressources_production;
