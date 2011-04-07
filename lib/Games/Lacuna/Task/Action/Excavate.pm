@@ -105,7 +105,6 @@ sub process_planet {
                         if ($error->code == 1010) {
                             $excavate_cache->{$body} = $timestamp;
                             push(@avaliable_excavators,$excavator);
-                            next;
                         } else {
                             $error->rethrow();
                         }    
