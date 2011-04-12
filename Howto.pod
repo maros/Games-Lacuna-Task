@@ -22,6 +22,8 @@ directory. The file should have the following format:
     # Which tasks should be excluded (if not provided via commandline options)
     exclude:
       - task2_name
+    # Global task options
+    global_task_opion ...
  task1_name:
    task1_option1: 80
    task1_option2: ...
@@ -43,10 +45,10 @@ If your tasks is "planet-centric" you need to implement a C<process_planet>
 method, otherwise you need to override the C<run> method. With Moose method
 modificatiors (e.g. C<after>) you can modify the behaviour of the C<run> 
 method and for example add some cleanup code. The C<process_planet> method 
-will recieve the planet stat hash as the first argument.
+will recieve the planet stats hash as the first argument.
 
 Furthermore your task class has to implement a C<documentation> function
-that returns a short task description.
+that returns a short task description string.
 
 If your tasks requires configuration values you can specify moose accessors.
 Accessors should have a documentation string and meaningfull defaults. You

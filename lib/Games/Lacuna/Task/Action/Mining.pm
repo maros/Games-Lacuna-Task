@@ -142,6 +142,8 @@ sub process_planet {
         }
     }
     
+    # TODO check transport ships
+
     return;
 }
 
