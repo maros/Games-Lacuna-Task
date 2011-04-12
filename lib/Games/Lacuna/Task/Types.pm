@@ -6,6 +6,12 @@ use warnings;
 use Moose::Util::TypeConstraints;
 use MooseX::Types::Path::Class;
 use Path::Class::File;
+use Games::Lacuna::Task::Constants;
+
+subtype 'Lacuna::Task::Type::Ore' 
+    => as enum(\@Games::Lacuna::Task::Constants::ORES)
+    => message { "Not a valid ore '$_'" };
+
 
 #subtype 'Lacuna::Task::Type::File'
 #    => as class_type('Path::Class::File')
