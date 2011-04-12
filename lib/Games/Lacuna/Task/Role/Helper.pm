@@ -9,6 +9,7 @@ use Games::Lacuna::Task::Cache;
 use Games::Lacuna::Task::Constants;
 use Data::Dumper;
 use DateTime;
+use Unicode::Normalize;
 
 sub build_object {
     my ($self,$class,@params) = @_;
@@ -57,13 +58,17 @@ sub planets {
 sub body_status {
     my ($self,$body) = @_;
     
-    my $key = 'body/'.$body;
+    my $body_id = $self->find_body($body);
+    return
+        unless $body_id;
+
+    my $key = 'body/'.$body_id;
     my $body_status = $self->lookup_cache($key);
     return $body_status
         if $body_status;
     
     $body_status = $self->request(
-        object  => $self->build_object('Body', id => $body),
+        object  => $self->build_object('Body', id => $body_id),
         method  => 'get_status',
     )->{body};
     
@@ -73,11 +78,15 @@ sub body_status {
 sub find_building {
     my ($self,$body,$type) = @_;
     
+    my $body_id = $self->find_body($body);    
+    return 
+        unless $body_id;
+
     my $type_url = '/'.lc($type);
     
     # Get buildings
     my @results;
-    foreach my $building_data ($self->buildings_body($body)) {
+    foreach my $building_data ($self->buildings_body($body_id)) {
         next
             unless $building_data->{name} eq $type
             || $building_data->{url} eq $type_url;
@@ -91,9 +100,13 @@ sub find_building {
 sub buildings_body {
     my ($self,$body) = @_;
     
-    my $key = 'body/'.$body.'/buildings';
+    my $body_id = $self->find_body($body);
+    return
+        unless $body_id;
+
+    my $key = 'body/'.$body_id.'/buildings';
     my $buildings = $self->lookup_cache($key) || $self->request(
-        object  => $self->build_object('Body', id => $body),
+        object  => $self->build_object('Body', id => $body_id),
         method  => 'get_buildings',
     )->{buildings};
     
@@ -196,11 +209,45 @@ sub parse_date {
     return;
 }
 
+sub find_body {
+    my ($self,$body) = @_;
+
+    return
+        unless $body;
+
+    return $body
+        if $body =~ m/^\d+$/;
+
+    # Get my planets
+    my $planets = $self->empire_status->{planets};
+
+    # Exact match
+    foreach my $id (keys %$planets) {
+        return $id
+            if $planets->{$id} eq $body;
+    }
+
+    my $name_simple = Unicode::Normalize::decompose($body); 
+    $name_simple =~ s/\p{NonSpacingMark}//g;
+    $name_simple = uc($name_simple);
+    
+    # Similar match
+    foreach my $id (keys %$planets) {
+        my $name_compare = Unicode::Normalize::decompose($planets->{$id}); 
+        $name_compare =~ s/\p{NonSpacingMark}//g;
+        $name_compare = uc($name_compare);
+        return $id
+            if $name_simple eq $name_compare;
+    }
+
+    return;
+}
+
 sub can_afford {
     my ($self,$planet_data,$cost) = @_;
     
     unless (ref($planet_data) eq 'HASH') {
-        $planet_data = $self->body_status($planet_data);
+        $planet_data = $self->body_status($self->find_body($planet_data));
     }
     
     foreach my $ressource (qw(food ore water energy)) {
@@ -225,13 +272,13 @@ Games::Lacuna::Task::Role::Helper - Various helper methods
 
 =head2 body_status
 
- my $body_status = $self->body_status($body_id);
+ my $body_status = $self->body_status($body_id OR $body_name);
 
 Returns the status hash of a given body/planet.
 
 =head2 buildings_body
 
- my $body_buildings = $self->buildings_body($body_id);
+ my $body_buildings = $self->buildings_body($body_id OR $body_name);
 
 Returns all buildings for a given planet.
 
@@ -241,11 +288,11 @@ Returns the empire status hash
 
 =head2 build_object
 
- my $glc_object = $self->build_object('/university');
+ my $glc_object = $self->build_object('/university', id => $building_id);
  OR
  my $glc_object = $self->build_object($building_status_response);
  OR
- my $glc_object = $self->build_object('Spareport', id => $building_id);
+ my $glc_object = $self->build_object('Spaceport', id => $building_id);
  OR
  my $glc_object = $self->build_object('Map');
 
@@ -261,13 +308,20 @@ Calculates if the upgrade/repair can be afforded
 
 =head2 find_building
 
- my @spaceports = $self->buildings_body('Space Port');
+ my @spaceports = $self->find_building($body_id or $body_name,'Space Port');
 
-Finds all buildings of a given type ordered by level.
+Finds all buildings on a given body of a given type ordered by level.
+
+=head2 find_body
+
+ my $body_id = $self->find_body($body_name);
+
+Returns the body ID for the given body name. Ignores case and accents
+so that eg. 'Hà Nôi' equals 'HA NOI'.
 
 =head2 home_planet_id
 
-Returns the id of the empire' home planet
+Returns the id of the empire' home planet id
 
 =head2 planet_ids
 
