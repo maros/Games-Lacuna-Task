@@ -66,23 +66,25 @@ sub process_planet {
     # Get possible recipies
     RECIPIES: 
     foreach my $recipie (@{$self->recipies}) {
-        my (@recipie,@recipie_name);
-        foreach my $glyph (@{$self->recipies}) {
-            next RECIPIES
-                unless scalar @{$available_gylphs->{$glyph}};
+        while (1) {
+            my (@recipie,@recipie_name);
+            foreach my $glyph (@{$recipie}) {
+                next RECIPIES
+                    unless scalar @{$available_gylphs->{$glyph}};
+            }
+            foreach my $glyph (@{$recipie}) {
+                push(@recipie_name,$glyph);
+                push(@recipie,pop(@{$available_gylphs->{$glyph}}));
+            }
+             
+            $self->log('notice','Combining glyphs %s',join(', ',@recipie_name));
+                       
+            $self->request(
+                object  => $archaeology_ministry_object,
+                method  => 'assemble_glyphs',
+                params  => [\@recipie],
+            );
         }
-        foreach my $glyph (@{$self->recipies}) {
-            push(@recipie_name,$glyph);
-            push(@recipie,pop(@{$available_gylphs->{$glyph}}));
-        }
-        
-        $self->log('notice','Combining glyphs %s',join(', ',@recipie_name));
-
-        #$self->request(
-        #    object  => $archaeology_ministry_object,
-        #    method  => 'assemble_glyphs',
-        #    params  => [\@recipie],
-        #);
     }
 }
 
