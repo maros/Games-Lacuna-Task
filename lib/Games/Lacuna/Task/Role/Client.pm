@@ -104,16 +104,16 @@ sub request {
                         $self->client->reset_client;
                         $retry = 1;
                     }
-#                    when(?) { # too many requests
-#                        if ($retry_count < 3) {
-#                            $self->log('warn',$error);
-#                            $self->log('warn','Too many requests (wait a while)');
-#                            sleep 60;
-#                            $retry = 1;
-#                        } else {
-#                            $self->log('error','Too many requests (abort)');
-#                        }
-#                    }
+                    when(1010) { # too many requests
+                        if ($retry_count < 3) {
+                            $self->log('warn',$error);
+                            $self->log('warn','Too many requests (wait a while)');
+                            sleep 30;
+                            $retry = 1;
+                        } else {
+                            $self->log('error','Too many requests (abort)');
+                        }
+                    }
                     default {
                         $error->rethrow;
                     }
