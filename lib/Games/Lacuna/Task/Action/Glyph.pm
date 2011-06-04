@@ -26,7 +26,7 @@ has 'keep_gylphs' => (
     is              => 'rw',
     required        => 1,
     documentation   => 'Keep n-gylps in storage (do not combine them)',
-    default         => 3,
+    default         => 5,
 );
 
 sub description {

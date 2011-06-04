@@ -11,7 +11,7 @@ has 'excavator_count' => (
     isa             => 'Int',
     is              => 'rw',
     documentation   => 'Defines how many excavators should be dispatched simulaneously',
-    default         => 2,
+    default         => 5,
 );
 
 use Try::Tiny;
