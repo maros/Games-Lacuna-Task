@@ -32,7 +32,7 @@ sub process_planet {
     my $spaceport = $self->find_building($planet_stats->{id},'Space Port');
     
     return 
-        unless $spaceport;
+        unless defined $spaceport;
     return
         unless defined $archaeology_ministry;
     return
@@ -42,6 +42,7 @@ sub process_planet {
     my @avaliable_excavators = $self->ships(
         planet          => $planet_stats,
         ships_needed    => $self->excavator_count,
+        ship_travelling => 1,
         ship_type       => 'excavator',
     );
     
