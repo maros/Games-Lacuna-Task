@@ -20,7 +20,7 @@ has 'accept_proposition' => (
         |
         Rename \s $NAME_RE
         |
-        Repair \s $NAME_RE
+        Repair \s $NAME_RE \s $BUILDING_COORDINATES_RE
         |
         Seize \s $NAME_RE
     )$/xi },
