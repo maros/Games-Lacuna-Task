@@ -83,11 +83,11 @@ sub check_for_destroyed_probes {
     
     my $inbox_object = $self->build_object('Inbox');
     
-    # Get inbox
+    # Get inbox for attacks
     my $inbox_data = $self->request(
         object  => $inbox_object,
         method  => 'view_inbox',
-        params  => [{ tags => 'Alert',page_number => 1 }],
+        params  => [{ tags => ['Attack','Probe'],page_number => 1 }],
     );
     
     my @archive_messages;
@@ -95,13 +95,8 @@ sub check_for_destroyed_probes {
     foreach my $message (@{$inbox_data->{messages}}) {
         next
             unless $message->{from_id} == $message->{to_id};
-        
-        given ($message->{subject}) {
-            when('Probe Detected!') {
-                push(@archive_messages,$message->{id});
-            }
+        given($message->{subject}) {
             when ('Probe Destroyed') {
-                
                 # TODO check last run so that we do not process old messages
                 #$self->parse_date($message->{date});
                 
@@ -131,6 +126,8 @@ sub check_for_destroyed_probes {
                 
                 push(@archive_messages,$message->{id});
             }
+        when ('Probe Detected!') {
+            push(@archive_messages,$message->{id});
         }
     }
     
