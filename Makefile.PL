@@ -19,7 +19,7 @@ requires        'KiokuDB::Backend::DBI'         => 0;
 requires        'Path::Class'                   => 0;
 requires        'MooseX::Types::Path::Class'    => 0;
 
-requires        'YAML'                          => 0;
+requires        'YAML::Any'                     => 0;
 requires        'LWP'                           => 0;
 requires        'Text::CSV'                     => 0;
 

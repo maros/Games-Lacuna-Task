@@ -12,7 +12,7 @@ use Games::Lacuna::Task::Meta::Attribute::Trait::NoIntrospection;
 
 use Moose;
 use Try::Tiny;
-use YAML qw(LoadFile);
+use YAML::Any qw(LoadFile);
 
 use Module::Pluggable 
     search_path => ['Games::Lacuna::Task::Action'],
