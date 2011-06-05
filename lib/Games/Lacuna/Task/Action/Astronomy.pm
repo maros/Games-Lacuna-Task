@@ -48,9 +48,9 @@ sub process_planet {
     # Get available probes
     my @avaliable_probes = $self->ships(
         planet          => $planet_stats,
-        ships_needed    => $can_send_probes,
-        ship_type       => 'probe',
-        ships_travelling=> 1,
+        quantity         => $can_send_probes,
+        type            => 'probe',
+        travelling      => 1,
     );
     
     return 
@@ -126,8 +126,9 @@ sub check_for_destroyed_probes {
                 
                 push(@archive_messages,$message->{id});
             }
-        when ('Probe Detected!') {
-            push(@archive_messages,$message->{id});
+            when ('Probe Detected!') {
+                push(@archive_messages,$message->{id});
+            }
         }
     }
     
