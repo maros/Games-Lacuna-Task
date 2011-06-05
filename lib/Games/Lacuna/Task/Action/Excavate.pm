@@ -41,9 +41,9 @@ sub process_planet {
     # Get available excavators
     my @avaliable_excavators = $self->ships(
         planet          => $planet_stats,
-        ships_needed    => $self->excavator_count,
-        ship_travelling => 1,
-        ship_type       => 'excavator',
+        quantity         => $self->excavator_count,
+        travelling      => 1,
+        type            => 'excavator',
     );
     
     # Check if we have available excavators

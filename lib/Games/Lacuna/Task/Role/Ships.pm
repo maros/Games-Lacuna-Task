@@ -7,12 +7,13 @@ sub ships {
     my ($self,%params) = @_;
     
     my $planet_stats = $params{planet};
-    my $ship_type = $params{ship_type};
-    my $ships_needed = $params{ships_needed} // 1;
-    my $ships_travelling = $params{ship_travelling} // 0;
+    my $type = $params{type};
+    my $name_prefix = $params{name_prefix};
+    my $quantity = $params{quantity} // 1;
+    my $travelling = $params{travelling} // 0;
     
     return
-        unless $ship_type;
+        unless $type;
     
     # Get space port
     my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');
@@ -32,6 +33,8 @@ sub ships {
         data    => 'ships',
     );
     
+    my @known_ships;
+    my $new_building = 0;
     my @avaliable_ships;
     my $building_ships = 0;
     my $travelling_ships = 0;
@@ -39,23 +42,28 @@ sub ships {
     # Find all avaliable and buildings ships
     SHIPS:
     foreach my $ship (@{$ships_data->{ships}}) {
+        push(@known_ships,$ship->{id});
+        
         next SHIPS
-            unless $ship->{type} eq $ship_type;
+            unless $ship->{type} eq $type;
+        next SHIPS
+            if defined $name_prefix && $ship->{name} !~ m/^$name_prefix/;
+            
         if ($ship->{task} eq 'Docked') {
             push(@avaliable_ships,$ship->{id});
         } elsif ($ship->{task} eq 'Building') {
             $building_ships ++;
-        } elsif ($ship->{task} eq 'Travelling' && $ships_travelling) {
+        } elsif ($ship->{task} eq 'Travelling' && $travelling) {
             $travelling_ships ++;
         }
         last SHIPS
-            if scalar(@avaliable_ships) == $ships_needed;
+            if scalar(@avaliable_ships) == $quantity;
     }
     
     my $total_ships = scalar(@avaliable_ships) + $building_ships + $travelling_ships;
     
     # We have to build new probes
-    if ($total_ships < $ships_needed
+    if ($total_ships < $quantity
         && scalar @shipyards) {
         
         # Loop all shipyards
@@ -65,7 +73,7 @@ sub ships {
             
             # Repeat until we have enough probes
             SHIPYARD_QUEUE:
-            while ($total_ships < $ships_needed) {
+            while ($total_ships < $quantity) {
                 my $buildable_ships = $self->request(
                     object  => $shipyard_object,
                     method  => 'get_buildable',
@@ -79,19 +87,49 @@ sub ships {
                 last SHIPYARDS
                     if $buildable_ships->{buildable}{probe}{can} == 0;
                 
-                $self->log('notice',"Building %s on %s",$ship_type,$planet_stats->{name});
+                $self->log('notice',"Building %s on %s",$type,$planet_stats->{name});
                 
                 # Build ship
                 $self->request(
                     object  => $shipyard_object,
                     method  => 'build_ship',
-                    params  => [$ship_type],
+                    params  => [$type],
                 );
                 
-                $building_ships++;
+                $new_building ++;
                 
-                $total_ships = scalar(@avaliable_ships) + $building_ships;
+                $total_ships ++;
             }
+        }
+    }
+    
+    # Rename new ships
+    if ($new_building > 0
+        && defined $name_prefix) {
+            
+        # Get all available ships
+        my $ships_data = $self->paged_request(
+            object  => $spaceport_object,
+            method  => 'view_all_ships',
+            total   => 'number_of_ships',
+            data    => 'ships',
+        );
+        
+        NEW_SHIPS:
+        foreach my $ship (@{$ships_data->{ships}}) {
+            next NEW_SHIPS
+                if $ship->{id} ~~ \@known_ships;
+            
+            my $name = $name_prefix .': '.$ship->{name};
+            
+            $self->log('notice',"Renaming new ship to %s on %s",$name,$planet_stats->{name});
+            
+            # Rename ship
+            $self->request(
+                object  => $spaceport_object,
+                method  => 'name_ship',
+                params  => [$ship->{id},$name],
+            );
         }
     }
     

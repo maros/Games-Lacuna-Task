@@ -43,9 +43,9 @@ sub process_planet {
     # Get available mining ships
     my @avaliable_miningships = $self->ships(
         planet          => $planet_stats,
-        ships_needed    => $available_platforms,
-        ship_type       => 'mining_platform_ship',
-        ship_travelling=> 1,
+        quantity        => $available_platforms,
+        type            => 'mining_platform_ship',
+        travelling      => 1,
     );
     
     return
