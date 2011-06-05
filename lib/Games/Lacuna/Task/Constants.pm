@@ -29,4 +29,10 @@ our @ORES = qw(
     monazite
 );
 
+our %CARGO = (
+    ship    => 50000,
+    glyph   => 100,
+    plan    => 10000,
+);
+
 1;
