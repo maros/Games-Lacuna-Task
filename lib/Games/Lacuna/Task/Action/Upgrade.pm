@@ -83,10 +83,10 @@ sub process_planet {
                         unless $building_detail->{building}{upgrade}{can};
                     
                     # Check if upgraded building is sustainable
-                    foreach my $ressource (qw(ore food energy water)) {
-                        my $ressource_difference = -1 * ($building_detail->{'building'}{$ressource.'_hour'} - $building_detail->{'building'}{upgrade}{production}{$ressource.'_hour'});
+                    foreach my $resource (qw(ore food energy water)) {
+                        my $resource_difference = -1 * ($building_detail->{'building'}{$resource.'_hour'} - $building_detail->{'building'}{upgrade}{production}{$resource.'_hour'});
                         next
-                            if ($planet_stats->{$ressource.'_hour'} + $ressource_difference <= 0);
+                            if ($planet_stats->{$resource.'_hour'} + $resource_difference <= 0);
                     }
 
                     # Check if we really can afford the upgrade

@@ -250,9 +250,9 @@ sub can_afford {
         $planet_data = $self->body_status($self->find_body($planet_data));
     }
     
-    foreach my $ressource (qw(food ore water energy)) {
+    foreach my $resource (qw(food ore water energy)) {
         return 0
-            if (( $planet_data->{$ressource.'_stored'} - 1000 ) < $cost->{$ressource});
+            if (( $planet_data->{$resource.'_stored'} - 1000 ) < $cost->{$resource});
     }
     
     return 0

@@ -36,11 +36,11 @@ has 'energy_buildings' => (
     documentation => 'Handled energy production buildings',
 );
 
-has 'ressource_avg' => (
+has 'resource_avg' => (
     isa     => 'Int',
     is      => 'rw',
     default => '50',
-    documentation => 'Start upgrading a ressource building if production reaces only n-% of the planets average production',
+    documentation => 'Start upgrading a resource building if production reaces only n-% of the planets average production',
 );
 
 has 'start_building_at' => (
@@ -52,7 +52,7 @@ has 'start_building_at' => (
 );
 
 sub description {
-    return q[This task handles the upgrade of ressource buildings if a ressource is running low];
+    return q[This task handles the upgrade of resource buildings if a resource is running low];
 }
 
 sub process_planet {
@@ -63,7 +63,7 @@ sub process_planet {
     my @buildings = $self->buildings_body($planet_stats->{id});
     my $timestamp = DateTime->now->set_time_zone('UTC');
     
-    # Calc max level for ressource buildings
+    # Calc max level for resource buildings
     my $max_ressouce_level = 15;
     my $stockpile = $self->find_building($planet_stats->{id},'Stockpile');
     if (defined $stockpile) {
@@ -86,25 +86,25 @@ sub process_planet {
     return
         if $building_count < $self->start_building_at;
     
-    # Get current ressource production
-    my %ressources_production;
-    foreach my $ressource (@Games::Lacuna::Task::Constants::RESSOURCES) {
-        $ressources_production{$ressource} = $planet_stats->{$ressource.'_hour'};
+    # Get current resource production
+    my %resources_production;
+    foreach my $resource (@Games::Lacuna::Task::Constants::RESSOURCES) {
+        $resources_production{$resource} = $planet_stats->{$resource.'_hour'};
     }
     
-    # Check ressource productiona average
-    my $ressources_avg = sum(values %ressources_production) / 4;
-    my %ressources_coeficient;
-    foreach my $ressource (@Games::Lacuna::Task::Constants::RESSOURCES) {
-        $ressources_coeficient{$ressource} = $ressources_production{$ressource} / $ressources_avg * 100;
+    # Check resource productiona average
+    my $resources_avg = sum(values %resources_production) / 4;
+    my %resources_coeficient;
+    foreach my $resource (@Games::Lacuna::Task::Constants::RESSOURCES) {
+        $resources_coeficient{$resource} = $resources_production{$resource} / $resources_avg * 100;
     }
     
     return
-        if (min(values %ressources_coeficient) > $self->ressource_avg);
+        if (min(values %resources_coeficient) > $self->resource_avg);
     
     #TODO: check if buildings are less than $max_ressouce_level
     #TODO: check if build queue is not full
-    #TODO: check if ressource buildings are already being upgraded
+    #TODO: check if resource buildings are already being upgraded
     
 #    # Check if build queue is filled
 #    if ($building_count <= $self->start_building_at) {
@@ -132,10 +132,10 @@ sub process_planet {
 #                        unless $building_detail->{building}{upgrade}{can};
 #                    
 #                    # Check if upgraded building is sustainable
-#                    foreach my $ressource (qw(ore food energy water)) {
-#                        my $ressource_difference = -1 * ($building_detail->{'building'}{$ressource.'_hour'} - $building_detail->{'building'}{upgrade}{production}{$ressource.'_hour'});
+#                    foreach my $resource (qw(ore food energy water)) {
+#                        my $resource_difference = -1 * ($building_detail->{'building'}{$resource.'_hour'} - $building_detail->{'building'}{upgrade}{production}{$resource.'_hour'});
 #                        next
-#                            if ($planet_stats->{$ressource.'_hour'} + $ressource_difference <= 0);
+#                            if ($planet_stats->{$resource.'_hour'} + $resource_difference <= 0);
 #                    }
 #                    
 #                    # Check if we really can afford the upgrade
