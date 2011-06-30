@@ -11,7 +11,7 @@ has 'start_building_at' => (
     isa     => 'Int',
     is      => 'rw',
     required=> 1,
-    default => 2,
+    default => 0,
     documentation => 'Upgrade buildings if there are less than N buildings in the build queue',
 );
 
@@ -27,6 +27,7 @@ has 'upgrade_preference' => (
             'EnergyReserve',
             'Stockpile',
             'PlanetaryCommand',
+            'DistributionCenter',
         ]
     },
     documentation => 'Building uprade preferences',
@@ -47,6 +48,9 @@ sub process_planet {
     
     # Get build queue size
     foreach my $building_data (@buildings) {
+        warn $building_data;
+        next
+            if $building_data->{name} eq 'Supply Pod';
         if (defined $building_data->{pending_build}) {
             my $date_end = $self->parse_date($building_data->{pending_build}{end});
             $building_count ++
