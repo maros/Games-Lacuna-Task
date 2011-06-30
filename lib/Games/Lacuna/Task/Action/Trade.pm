@@ -14,6 +14,70 @@ has 'trades' => (
     documentation   => 'Automatic trades per planet',
 );
 
+=pod
+
+Usually you will need to set up automatic trades in your config file to 
+use this action. The trade will only be created if you have the needed goods
+on stock. Ships that are not on stock will be built.
+
+trade:
+  trades:
+    "[PLANET NAME OR ID]":
+      -
+        ask: [ESSENTIA ASKING]
+        offers:
+          -
+            class: "[ship|glyph|resource|plan]"
+            type: "[NAME OF ITEM]"
+            quantity: [QUANTITY]
+            level: [PLAN LEVEL]
+            extra_build_level: [PLAN EXTRA BUILD LEVEL]
+          -
+            ...
+      -
+        ...
+
+Some example configurations:
+
+trade:
+  trades:
+    "Home Sweet Home":
+      -
+        ask: 3
+        offers:
+          -
+            class: "ship"
+            type: "Galleon"
+            quantity: 3
+      -
+        ask: 10
+        offers:
+          -
+            class: "plan"
+            type: "Geo Thermal Vent"
+            level: 1
+          -
+            class: "plan"
+            type: "Vulcano"
+            level: 1
+          -
+            class: "plan"
+            type: "Natural Spring"
+            level: 1
+      -
+        ask: 0.5
+        offers:
+          -
+            class: "resouce"
+            type: "trona"
+            quantity: 100000
+          -
+            class: "resouce"
+            type: "sulphur"
+            quantity: 100000
+
+=cut
+
 sub description {
     return q[Set up automatic trades];
 }
