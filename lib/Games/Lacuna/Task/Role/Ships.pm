@@ -16,14 +16,14 @@ sub ships {
         unless $type;
     
     # Get space port
-    my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');
+    my @spaceports = $self->find_building($planet_stats->{id},'SpacePort');
     # Get shipyard
     my @shipyards = $self->find_building($planet_stats->{id},'Shipyard');
     
     return
-        unless $spaceport;
+        unless scalar @spaceports;
     
-    my $spaceport_object = $self->build_object($spaceport);
+    my $spaceport_object = $self->build_object($spaceports[0]);
     
     # Get all available ships
     my $ships_data = $self->paged_request(
@@ -38,6 +38,17 @@ sub ships {
     my @avaliable_ships;
     my $building_ships = 0;
     my $travelling_ships = 0;
+    
+    # Quantity is defined as free-spaceport slots
+    if ($quantity < 0) {
+        my $max_ship_count = 0;
+        foreach my $spaceport (@spaceports) {
+            $max_ship_count += $spaceport->{level} * 2;
+        }
+        $quantity = $max_ship_count - $ships_data->{number_of_ships} + $quantity;
+        return 
+            if $quantity < 0;
+    }
     
     # Find all avaliable and buildings ships
     SHIPS:

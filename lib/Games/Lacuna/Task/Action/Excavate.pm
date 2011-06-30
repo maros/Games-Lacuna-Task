@@ -11,7 +11,7 @@ has 'excavator_count' => (
     isa             => 'Int',
     is              => 'rw',
     documentation   => 'Defines how many excavators should be dispatched simulaneously',
-    default         => 5,
+    default         => -2,
 );
 
 use Try::Tiny;
@@ -38,10 +38,13 @@ sub process_planet {
     return
         unless $archaeology_ministry->{level} == 15;
     
+    # Get spaceport
+    my $spaceport_object = $self->build_object($spaceport);
+    
     # Get available excavators
     my @avaliable_excavators = $self->ships(
         planet          => $planet_stats,
-        quantity         => $self->excavator_count,
+        quantity        => $self->excavator_count,
         travelling      => 1,
         type            => 'excavator',
     );
@@ -49,9 +52,6 @@ sub process_planet {
     # Check if we have available excavators
     return
         unless (scalar @avaliable_excavators);
-    
-    # Get spaceport
-    my $spaceport_object = $self->build_object($spaceport);
     
     # Get excavator cache
     my $excavate_cache_key = 'excavate/'.$planet_stats->{id};
@@ -97,7 +97,7 @@ sub process_planet {
                         method  => 'send_ship',
                         params  => [ $excavator,{ "body_id" => $body->{id} } ],
                     );
-                
+                    
                     $self->log('notice',"Sending excavator from %s to %s",$planet_stats->{name},$body->{name});
                 } catch {
                     my $error = $_;
@@ -105,6 +105,7 @@ sub process_planet {
                         && $error->isa('LacunaRPCException')) {
                         if ($error->code == 1010) {
                             $excavate_cache->{$body} = $timestamp;
+                            $self->log('debug',"Could not excavate %s since it was excavated in the last 30 days",$body->{name});
                             push(@avaliable_excavators,$excavator);
                         } else {
                             $error->rethrow();
