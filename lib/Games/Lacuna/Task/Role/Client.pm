@@ -105,13 +105,17 @@ sub request {
                         $retry = 1;
                     }
                     when(1010) { # too many requests
-                        if ($retry_count < 3) {
-                            $self->log('warn',$error);
-                            $self->log('warn','Too many requests (wait a while)');
-                            sleep 30;
-                            $retry = 1;
+                        if ($error =~ m/^Slow\sdown!/) {
+                            if ($retry_count < 3) {
+                                $self->log('warn',$error);
+                                $self->log('warn','Too many requests (wait a while)');
+                                sleep 50;
+                                $retry = 1;
+                            } else {
+                                $self->log('error','Too many requests (abort)');
+                            }
                         } else {
-                            $self->log('error','Too many requests (abort)');
+                            $error->rethrow;
                         }
                     }
                     default {
