@@ -27,7 +27,7 @@ sub log {
     @msgs = map { _pretty_dump($_) } @msgs;
     
     my $format = shift(@msgs) // '';
-    my $logmessage = sprintf( $format, map { $_ // '000000' } @msgs );
+    my $logmessage = sprintf( $format, map { $_ // 'UNDEF' } @msgs );
     
     if ( $INC{'Test/More.pm'} ) {
         ( my $file = $0 ) =~ s{/}{_}g;
