@@ -75,10 +75,35 @@ sub body_status {
     return $body_status;
 }
 
+sub find_buildspot {
+    my ($self,$body) = @_;
+    
+    my $body_id = $self->find_body($body);
+    
+    return []
+        unless $body_id;
+    
+    my @occupied;
+    foreach my $building_data ($self->buildings_body($body_id)) {
+        push (@occupied,$building_data->{x}.';'.$building_data->{y});
+    }
+    
+    my @buildable;
+    for my $x (-5..5) {
+        for my $y (-5..5) {
+            next
+                if $x.';'.$y ~~ @occupied;
+            push(@buildable,[$x,$y]);
+        }
+    }
+    
+    return \@buildable;
+}
+
 sub find_building {
     my ($self,$body,$type) = @_;
     
-    my $body_id = $self->find_body($body);    
+    my $body_id = $self->find_body($body);
     return 
         unless $body_id;
 
@@ -217,6 +242,9 @@ sub find_body {
 
     return $body
         if $body =~ m/^\d+$/;
+
+    return $body->{id}
+        if ref($body) eq 'HASH' && exists $body->{id};
 
     # Get my planets
     my $planets = $self->empire_status->{planets};
