@@ -76,7 +76,9 @@ sub request {
     my $object = delete $args{object};
     my $params = delete $args{params} || [];
     
-    $self->log('debug',"Run external request %s->%s(%s)",ref($object),$method,join(',',@$params));
+    my $debug_params = join(',', map { ref($_) || $_ } @$params);
+    
+    $self->log('debug',"Run external request %s->%s(%s)",ref($object),$method,$debug_params);
     
     my $response;
     my $retry = 1;
@@ -105,7 +107,7 @@ sub request {
                         $retry = 1;
                     }
                     when(1010) { # too many requests
-                        if ($error =~ m/^Slow\sdown!/) {
+                        if ($error =~ m/Slow\sdown!/) {
                             if ($retry_count < 3) {
                                 $self->log('warn',$error);
                                 $self->log('warn','Too many requests (wait a while)');
