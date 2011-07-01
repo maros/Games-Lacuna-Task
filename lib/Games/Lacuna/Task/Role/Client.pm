@@ -2,8 +2,10 @@ package Games::Lacuna::Task::Role::Client;
 
 use 5.010;
 use Moose::Role;
+with qw(Games::Lacuna::Task::Role::Captcha);
 
 use Games::Lacuna::Task::Client;
+
 use Try::Tiny;
 
 our $DEFAULT_DIRECTORY = Path::Class::Dir->new($ENV{HOME}.'/.lacuna');
@@ -105,6 +107,15 @@ sub request {
                         $self->client->get_config_from_user();
                         $self->client->reset_client;
                         $retry = 1;
+                    }
+                    when (1016) {
+                        $self->log('warn','Need to solve captcha');
+                        my $solved = $self->get_captcha();
+                        if ($solved) {
+                            $retry = 1;
+                        } else {
+                            $error->rethrow;
+                        }
                     }
                     when(1010) { # too many requests
                         if ($error =~ m/Slow\sdown!/) {
