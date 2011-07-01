@@ -23,15 +23,8 @@ has 'max_missions' => (
     documentation   => 'Max offensive missions per spy',
 );
 
-has 'rename_spies' => (
-    isa             => 'Bool',
-    is              => 'rw',
-    default         => 1,
-    documentation   => 'Rename spies if they carry the default name',
-);
-
 sub description {
-    return q[This task automates the training and assignment of spies];
+    return q[This task automates the assignment of spies];
 }
 
 sub process_planet {
@@ -41,28 +34,9 @@ sub process_planet {
     
     # Get intelligence ministry
     my ($intelligence_ministry) = $self->find_building($planet_stats->{id},'Intelligence');
-    my $intelligence_ministry_object = $self->build_object($intelligence_ministry);
-    
     return
         unless $intelligence_ministry;
-    
-    my $ministry_data = $self->request(
-        object  => $intelligence_ministry_object,
-        method  => 'view',
-    );
-    
-    # Check if we can have more spies
-    my $spy_slots = $ministry_data->{spies}{maximum} > ($ministry_data->{spies}{current} + $ministry_data->{spies}{in_training});
-    
-    if ($spy_slots > 0
-        && $self->can_afford($planet_stats,$ministry_data->{spies}{training_costs})) {
-        $self->log('notice',"Training spy on %s",$planet_stats->{name});
-        $self->request(
-            object  => $intelligence_ministry_object,
-            method  => 'train_spy',
-            params  => [1]
-        );
-    }
+    my $intelligence_ministry_object = $self->build_object($intelligence_ministry);
     
     # Get security ministry
     my ($security_ministry) = $self->find_building($planet_stats->{id},'Security');
@@ -104,18 +78,6 @@ sub process_planet {
     my $defensive_spy_count = 0;
     my %defensive_spy_assignments;
     foreach my $spy (@{$spy_data->{spies}}) {
-        
-        # Check if spy has default name
-        if ($self->rename_spies
-            && lc($spy->{name}) eq 'agent null') {
-            $spy->{name} = sprintf('Agent %02i %-1.1s',$counter,uc($planet_stats->{name}));
-            $self->log('notice',"Renaming spy %s on %s",$spy->{name},$planet_stats->{name});
-            $self->request(
-                object  => $intelligence_ministry_object,
-                method  => 'name_spy',
-                params  => [$spy->{id},$spy->{name}]
-            );
-        }
         
         # Spy is on this planet
         if ($spy->{assigned_to}{body_id} == $planet_stats->{id}) {
@@ -187,6 +149,7 @@ sub process_planet {
             );
         }
     }
+    
 }
 
 __PACKAGE__->meta->make_immutable;
