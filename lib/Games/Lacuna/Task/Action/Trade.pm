@@ -135,7 +135,7 @@ sub process_planet {
             next TRADE;
         }
         unless (defined $trade->{ask}
-            && $trade->{ask} =~ m/^\d+(,\d)?$/
+            && $trade->{ask} =~ m/^\d+(\.\d)?$/
             && $trade->{ask} > 0) {
             $self->log('error','Invalid trade setting: Ask missing or invalid (%s)',$trade->{ask});
             next TRADE;
