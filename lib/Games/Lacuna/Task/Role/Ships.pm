@@ -104,7 +104,7 @@ sub ships {
                 $self->request(
                     object  => $shipyard_object,
                     method  => 'build_ship',
-                    params  => [$type],
+                    params  => [lc($type)],
                 );
                 
                 $new_building ++;
