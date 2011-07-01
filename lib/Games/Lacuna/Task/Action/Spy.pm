@@ -7,12 +7,12 @@ use List::Util qw(min shuffle);
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 
-has 'rename_spies' => (
-    isa             => 'Bool',
-    is              => 'rw',
-    default         => 1,
-    documentation   => 'Rename spies if they carry the default name',
-);
+#has 'rename_spies' => (
+#    isa             => 'Bool',
+#    is              => 'rw',
+#    default         => 1,
+#    documentation   => 'Rename spies if they carry the default name',
+#);
 
 has 'max_training' => (
     isa             => 'Int',
