@@ -70,13 +70,13 @@ sub paged_request {
 }
 
 sub request {
-    my ($self,%params) = @_;
+    my ($self,%args) = @_;
     
-    my $method = delete $params{method};
-    my $object = delete $params{object};
-    my $params = delete $params{params} || [];
+    my $method = delete $args{method};
+    my $object = delete $args{object};
+    my $params = delete $args{params} || [];
     
-    $self->log('debug',"Run external request %s->%s",ref($object),$method);
+    $self->log('debug',"Run external request %s->%s(%s)",ref($object),$method,join(',',@$params));
     
     my $response;
     my $retry = 1;
