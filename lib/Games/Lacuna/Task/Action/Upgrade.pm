@@ -48,7 +48,6 @@ sub process_planet {
     
     # Get build queue size
     foreach my $building_data (@buildings) {
-        warn $building_data;
         next
             if $building_data->{name} eq 'Supply Pod';
         if (defined $building_data->{pending_build}) {
