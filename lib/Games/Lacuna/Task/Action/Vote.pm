@@ -14,16 +14,16 @@ has 'accept_proposition' => (
     required        => 1,
     documentation   => 'Propositions matching this regexps should accepted',
     default         => sub { qr/^( 
-        (Upgrade|Install) \s $NAME_RE \s $BUILDING_COORDINATES_RE
+        (Upgrade|Install) \s $NAME_RE
         |
-        Demolish \s (Dent|Bleeder) \s $BUILDING_COORDINATES_RE
+        Demolish \s (Dent|Bleeder)
         |
         Rename \s $NAME_RE
         |
-        Repair \s $NAME_RE \s $BUILDING_COORDINATES_RE
+        Repair \s $NAME_RE
         |
         Seize \s $NAME_RE
-    )$/xi },
+    )/xi },
 );
 
 has 'reject_proposition' => (
