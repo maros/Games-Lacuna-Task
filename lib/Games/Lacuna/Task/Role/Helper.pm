@@ -3,7 +3,7 @@ package Games::Lacuna::Task::Role::Helper;
 use 5.010;
 use Moose::Role;
 
-use List::Util qw(max);
+use List::Util qw(max min);
 
 use Games::Lacuna::Task::Cache;
 use Games::Lacuna::Task::Constants;
@@ -120,12 +120,27 @@ sub buildings_body {
     return @results;
 }
 
+sub max_ressource_building_level {
+    my ($self,$planet_id) = @_;
+    
+    my $max_ressouce_level = 15;
+    my $stockpile = $self->find_building($planet_id,'Stockpile');
+    if (defined $stockpile) {
+       $max_ressouce_level += int(sprintf("%i",$stockpile->{level}/3));
+    }
+    my $university_level = $self->university_level + 1;
+    
+    return min($max_ressouce_level,$university_level);
+}
+
 sub university_level {
     my ($self) = @_;
     
     my @university_levels;
-    foreach my $planet ($self->planet_ids) {
-        my $university = $self->find_building($planet,'University');
+    foreach my $planet_stats ($self->planets) {
+        next
+            unless $planet_stats->{type} eq 'habitable planet';
+        my $university = $self->find_building($planet_stats,'University');
         next 
             unless $university;
         push(@university_levels,$university->{level});
