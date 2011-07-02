@@ -38,6 +38,7 @@ sub ships {
     my @avaliable_ships;
     my $building_ships = 0;
     my $travelling_ships = 0;
+    my $max_build_quantity = $quantity;
     
     # Quantity is defined as free-spaceport slots
     if ($quantity < 0) {
@@ -45,9 +46,7 @@ sub ships {
         foreach my $spaceport (@spaceports) {
             $max_ship_count += $spaceport->{level} * 2;
         }
-        $quantity = $max_ship_count - $ships_data->{number_of_ships} + $quantity;
-        return 
-            if $quantity < 0;
+        $max_build_quantity = $max_ship_count - $ships_data->{number_of_ships} + $quantity;
     }
     
     # Find all avaliable and buildings ships
@@ -68,14 +67,15 @@ sub ships {
             $travelling_ships ++;
         }
         last SHIPS
-            if scalar(@avaliable_ships) == $quantity;
+            if $quantity > 0 && scalar(@avaliable_ships) == $quantity;
     }
     
     my $total_ships = scalar(@avaliable_ships) + $building_ships + $travelling_ships;
     
     # We have to build new probes
-    if ($total_ships < $quantity
-        && scalar @shipyards) {
+    if (($quantity < 0 || $total_ships < $quantity)
+        && scalar @shipyards
+        && $max_build_quantity > 0 ) {
         
         # Loop all shipyards
         SHIPYARDS:
@@ -84,7 +84,7 @@ sub ships {
             
             # Repeat until we have enough probes
             SHIPYARD_QUEUE:
-            while ($total_ships < $quantity) {
+            while ($new_building < $max_build_quantity) {
                 my $buildable_ships = $self->request(
                     object  => $shipyard_object,
                     method  => 'get_buildable',
@@ -106,6 +106,8 @@ sub ships {
                     method  => 'build_ship',
                     params  => [lc($type)],
                 );
+                
+                $max_build_quantity --;
                 
                 $new_building ++;
                 
