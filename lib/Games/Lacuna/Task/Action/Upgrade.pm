@@ -6,6 +6,7 @@ use List::Util qw(max);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
+with qw(Games::Lacuna::Task::Role::Building);
 
 has 'start_building_at' => (
     isa     => 'Int',
@@ -60,53 +61,27 @@ sub process_planet {
     my $max_level = max(@levels);
     
     # Check if build queue is filled
-    if ($building_count <= $self->start_building_at) {
-        $self->log('debug','Start building');
-        for my $check (1,0) {
-            # Loop all building types
-            foreach my $building_type (@{$self->{upgrade_preference}}) {
-                # Loop all buildings
-                foreach my $building_data (@buildings) {
-                    next
-                        unless Games::Lacuna::Client::Buildings::type_from_url($building_data->{url}) eq $building_type;
-                    next
-                        if $building_data->{pending_build};
-                    next
-                        if $building_data->{level} > $self->university_level;
-                    next
-                        if $building_data->{level} >= $max_level && $check;
-                    
-                    my $building_object = $self->build_object($building_data);
-                    my $building_detail = $self->request(
-                        object  => $building_object,
-                        method  => 'view',
-                    );
-                    
-                    next
-                        unless $building_detail->{building}{upgrade}{can};
-                    
-                    # Check if upgraded building is sustainable
-                    foreach my $resource (qw(ore food energy water)) {
-                        my $resource_difference = -1 * ($building_detail->{'building'}{$resource.'_hour'} - $building_detail->{'building'}{upgrade}{production}{$resource.'_hour'});
-                        next
-                            if ($planet_stats->{$resource.'_hour'} + $resource_difference <= 0);
-                    }
-
-                    # Check if we really can afford the upgrade
-                    next
-                        unless $self->can_afford($planet_stats,$building_detail->{'building'}{upgrade}{cost});
-
-                    $self->log('notice',"Upgrading %s on %s",$building_type,$planet_stats->{name});
-                    
-                    # Upgrade request
-                    $self->request(
-                        object  => $building_object,
-                        method  => 'upgrade',
-                    );
-                    
-                    $self->clear_cache('body/'.$planet_stats->{id}.'/buildings');
-                    return;
-                }
+    return
+        if ($building_count > $self->start_building_at);
+    
+    $self->log('debug','Start building');
+    for my $check (1,0) {
+        # Loop all building types
+        foreach my $building_type (@{$self->{upgrade_preference}}) {
+            # Loop all buildings
+            foreach my $building_data (@buildings) {
+                next
+                    unless Games::Lacuna::Client::Buildings::type_from_url($building_data->{url}) eq $building_type;
+                next
+                    if $building_data->{pending_build};
+                next
+                    if $building_data->{level} > $self->university_level;
+                next
+                    if $building_data->{level} >= $max_level && $check;
+                
+                $self->upgrade_building($planet_stats,$building_data);
+                
+                return;
             }
         }
     }

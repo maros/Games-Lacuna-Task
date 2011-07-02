@@ -4,6 +4,7 @@ use 5.010;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
+with qw(Games::Lacuna::Task::Role::Building);
 
 our @WASTE_MONUMENTS = qw(spacejunkpark pyramidjunksculpture greatballofjunk metaljunkarches junkhengesculpture);
 
