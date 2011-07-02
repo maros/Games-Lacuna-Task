@@ -40,7 +40,7 @@ has 'start_building_at' => (
     isa     => 'Int',
     is      => 'rw',
     required=> 1,
-    default => 2,
+    default => 0,
     documentation => 'Upgrade buildings if there are less than N buildings in the build queue',
 );
 
