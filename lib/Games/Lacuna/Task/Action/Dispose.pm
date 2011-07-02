@@ -61,9 +61,17 @@ sub process_planet {
             params  => [ $ship->{id},{ "star_id" => $planet_stats->{star_id} } ],
         );
         
+        $waste -= $ship->{hold_size};
+        $waste_filled = ($waste / $waste_capacity) * 100;
+        
+        # Check if waste is overflowing
+        return 
+            if ($waste_filled < $self->dispose_percentage);
+        
         $self->clear_cache('body/'.$planet_stats->{id});
-        return;
     }
+    
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;
