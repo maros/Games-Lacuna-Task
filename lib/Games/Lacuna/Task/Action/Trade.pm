@@ -224,7 +224,7 @@ sub process_planet {
                     my $needed_quantity = $offer->{quantity};
                     GLYPH:
                     foreach my $glyph (@{$stored_glyphs}) {
-                        if ($glyph->{type} eq $offer->{type}) {
+                        if (lc($glyph->{type}) eq lc($offer->{type})) {
                             push (@offer_data,{
                                 "type"      => "glyph",
                                 "glyph_id"  => $glyph->{id},
