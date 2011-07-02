@@ -6,12 +6,12 @@ use List::Util qw(min max sum);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-
+with qw(Games::Lacuna::Task::Role::Building);
 
 has 'water_buildings' => (
     isa     => 'ArrayRef[Str]',
     is      => 'rw',
-    default => sub { [qw(AtmosphericEvaporator WaterProduction WaterPurification)] },
+    default => sub { [qw(AtmosphericEvaporator WaterProduction WaterPurification WaterReclamation WasteTreatment WasteExchanger)] },
     documentation => 'Handled water production buildings',
 );
 
@@ -25,29 +25,22 @@ has 'food_buildings' => (
 has 'ore_buildings' => (
     isa     => 'ArrayRef[Str]',
     is      => 'rw',
-    default => sub { [qw(Mine MiningMinistry OreRefinery)] },
+    default => sub { [qw(Mine MiningMinistry OreRefinery WasteTreatment WasteDigester WasteTreatment WasteExchanger)] },
     documentation => 'Handled ore production buildings',
 );
 
 has 'energy_buildings' => (
     isa     => 'ArrayRef[Str]',
     is      => 'rw',
-    default => sub { [qw(Fission Fusion Geo HydroCarbon Singularity)] },
+    default => sub { [qw(Fission Fusion Geo HydroCarbon Singularity WasteEnergy WasteTreatment WasteExchanger)] },
     documentation => 'Handled energy production buildings',
-);
-
-has 'resource_avg' => (
-    isa     => 'Int',
-    is      => 'rw',
-    default => '50',
-    documentation => 'Start upgrading a resource building if production reaces only n-% of the planets average production',
 );
 
 has 'start_building_at' => (
     isa     => 'Int',
     is      => 'rw',
     required=> 1,
-    default => 0,
+    default => 2,
     documentation => 'Upgrade buildings if there are less than N buildings in the build queue',
 );
 
@@ -63,15 +56,6 @@ sub process_planet {
     my @buildings = $self->buildings_body($planet_stats->{id});
     my $timestamp = DateTime->now->set_time_zone('UTC');
     
-    # Calc max level for resource buildings
-    my $max_ressouce_level = 15;
-    my $stockpile = $self->find_building($planet_stats->{id},'Stockpile');
-    if (defined $stockpile) {
-       $max_ressouce_level += sprintf("%i",$stockpile->{level}/3);
-    }
-    my $university_level = $self->university_level + 1;
-    $max_ressouce_level = min($max_ressouce_level,$university_level);
-    
     # Get build queue size
     foreach my $building_data (@buildings) {
         if (defined $building_data->{pending_build}) {
@@ -79,83 +63,64 @@ sub process_planet {
             $building_count ++
                 if $timestamp < $date_end;
         }
-        push(@levels,$building_data->{level});
     }
-    my $max_level = max(@levels);
 
+    # Check if build queue is filled
     return
-        if $building_count < $self->start_building_at;
+        if ($building_count > $self->start_building_at);
+    
+    # Calc max level for resource buildings
+    my $max_ressouce_level = $self->max_ressource_building_level($planet_stats->{id});
     
     # Get current resource production
     my %resources_production;
-    foreach my $resource (@Games::Lacuna::Task::Constants::RESSOURCES) {
-        $resources_production{$resource} = $planet_stats->{$resource.'_hour'};
+    {
+        no warnings 'once';
+        foreach my $resource (@Games::Lacuna::Task::Constants::RESSOURCES_ALL) {
+            $resources_production{$resource} = $planet_stats->{$resource.'_hour'};
+        }
     }
     
-    # Check resource productiona average
-    my $resources_avg = sum(values %resources_production) / 4;
-    my %resources_coeficient;
-    foreach my $resource (@Games::Lacuna::Task::Constants::RESSOURCES) {
-        $resources_coeficient{$resource} = $resources_production{$resource} / $resources_avg * 100;
+    # Get upgrade preference
+    my @upgrade_ressource_types = 
+        sort { $resources_production{$a} <=> $resources_production{$b} }
+        keys %resources_production;
+    
+    # Loop ressource types
+    RESSOURCE_TYPE:
+    foreach my $ressource_type (@upgrade_ressource_types) {
+        my $building_method = $ressource_type.'_buildings';
+        my $available_buildings = $self->$building_method;
+        
+        BUILDING:
+        foreach my $building_data (sort { $a->{level} <=> $b->{level} } @buildings) {
+            
+            my $building_type = Games::Lacuna::Client::Buildings::type_from_url($building_data->{url});
+            
+            next BUILDING
+                unless $building_type ~~ $available_buildings;
+            
+            next BUILDING
+                if $building_data->{level} >= $max_ressouce_level;
+            
+            next BUILDING
+                unless $building_data->{efficiency} == 100;
+            
+            if (defined $building_data->{pending_build}) {
+                my $date_end = $self->parse_date($building_data->{pending_build}{end});
+                next BUILDING
+                    if $timestamp < $date_end;
+            }
+            
+            my $upgraded = $self->upgrade_building($planet_stats,$building_data);
+            
+            $building_count ++
+                if $upgraded;
+                
+            return
+                if ($building_count > $self->start_building_at);
+        }
     }
-    
-    return
-        if (min(values %resources_coeficient) > $self->resource_avg);
-    
-    #TODO: check if buildings are less than $max_ressouce_level
-    #TODO: check if build queue is not full
-    #TODO: check if resource buildings are already being upgraded
-    
-#    # Check if build queue is filled
-#    if ($building_count <= $self->start_building_at) {
-#        for my $check (1,0) {
-#            # Loop all building types
-#            foreach my $building_type (@{$self->{upgrade_preference}}) {
-#                # Loop all buildings
-#                foreach my $building_data (@buildings) {
-#                    next
-#                        unless $building_data->{name} eq $building_type;
-#                    next
-#                        if $building_data->{pending_build};
-#                    next
-#                        if $building_data->{level} > $self->university_level;
-#                    next
-#                        if $building_data->{level} >= $max_level && $check;
-#                    
-#                    my $building_object = $self->build_object($building_data);
-#                    my $building_detail = $self->request(
-#                        object  => $building_object,
-#                        method  => 'view',
-#                    );
-#                    
-#                    next
-#                        unless $building_detail->{building}{upgrade}{can};
-#                    
-#                    # Check if upgraded building is sustainable
-#                    foreach my $resource (qw(ore food energy water)) {
-#                        my $resource_difference = -1 * ($building_detail->{'building'}{$resource.'_hour'} - $building_detail->{'building'}{upgrade}{production}{$resource.'_hour'});
-#                        next
-#                            if ($planet_stats->{$resource.'_hour'} + $resource_difference <= 0);
-#                    }
-#                    
-#                    # Check if we really can afford the upgrade
-#                    next
-#                        unless $self->can_afford($planet_stats,$building_detail->{'building'}{upgrade}{cost});
-#                    
-#                    $self->log('notice',"Upgrading %s on %s",$building_type,$planet_stats->{name});
-#                    
-#                    # Upgrade request
-#                    $self->request(
-#                        object  => $building_object,
-#                        method  => 'upgrade',
-#                    );
-#                    
-#                    $self->clear_cache('body/'.$planet_stats->{id}.'/buildings');
-#                    return;
-#                }
-#            }
-#        }
-#    }
 }
 
 __PACKAGE__->meta->make_immutable;
