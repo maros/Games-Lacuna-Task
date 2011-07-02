@@ -245,7 +245,7 @@ sub process_planet {
                     )->{resources};
                     
                     unless (defined $stored_resources->{$offer->{type}}) {
-                        $self->log('error','Invalid trade setting: Unknown ressource type (%s)',$trade->{type});
+                        $self->log('error','Invalid trade setting: Unknown resource type (%s)',$trade->{type});
                         next TRADE;
                     }
                     

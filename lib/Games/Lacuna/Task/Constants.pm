@@ -4,9 +4,9 @@ use strict;
 use warnings;
 
 # do not change order
-our @RESSOURCES = qw(water ore energy);
+our @RESOURCES = qw(water ore energy);
 
-our @RESSOURCES_ALL = qw(water ore energy food);
+our @RESOURCES_ALL = qw(water ore energy food);
 
 our @ORES = qw(
     fluorite 

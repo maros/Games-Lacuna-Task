@@ -120,17 +120,17 @@ sub buildings_body {
     return @results;
 }
 
-sub max_ressource_building_level {
+sub max_resource_building_level {
     my ($self,$planet_id) = @_;
     
-    my $max_ressouce_level = 15;
+    my $max_resource_level = 15;
     my $stockpile = $self->find_building($planet_id,'Stockpile');
     if (defined $stockpile) {
-       $max_ressouce_level += int(sprintf("%i",$stockpile->{level}/3));
+       $max_resource_level += int(sprintf("%i",$stockpile->{level}/3));
     }
     my $university_level = $self->university_level + 1;
     
-    return min($max_ressouce_level,$university_level);
+    return min($max_resource_level,$university_level);
 }
 
 sub university_level {

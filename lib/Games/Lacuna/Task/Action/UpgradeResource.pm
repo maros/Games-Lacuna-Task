@@ -1,4 +1,4 @@
-package Games::Lacuna::Task::Action::UpgradeRessource;
+package Games::Lacuna::Task::Action::UpgradeResource;
 
 use 5.010;
 
@@ -70,26 +70,26 @@ sub process_planet {
         if ($building_count > $self->start_building_at);
     
     # Calc max level for resource buildings
-    my $max_ressouce_level = $self->max_ressource_building_level($planet_stats->{id});
+    my $max_ressouce_level = $self->max_resource_building_level($planet_stats->{id});
     
     # Get current resource production
     my %resources_production;
     {
         no warnings 'once';
-        foreach my $resource (@Games::Lacuna::Task::Constants::RESSOURCES_ALL) {
+        foreach my $resource (@Games::Lacuna::Task::Constants::RESOURCES_ALL) {
             $resources_production{$resource} = $planet_stats->{$resource.'_hour'};
         }
     }
     
     # Get upgrade preference
-    my @upgrade_ressource_types = 
+    my @upgrade_resource_types = 
         sort { $resources_production{$a} <=> $resources_production{$b} }
         keys %resources_production;
     
-    # Loop ressource types
-    RESSOURCE_TYPE:
-    foreach my $ressource_type (@upgrade_ressource_types) {
-        my $building_method = $ressource_type.'_buildings';
+    # Loop resource types
+    RESOURCE_TYPE:
+    foreach my $resource_type (@upgrade_resource_types) {
+        my $building_method = $resource_type.'_buildings';
         my $available_buildings = $self->$building_method;
         
         BUILDING:
