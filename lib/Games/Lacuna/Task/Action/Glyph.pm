@@ -25,7 +25,7 @@ has 'keep_gylphs' => (
     isa             => 'Int',
     is              => 'rw',
     required        => 1,
-    documentation   => 'Keep n-gylps in storage (do not combine them)',
+    documentation   => 'Keep N-gylps in storage (do not combine them)',
     default         => 5,
 );
 

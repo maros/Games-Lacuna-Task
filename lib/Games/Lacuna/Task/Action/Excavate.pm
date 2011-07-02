@@ -57,6 +57,8 @@ sub process_planet {
     my $excavate_cache_key = 'excavate/'.$planet_stats->{id};
     my $excavate_cache = $self->lookup_cache($excavate_cache_key) || {};
     
+    $self->log('debug','%i excavators available at %s',(scalar @avaliable_excavators),$planet_stats->{name});
+    
     # Get probed stars
     STARS:
     foreach my $star ($self->stars_by_distance($planet_stats->{x},$planet_stats->{y},1)) {
@@ -129,7 +131,7 @@ sub process_planet {
     $self->write_cache(
         key     => $excavate_cache_key,
         value   => $excavate_cache,
-        max_age => (60*60*24*30), # Cache for 30 days
+        max_age => (60*60*24*30*6), # Cache for 6 months
     );
 }
 
