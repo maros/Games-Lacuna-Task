@@ -7,7 +7,7 @@ sub ships {
     my ($self,%params) = @_;
     
     my $planet_stats = $params{planet};
-    my $type = $params{type};
+    my $type = lc($params{type});
     my $name_prefix = $params{name_prefix};
     my $quantity = $params{quantity} // 1;
     my $travelling = $params{travelling} // 0;
