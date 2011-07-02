@@ -21,8 +21,10 @@ sub all_glyphs {
         if defined $all_gylphs;
     
     # Set all glyphs to zero
-    no warnings 'once';
-    $all_gylphs = { map { $_ => 0 } @Games::Lacuna::Task::Constants::ORES };
+    {
+        no warnings 'once';
+        $all_gylphs = { map { $_ => 0 } @Games::Lacuna::Task::Constants::ORES };
+    }
     
     # Loop all planets
     PLANETS:

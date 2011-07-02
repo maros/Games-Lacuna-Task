@@ -49,8 +49,11 @@ sub process_planet {
         method  => 'get_glyphs',
     );
 
-    no warnings 'once';
-    my $available_gylphs = { map { $_ => [] } @Games::Lacuna::Task::Constants::ORES };
+    my $available_gylphs;
+    {
+        no warnings 'once';
+        $available_gylphs = { map { $_ => [] } @Games::Lacuna::Task::Constants::ORES };
+    }
     
     foreach my $glyph (@{$gylph_data->{glyphs}}) {
         push(@{$available_gylphs->{$glyph->{type}}},$glyph->{id});
