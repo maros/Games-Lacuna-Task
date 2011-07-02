@@ -83,6 +83,9 @@ sub task_config {
 sub run {
     my ($self) = @_;
     
+    $self->loglevel('debug')
+        if $self->debug;
+    
     my $client = $self->client();
     
     # Call lazy builder

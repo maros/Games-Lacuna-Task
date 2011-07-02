@@ -26,6 +26,14 @@ has 'client' => (
     lazy_build      => 1,
 );
 
+has 'debug' => (
+    is              => 'rw',
+    isa             => 'Bool',
+    default         => 0,
+    documentation   => 'Set debug mode [Default off]',
+    traits          => ['KiokuDB::DoNotSerialize','NoIntrospection'],
+);
+
 sub _build_client {
     my ($self) = @_;
     
@@ -35,7 +43,7 @@ sub _build_client {
     my $client = Games::Lacuna::Task::Client->new(
         loglevel        => $self->loglevel,
         storage_file    => $database_file,
-        debug           => 1,
+        debug           => $self->debug,
     );
     
     return $client;

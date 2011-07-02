@@ -9,7 +9,7 @@ use Term::ANSIColor;
 our @LEVELS = qw(debug info notice warn error);
 
 has 'loglevel' => (
-    is              => 'ro',
+    is              => 'rw',
     isa             => Moose::Util::TypeConstraints::enum(\@LEVELS),
     traits          => ['KiokuDB::DoNotSerialize','NoIntrospection'],
     default         => 'info',
