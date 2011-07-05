@@ -52,7 +52,6 @@ sub process_planet {
     my ($self,$planet_stats) = @_;
     
     my $building_count = 0;
-    my @levels;
     my @buildings = $self->buildings_body($planet_stats->{id});
     my $timestamp = DateTime->now->set_time_zone('UTC');
     

@@ -12,6 +12,8 @@ sub upgrade_building {
         method  => 'view',
     );
     
+    return
+    
     return 0
         unless $building_detail->{building}{upgrade}{can};
     
