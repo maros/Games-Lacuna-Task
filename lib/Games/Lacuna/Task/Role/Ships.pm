@@ -56,9 +56,15 @@ sub ships {
         
         next SHIPS
             unless $ship->{type} eq $type;
-        next SHIPS
-            if defined $name_prefix && $ship->{name} !~ m/^$name_prefix/;
-            
+        
+        if (defined $name_prefix) {
+            next SHIPS
+                 unless $ship->{name} =~ m/^$name_prefix/;
+        } else {
+            next SHIPS
+                if $ship->{name} =~ m/\!/; # Indicates reserved ship
+        }
+        
         if ($ship->{task} eq 'Docked') {
             push(@avaliable_ships,$ship->{id});
         } elsif ($ship->{task} eq 'Building') {
@@ -133,7 +139,7 @@ sub ships {
             next NEW_SHIPS
                 if $ship->{id} ~~ \@known_ships;
             
-            my $name = $name_prefix .': '.$ship->{name};
+            my $name = $name_prefix .': '.$ship->{name}.'!';
             
             $self->log('notice',"Renaming new ship to %s on %s",$name,$planet_stats->{name});
             

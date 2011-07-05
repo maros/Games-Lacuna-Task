@@ -54,7 +54,7 @@ sub process_planet {
         $self->request(
             object  => $intelligence_ministry_object,
             method  => 'train_spy',
-            params  => [1]
+            params  => [$spy_slots]
         );
     }
     
@@ -75,17 +75,21 @@ sub process_planet {
         next TRAINING_BUILDING
             if scalar @{$training_building_data->{spies}{training_costs}{time}} == 0;
         
-        my $spy = $training_building_data->{spies}{training_costs}{time}[0];
-        
-        $self->log('notice',"Training spy on %s at %s",$planet_stats->{name},$building_name);
-
-        $self->request(
-            object  => $training_building_object,
-            method  => 'train_spy',
-            params  => [$spy->{spy_id}],
-        );
-        
-        $spies_in_training ++;
+        SPY:
+        foreach my $spy (@{$training_building_data->{spies}{training_costs}{time}}) {
+            next SPY
+                if $spy->{name} =~ m/\!/; # Indicates reserved spy
+            
+            $self->log('notice',"Training spy on %s at %s",$planet_stats->{name},$building_name);
+            
+            $self->request(
+                object  => $training_building_object,
+                method  => 'train_spy',
+                params  => [$spy->{spy_id}],
+            );
+            
+            $spies_in_training ++;
+        }
         
         return 
             if $spies_in_training >= $self->max_training;
