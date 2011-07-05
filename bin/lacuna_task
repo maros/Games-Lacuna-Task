@@ -32,6 +32,12 @@ executed.
 
 Multiple
 
+=head3 exclude
+
+Excludes the selected tasks
+
+Multiple
+
 =head3 database
 
 Path to the lacuna directory (will be created if it does not exist)
@@ -44,6 +50,10 @@ Prints all messages equal or above the given level
 
 Default: info
 Accepted: debug,info,notice,warn,error
+
+=head3 debug
+
+Enable debug mode
 
 =head3 -? --usage --help  
 

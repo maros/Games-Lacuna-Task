@@ -68,3 +68,34 @@ sub find_buildspot {
 }
 
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Role::Building - Helper methods for buildings
+
+=head1 SYNOPSIS
+
+    package Games::Lacuna::Task::Action::MyTask;
+    use Moose;
+    extends qw(Games::Lacuna::Task::Action);
+    with qw(Games::Lacuna::Task::Role::Building);
+    
+=head1 DESCRIPTION
+
+This role provides building-related helper methods.
+
+=head1 METHODS
+
+=head2 find_buildspot
+
+    my $avaliable_buildspots = $self->find_buildspot($planet_id);
+
+Returns all available build spots as an Array Reference.
+
+=head2 upgrade_building
+
+    my $upgrade_ok = $self->upgrade_building($planet_stats,$building_data);
+
+Tries to upgrade the given building while performing various checks.

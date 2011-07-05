@@ -179,6 +179,36 @@ This role provides ship-related helper methods.
 Tries to fetch the given number of available ships. If there are not enough 
 ships available then the required number of ships are built.
 
+The following arguments are accepted
+
+=over
+
+=item * planet
+
+Planet data has [Required]
+
+=item * ships_needed
+
+Number of required ships. If ships_needed is a negative number it will return
+all matching ships and build as many new ships as possible while keeping 
+ships_needed * -1 space port slots free [Required]
+
+=item  * ship_type
+
+Ship type [Required]
+
+=item * travelling
+
+If true will not build new ships if there are matchig ships currently 
+travelling
+
+=item * name_prefix
+
+Will only return ships with the given prefix in their names. Newly built ships
+will be renamed to add the prefix.
+
+=back
+
 =cut
 
 no Moose::Role;

@@ -259,6 +259,44 @@ the Lacuna Expanse. It provides
 
 =item * many useful helper methods and roles
 
+=back
+
+=head CONFIGURATION
+
+Games::Lacuna::Task uses yaml configuration files which are loaded from the
+database directory (defaults to ~/.lacuna). The filename should be config.yml
+or lacuna.yml.
+
+Example config.yml
+
+ ---
+ global:
+   task: 
+     - excavate
+     - bleeder
+     - repair
+     - dispose
+   dispose_percentage: 80
+ excavate: 
+   excavator_count: 3
+
+The data of the configuration file must be a hash with hash keys corresponding
+to the lowecase task names. The hash key 'global' should be used for
+global settings.
+
+global.task specifies which tasks should be run by default and is only used
+if no tasks have been set explicitly (e.g. via command line).
+
+global.exclude specifies which tasks should be skipped default and is only 
+used if no tasks have been set explicitly or via config.
+
+All other values in the global.* section are used as default values for tasks.
+(e.g. the 'dispose_percentage' setting can be used by the WasteMonument and
+the Dispose task)
+
+Username, password, empire name, api key and server url are stored in the 
+sqlite/KiokuDB Storage backend and not in the config file.
+
 =cut
 
 __PACKAGE__->meta->make_immutable;
