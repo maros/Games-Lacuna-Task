@@ -91,30 +91,42 @@ sub process_planet {
     
     my @upgradeable_buildings;
     
+    # Check if waste production > 0
     if ($planet_stats->{'waste_hour'} > 0) {
         push(@upgradeable_buildings,$self->find_upgrade_buildings($planet_stats,'waste','production'));
     }
     
+    # Check if storage is overflowing
     if (scalar @upgradeable_buildings == 0) {
         foreach my $element (qw(waste ore water food energy)) {
-            if ($planet_stats->{$element.'_capacity'}-$planet_stats->{$element.'_stored'} == 0) {
+            my $available_storage = $planet_stats->{$element.'_capacity'};
+            my $free_storage = $available_storage-$planet_stats->{$element.'_stored'};
+            if (($free_storage / $available_storage) < 0.01) {
                 push(@upgradeable_buildings,$self->find_upgrade_buildings($planet_stats,$element,'storage'));
             }
         }
     }
     
+    # Check production buildings
     if (scalar @upgradeable_buildings == 0) {
         my @production = 
             sort { $planet_stats->{$a.'_hour'} cmp $planet_stats->{$b.'_hour'} } @Games::Lacuna::Task::Constants::RESOURCES_ALL;
+        my $min_production = min map { $planet_stats->{$_.'_hour'} } @production;
         foreach my $element (@Games::Lacuna::Task::Constants::RESOURCES_ALL) {
+            my $limit_production = $planet_stats->{$element.'_hour'} * 0.8;
+            next
+                if $limit_production > $min_production;
             push(@upgradeable_buildings,$self->find_upgrade_buildings($planet_stats,$element,'production'));
             last
                 if scalar(@upgradeable_buildings) > 0;
         }
     }
     
-    if (scalar @upgradeable_buildings == 0) {
-        @upgradeable_buildings = $self->find_upgrade_buildings($planet_stats);
+    # Find any other upgradeable building
+    for my $tag (qw(storage waste global)) {
+        last
+            if (scalar @upgradeable_buildings > 0);
+        @upgradeable_buildings = $self->find_upgrade_buildings($planet_stats,$tag);
     }
     
     if (scalar @upgradeable_buildings) {
