@@ -100,10 +100,10 @@ sub run {
     
     $self->task($global_config->{task})
         if (defined $global_config->{task}
-        && ! $global_config->has_task);
+        && ! $self->has_task);
     $self->exclude($global_config->{exclude})
         if (defined $global_config->{exclude}
-        && ! $global_config->has_exclude);
+        && ! $self->has_exclude);
     
     my @tasks;
     if (! $self->has_task
