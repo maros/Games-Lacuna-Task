@@ -154,6 +154,9 @@ sub find_upgrade_buildings {
     foreach my $building_data (@buildings) {
         my $building_class = Games::Lacuna::Client::Buildings::type_from_url($building_data->{url});
         
+        next BUILDING
+            unless exists $self->upgrade_buildings->{$building_class};
+        
         foreach my $tag (@tags) {
             next BUILDING
                 unless $tag ~~ $self->upgrade_buildings->{$building_class};
