@@ -2,19 +2,12 @@ package Games::Lacuna::Task::Action::UpgradeBuilding;
 
 use 5.010;
 
-use List::Util qw(max);
+use List::Util qw(max min);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-with qw(Games::Lacuna::Task::Role::Building);
-
-has 'start_building_at' => (
-    isa     => 'Int',
-    is      => 'rw',
-    required=> 1,
-    default => 2,
-    documentation => 'Upgrade buildings if there are less than N buildings in the build queue',
-);
+with 'Games::Lacuna::Task::Role::Building',
+    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['start_building_at'] };
 
 has 'upgrade_buildings' => (
     isa     => 'HashRef[ArrayRef[Str]]',

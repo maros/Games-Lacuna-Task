@@ -4,14 +4,7 @@ use 5.010;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-
-has 'dispose_percentage' => (
-    isa     => 'Int',
-    is      => 'rw',
-    required=>1,
-    default => 80,
-    documentation => 'Dispose waste if waste storage is n-% full',
-);
+with 'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage'] };
 
 sub description {
     return q[This task automates the disposal of overflowing waste];

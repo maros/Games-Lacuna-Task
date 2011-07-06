@@ -6,7 +6,8 @@ use List::Util qw(min max sum);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-with qw(Games::Lacuna::Task::Role::Building);
+with 'Games::Lacuna::Task::Role::Building',
+    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['start_building_at'] };
 
 has 'water_buildings' => (
     isa     => 'ArrayRef[Str]',
@@ -34,14 +35,6 @@ has 'energy_buildings' => (
     is      => 'rw',
     default => sub { [qw(Fission Fusion Geo HydroCarbon Singularity WasteEnergy WasteTreatment WasteExchanger)] },
     documentation => 'Handled energy production buildings',
-);
-
-has 'start_building_at' => (
-    isa     => 'Int',
-    is      => 'rw',
-    required=> 1,
-    default => 0,
-    documentation => 'Upgrade buildings if there are less than N buildings in the build queue',
 );
 
 sub description {

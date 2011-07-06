@@ -4,17 +4,10 @@ use 5.010;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-with qw(Games::Lacuna::Task::Role::Building);
+with 'Games::Lacuna::Task::Role::Building',
+    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage'] };
 
 our @WASTE_MONUMENTS = qw(spacejunkpark pyramidjunksculpture greatballofjunk metaljunkarches junkhengesculpture);
-
-has 'dispose_percentage' => (
-    isa             => 'Int',
-    is              => 'rw',
-    required        => 1,
-    default         => 80,
-    documentation   => 'Build waste monument if waste storage is n-% full',
-);
 
 #has 'demolish_waste_monument' => (
 #    isa             => 'Bool',

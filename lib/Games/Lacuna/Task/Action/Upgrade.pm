@@ -6,15 +6,8 @@ use List::Util qw(max);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-with qw(Games::Lacuna::Task::Role::Building);
-
-has 'start_building_at' => (
-    isa     => 'Int',
-    is      => 'rw',
-    required=> 1,
-    default => 0,
-    documentation => 'Upgrade buildings if there are less than N buildings in the build queue',
-);
+with 'Games::Lacuna::Task::Role::Building',
+    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['start_building_at'] };
 
 has 'upgrade_preference' => (
     isa     => 'ArrayRef[Str]',
