@@ -31,14 +31,14 @@ has 'config' => (
 );
 
 has 'exclude'  => (
-    is              => 'ro',
+    is              => 'rw',
     isa             => 'ArrayRef[Str]',
     documentation   => 'Select which tasks NOT to run [Multiple]',
     predicate       => 'has_exclude',
 );
 
 has 'task'  => (
-    is              => 'ro',
+    is              => 'rw',
     isa             => 'ArrayRef[Str]',
     documentation   => 'Select which tasks to run [Multiple]',
     predicate       => 'has_task',
