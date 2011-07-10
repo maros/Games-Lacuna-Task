@@ -28,7 +28,7 @@ has 'upgrade_preference' => (
 );
 
 sub description {
-    return q[This task automates the upgrading of buildings if the build queue is empty];
+    return q[This task automates basic upgrading of buildings if the build queue is empty];
 }
 
 sub process_planet {

@@ -2,6 +2,8 @@ package Games::Lacuna::Task::Action::Glyph;
 
 use 5.010;
 
+use Games::Lacuna::Client::Types qw(ore_types)
+
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 
@@ -49,11 +51,7 @@ sub process_planet {
         method  => 'get_glyphs',
     );
 
-    my $available_gylphs;
-    {
-        no warnings 'once';
-        $available_gylphs = { map { $_ => [] } @Games::Lacuna::Task::Constants::ORES };
-    }
+    my $available_gylphs = { map { $_ => [] } ore_types() };
     
     foreach my $glyph (@{$gylph_data->{glyphs}}) {
         push(@{$available_gylphs->{$glyph->{type}}},$glyph->{id});

@@ -24,7 +24,7 @@ sub upgrade_building {
     # Check if upgraded building is sustainable
     {
         no warnings 'once';
-        foreach my $resource (@Games::Lacuna::Task::Constants::RESOURCES_ALL) {
+        foreach my $resource (@Games::Lacuna::Task::Constants::RESOURCES) {
             my $resource_difference = -1 * ($building_detail->{'building'}{$resource.'_hour'} - $building_detail->{'building'}{upgrade}{production}{$resource.'_hour'});
             return 0
                 if ($planet_stats->{$resource.'_hour'} + $resource_difference <= 0);

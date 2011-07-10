@@ -61,7 +61,7 @@ has 'upgrade_buildings' => (
 );
 
 sub description {
-    return q[This task automates the upgrading of buildings if the build queue is empty];
+    return q[This task automates advanced upgrading of buildings if the build queue is empty];
 }
 
 sub process_planet {
@@ -73,8 +73,6 @@ sub process_planet {
     
     # Get build queue size
     foreach my $building_data (@buildings) {
-        next
-            if $building_data->{name} eq 'Supply Pod';
         if (defined $building_data->{pending_build}) {
             my $date_end = $self->parse_date($building_data->{pending_build}{end});
             $building_count ++
@@ -110,9 +108,9 @@ sub process_planet {
     # Check production buildings
     if (scalar @upgradeable_buildings == 0) {
         my @production = 
-            sort { $planet_stats->{$a.'_hour'} cmp $planet_stats->{$b.'_hour'} } @Games::Lacuna::Task::Constants::RESOURCES_ALL;
+            sort { $planet_stats->{$a.'_hour'} cmp $planet_stats->{$b.'_hour'} } @Games::Lacuna::Task::Constants::RESOURCES;
         my $min_production = min map { $planet_stats->{$_.'_hour'} } @production;
-        foreach my $element (@Games::Lacuna::Task::Constants::RESOURCES_ALL) {
+        foreach my $element (@Games::Lacuna::Task::Constants::RESOURCES) {
             my $limit_production = $planet_stats->{$element.'_hour'} * 0.8;
             next
                 if $limit_production > $min_production;

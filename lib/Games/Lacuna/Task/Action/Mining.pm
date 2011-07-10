@@ -3,6 +3,7 @@ package Games::Lacuna::Task::Action::Mining;
 use 5.010;
 
 use List::Util qw(sum);
+use Games::Lacuna::Client::Types qw(ore_types)
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
@@ -10,7 +11,7 @@ with qw(Games::Lacuna::Task::Role::Stars
     Games::Lacuna::Task::Role::Ships);
 
 sub description {
-    return q[This task automates mining on asteroids];
+    return q[This task automates the deployment of mining platforms on asteroids];
 }
 
 sub process_planet {
@@ -67,7 +68,7 @@ sub process_planet {
         my $asteroid_id = $platform->{asteroid}{id};
         $asteroids{$asteroid_id} ||= 0;
         $asteroids{$asteroid_id} ++;
-        foreach my $ore (@Games::Lacuna::Task::Constants::ORES) {
+        foreach my $ore (ore_types()) {
             my $quantity = $platform->{$ore.'_hour'};
             $ores_production{$ore} += $quantity;
         }
@@ -76,8 +77,8 @@ sub process_planet {
     my $ores_production_total = sum(values %ores_production);
     
     # Calc which ores are underrepresented
-    my $ore_type_count = scalar @Games::Lacuna::Task::Constants::ORES;
-    foreach my $ore (@Games::Lacuna::Task::Constants::ORES) {
+    my $ore_type_count = scalar ore_types();
+    foreach my $ore (ore_types()) {
         $ores_coeficient{$ore} = -1*( ($ores_production{$ore} / $ores_production_total) - (1/$ore_type_count));
     }
     

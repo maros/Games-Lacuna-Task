@@ -7,6 +7,8 @@ use List::Util qw(min);
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 
+our @RESOURCES_RECYCLEABLE = qw(water ore energy);
+
 sub description {
     return q[This task automates the recycling of waste in the Waste Recycling Center];
 }
@@ -33,7 +35,7 @@ sub process_planet {
         if $recycleable_waste <= 0;
     
     # Get stored resources
-    foreach my $resource (@Games::Lacuna::Task::Constants::RESOURCES) {
+    foreach my $resource (@RESOURCES_RECYCLEABLE) {
         my $stored = $planet_stats->{$resource.'_stored'}+0;
         my $capacity = $planet_stats->{$resource.'_capacity'}+0;
         $resources{$resource} = [ $capacity-$stored, 0, 0];
@@ -42,7 +44,7 @@ sub process_planet {
     
     # Fallback if storage is full
     if ($total_resources == 0) {
-        foreach my $resource (@Games::Lacuna::Task::Constants::RESOURCES) {
+        foreach my $resource (@RESOURCES_RECYCLEABLE) {
             my $capacity = $planet_stats->{$resource.'_capacity'}+0;
             $resources{$resource}[0] = $capacity;
             $total_resources += $capacity;
@@ -50,7 +52,7 @@ sub process_planet {
     }
     
     # Calculate ressouces
-    foreach my $resource (@Games::Lacuna::Task::Constants::RESOURCES) {
+    foreach my $resource (@RESOURCES_RECYCLEABLE) {
         $resources{$resource}[1] =  ($resources{$resource}[0] / $total_resources);
         if ($resources{$resource}[1] > 0
             && $resources{$resource}[1] < 1) {
@@ -60,7 +62,7 @@ sub process_planet {
     }
     
     # Calculate recycling relations
-    foreach my $resource (@Games::Lacuna::Task::Constants::RESOURCES) {
+    foreach my $resource (@RESOURCES_RECYCLEABLE) {
         $resources{$resource}[2] = ($resources{$resource}[1] / $total_resources_coeficient);
     }
     
@@ -90,12 +92,12 @@ sub process_planet {
         
         my %recycle = (map { $_ => int($resources{$_}[2] * $recycle_quantity) } keys %resources);
         
-        $self->log('notice',"Recycling %i %s, %i %s, %i %s on %s",(map { ($recycle{$_},$_) } @Games::Lacuna::Task::Constants::RESOURCES),$planet_stats->{name});
+        $self->log('notice',"Recycling %i %s, %i %s, %i %s on %s",(map { ($recycle{$_},$_) } @RESOURCES_RECYCLEABLE),$planet_stats->{name});
         
         $self->request(
             object  => $recycling_object,
             method  => 'recycle',
-            params  => [ (map { $recycle{$_} } @Games::Lacuna::Task::Constants::RESOURCES) ],
+            params  => [ (map { $recycle{$_} } @RESOURCES_RECYCLEABLE) ],
         );
         
         $recycleable_waste -= $recycle_quantity;
