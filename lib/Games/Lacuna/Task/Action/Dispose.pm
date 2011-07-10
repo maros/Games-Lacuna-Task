@@ -4,7 +4,7 @@ use 5.010;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-with 'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage'] };
+with 'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage','keep_waste_hours'] };
 
 sub description {
     return q[This task automates the disposal of overflowing waste];
@@ -17,6 +17,14 @@ sub process_planet {
     my $waste = $planet_stats->{waste_stored};
     my $waste_capacity = $planet_stats->{waste_capacity};
     my $waste_filled = ($waste / $waste_capacity) * 100;
+    my $recycleable_waste = 0;
+    
+    # Get recycleable waste
+    if ($planet_stats->{waste_hour} > 0) {
+        $recycleable_waste = $waste;
+    } else {
+        $recycleable_waste = $waste + ($planet_stats->{waste_hour} * 24)
+    }
     
     # Check if waste is overflowing
     return 
@@ -43,8 +51,8 @@ sub process_planet {
         next
             unless $ship->{type} eq 'scow';
         next
-            if $ship->{hold_size} > $waste;
-        
+            if $ship->{hold_size} > $recycleable_waste;
+            
         $self->log('notice',"Disposing %s waste on %s",$ship->{hold_size},$planet_stats->{name});
         
         # Send scow to closest star
@@ -54,6 +62,7 @@ sub process_planet {
             params  => [ $ship->{id},{ "star_id" => $planet_stats->{star_id} } ],
         );
         
+        $recycleable_waste -= $ship->{hold_size};
         $waste -= $ship->{hold_size};
         $waste_filled = ($waste / $waste_capacity) * 100;
         

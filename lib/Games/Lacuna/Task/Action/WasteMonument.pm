@@ -5,6 +5,7 @@ use 5.010;
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Building',
+    'Games::Lacuna::Task::Role::Waste',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage'] };
 
 our @WASTE_MONUMENTS = qw(spacejunkpark pyramidjunksculpture greatballofjunk metaljunkarches junkhengesculpture);
@@ -28,11 +29,8 @@ sub process_planet {
         if $self->university_level < 21;
     
     # Get stored waste
-    my $waste = $planet_stats->{waste_stored};
-    my $waste_capacity = $planet_stats->{waste_capacity};
-    my $waste_filled = ($waste / $waste_capacity) * 100;
-    
-    warn $waste_filled;
+    my $waste_filled = ($planet_stats->{waste_stored} / $planet_stats->{waste_capacity}) * 100;
+    my $waste_disposeable = $self->disposeable_waste($planet_stats);
     
     # Check if waste is overflowing
     return 
@@ -62,9 +60,13 @@ sub process_planet {
             unless $building_url ~~ \@WASTE_MONUMENTS;
         
         next BUILDABLE
+            if $building->{build}{cost}{waste} > $waste_disposeable;
+        
+        next BUILDABLE
             unless $building->{build}{can};
             
         push(@buildable_monuments,{
+            name    => $building->{name},
             url     => $building->{url},
             waste   => $building->{build}{cost}{waste},
         });
@@ -76,6 +78,8 @@ sub process_planet {
     @buildable_monuments = sort { $a->{waste} <=> $b->{waste} } @buildable_monuments;
     
     my $waste_monument_object = $self->build_object($buildable_monuments[0]->{url});
+    
+    $self->log('notice',"Building %s on %s",$buildable_monuments[0]->{name},$planet_stats->{name});
     
     $self->request(
         object  => $waste_monument_object,

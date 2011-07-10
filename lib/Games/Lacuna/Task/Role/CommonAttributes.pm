@@ -30,6 +30,26 @@ role {
             documentation => 'Upgrade buildings if there are less than N buildings in the build queue',
         );
     }
+    
+    if ('plan_for_hours' ~~ $p->attributes) {
+        has 'plan_for_hours' => (
+            isa     => 'Num',
+            is      => 'rw',
+            required=> 1,
+            default => 100,
+            documentation => 'Plan N hours ahead',
+        );
+    }
+    
+    if ('keep_waste_hours' ~~ $p->attributes) {
+        has 'keep_waste_hours' => (
+            isa     => 'Num',
+            is      => 'rw',
+            required=> 1,
+            default => 24,
+            documentation => 'Keep enough waste for N hours',
+        );
+    }
 };
 
 1;
