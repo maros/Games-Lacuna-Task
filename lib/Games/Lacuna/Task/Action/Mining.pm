@@ -91,7 +91,7 @@ sub process_planet {
         while (my ($ore,$quantity) = each %{$asteroid->{ore}}) {
             next
                 if $quantity <= 1;
-            $asteroid_quality += $ores_coeficient{$ore} * $quantity
+            $asteroid_quality += $ores_coeficient{$ore} * ($quantity*2)
                 if $ores_coeficient{$ore} > 0;
         }
         
