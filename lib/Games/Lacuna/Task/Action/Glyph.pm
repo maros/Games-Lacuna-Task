@@ -2,7 +2,7 @@ package Games::Lacuna::Task::Action::Glyph;
 
 use 5.010;
 
-use Games::Lacuna::Client::Types qw(ore_types)
+use Games::Lacuna::Client::Types qw(ore_types);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
