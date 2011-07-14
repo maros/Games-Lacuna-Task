@@ -3,7 +3,14 @@ package Games::Lacuna::Task::Role::Waste;
 use 5.010;
 use Moose::Role;
 
-use List::Util qw(max sum);
+use List::Util qw(max sum min);
+
+our %STORAGE_BUILDINGS = (
+    ore     => 'OreStorage',
+    food    => 'FoodReserve',
+    water   => 'WaterStorage',
+    energy  => 'EnergyReserve',
+);
 
 sub disposeable_waste {
     my ($self,$planet_stats) = @_;
@@ -26,38 +33,58 @@ sub disposeable_waste {
 sub convert_waste {
     my ($self,$planet_stats,$quantity) = @_;
     
-    $self->log('notice','Proucing %i waste on %s',$quantity,$planet_stats->{name});
+    my @resources_ordered = sort { $planet_stats->{$b.'_stored'} <=> $planet_stats->{$a.'_stored'} } 
+        @Games::Lacuna::Task::Constants::RESOURCES;
     
-    my @resource_types = @Games::Lacuna::Task::Constants::RESOURCES;
+#    my $resources_total = sum map { $planet_stats->{$_.'_stored'} } @resource_types;
+#    my $resources_avg = $resources_total / scalar @resource_types;
     
-    my @resources_ordered = sort { $planet_stats->{$b.'_stored'} <=> $planet_stats->{$a.'_stored'} } @resource_types;
-    
-    warn join ',',@resources_ordered;
-    
-    my $resources_total = sum map { $planet_stats->{$_.'_stored'} } @resource_types;
-    my $resources_avg = $resources_total / scalar @resource_types;
-    
-    warn $resources_total.'-'.$resources_avg;
-    
-    foreach (@resources_ordered) {
-        when('ore') {
+    RESOURCE_TYPE:
+    foreach my $resource_type (@resources_ordered) {
+        my $resource_dump = $quantity;
+        my $resources_stored = $planet_stats->{$resource_type.'_stored'} * 0.9;
+        
+        my $storage_builiding = $self->find_building($planet_stats->{id},$STORAGE_BUILDINGS{$resource_type});
+        my $storage_builiding_object = $self->build_object($storage_builiding);
+        
+        my ($resource_subtype,@dump_params);
+        
+        if ($resource_type ~~ [qw(food ore)]) {
+            my $response = $self->request(
+                object  => $storage_builiding_object,
+                method  => 'view',
+            );
             
-        }
-        when('food') {
+            my $resources_sub_stored = $response->{$resource_type.'_stored'};
             
-        }
-        when('water') {
+            ($resource_subtype) = 
+                sort { $resources_sub_stored->{$b} <=> $resources_sub_stored->{$a} }
+                keys %{$resources_sub_stored};
             
-        }
-        when('energy') {
+            $resource_dump = min($resources_sub_stored->{$resource_subtype},$resource_dump);
             
+            push(@dump_params,$resource_subtype);
+            
+            $self->log('notice','Dumping %i %s on %s',$quantity,$resource_subtype,$planet_stats->{name});
+        } else {
+            $resource_dump = min($resources_stored,$resource_dump);
+            
+            $self->log('notice','Dumping %i %s on %s',$quantity,$resource_type,$planet_stats->{name});
         }
+        
+        push(@dump_params,$resource_dump);
+        
+        $self->request(
+            object  => $storage_builiding_object,
+            method  => 'dump',
+            params  => \@dump_params,
+        );
+        
+        $quantity -= $resource_dump;
+        
+        last RESOURCE_TYPE
+            if $quantity <= 0;
     }
-    
-    
-    # TODO get distribution center
-    # TODO get max resource per type
-    # TODO get max resource per subtype (ore,food)
 }
 
 no Moose::Role;

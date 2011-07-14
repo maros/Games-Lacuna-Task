@@ -36,7 +36,7 @@ role {
             isa     => 'Num',
             is      => 'rw',
             required=> 1,
-            default => 100,
+            default => 1,
             documentation => 'Plan N hours ahead',
         );
     }
