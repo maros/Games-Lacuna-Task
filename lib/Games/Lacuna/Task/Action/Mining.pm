@@ -3,7 +3,7 @@ package Games::Lacuna::Task::Action::Mining;
 use 5.010;
 
 use List::Util qw(sum);
-use Games::Lacuna::Client::Types qw(ore_types)
+use Games::Lacuna::Client::Types qw(ore_types);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);

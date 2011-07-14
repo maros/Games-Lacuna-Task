@@ -3,7 +3,7 @@ package Games::Lacuna::Task::Action::Archaeology;
 use 5.010;
 
 use List::Util qw(max sum);
-use Games::Lacuna::Client::Types qw(ore_types)
+use Games::Lacuna::Client::Types qw(ore_types);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
@@ -22,7 +22,7 @@ sub all_glyphs {
         if defined $all_gylphs;
     
     # Set all glyphs to zero
-    $all_gylphs = { map { $_ => 0 } ore_types();
+    $all_gylphs = { map { $_ => 0 } ore_types() };
     
     # Loop all planets
     PLANETS:
