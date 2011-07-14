@@ -1,30 +1,24 @@
-package Games::Lacuna::Task::Action::Dispose;
+package Games::Lacuna::Task::Action::WasteDispose;
 
 use 5.010;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-with 'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage','keep_waste_hours'] };
+with 'Games::Lacuna::Task::Role::Waste',
+    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage','keep_waste_hours'] };
 
 sub description {
-    return q[This task automates the disposal of overflowing waste];
+    return q[This task automates the disposal of overflowing waste with scows];
 }
 
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
     # Get stored waste
-    my $waste = $planet_stats->{waste_stored};
+    my $waste_stored = $planet_stats->{waste_stored};
     my $waste_capacity = $planet_stats->{waste_capacity};
-    my $waste_filled = ($waste / $waste_capacity) * 100;
-    my $recycleable_waste = 0;
-    
-    # Get recycleable waste
-    if ($planet_stats->{waste_hour} > 0) {
-        $recycleable_waste = $waste;
-    } else {
-        $recycleable_waste = $waste + ($planet_stats->{waste_hour} * 24)
-    }
+    my $waste_filled = ($waste_stored / $waste_capacity) * 100;
+    my $waste_disposeable = $self->disposeable_waste($planet_stats);
     
     # Check if waste is overflowing
     return 
@@ -51,7 +45,7 @@ sub process_planet {
         next
             unless $ship->{type} eq 'scow';
         next
-            if $ship->{hold_size} > $recycleable_waste;
+            if $ship->{hold_size} > $waste_disposeable;
             
         $self->log('notice',"Disposing %s waste on %s",$ship->{hold_size},$planet_stats->{name});
         
@@ -62,9 +56,9 @@ sub process_planet {
             params  => [ $ship->{id},{ "star_id" => $planet_stats->{star_id} } ],
         );
         
-        $recycleable_waste -= $ship->{hold_size};
-        $waste -= $ship->{hold_size};
-        $waste_filled = ($waste / $waste_capacity) * 100;
+        $waste_disposeable -= $ship->{hold_size};
+        $waste_stored -= $ship->{hold_size};
+        $waste_filled = ($waste_stored / $waste_capacity) * 100;
         
         # Check if waste is overflowing
         return 

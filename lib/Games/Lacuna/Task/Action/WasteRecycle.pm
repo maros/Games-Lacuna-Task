@@ -1,4 +1,4 @@
-package Games::Lacuna::Task::Action::Recycle;
+package Games::Lacuna::Task::Action::WasteRecycle;
 
 use 5.010;
 
@@ -6,6 +6,7 @@ use List::Util qw(min);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
+with 'Games::Lacuna::Role::Waste';
 
 our @RESOURCES_RECYCLEABLE = qw(water ore energy);
 
@@ -18,21 +19,18 @@ sub process_planet {
     
     my $timestamp = DateTime->now->set_time_zone('UTC');
     my %resources;
+    
+    my $waste_stored = $planet_stats->{waste_stored};
+    my $waste_capacity = $planet_stats->{waste_capacity};
+    my $waste_filled = ($waste_stored / $waste_capacity) * 100;
+    my $waste_disposeable = $self->disposeable_waste($planet_stats);
+    
     my $total_resources = 0;
     my $total_resources_coeficient = 0;
     my $total_waste_coeficient = 0;
-    my $recycleable_waste = 0;
-    my $waste = $planet_stats->{waste_stored};
-    
-    # Get recycleable waste
-    if ($planet_stats->{waste_hour} > 0) {
-        $recycleable_waste = $waste;
-    } else {
-        $recycleable_waste = $waste + ($planet_stats->{waste_hour} * 24)
-    }
     
     return
-        if $recycleable_waste <= 0;
+        if $waste_disposeable <= 0;
     
     # Get stored resources
     foreach my $resource (@RESOURCES_RECYCLEABLE) {
@@ -72,7 +70,7 @@ sub process_planet {
     foreach my $recycling_building (@recycling_buildings) {
         
         last
-            if $recycleable_waste == 0;
+            if $waste_disposeable <= 0;
         
         # Check recycling is busy
         if (defined $recycling_building->{work}) {
@@ -88,7 +86,7 @@ sub process_planet {
             method  => 'view',
         );
         
-        my $recycle_quantity = min($recycleable_waste,$recycling_data->{recycle}{max_recycle});
+        my $recycle_quantity = min($waste_disposeable,$recycling_data->{recycle}{max_recycle});
         
         my %recycle = (map { $_ => int($resources{$_}[2] * $recycle_quantity) } keys %resources);
         
@@ -100,7 +98,7 @@ sub process_planet {
             params  => [ (map { $recycle{$_} } @RESOURCES_RECYCLEABLE) ],
         );
         
-        $recycleable_waste -= $recycle_quantity;
+        $waste_disposeable -= $recycle_quantity;
         
         $self->clear_cache('body/'.$planet_stats->{id}.'/buildings');
     }

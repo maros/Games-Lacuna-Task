@@ -29,7 +29,9 @@ sub process_planet {
         if $self->university_level < 21;
     
     # Get stored waste
-    my $waste_filled = ($planet_stats->{waste_stored} / $planet_stats->{waste_capacity}) * 100;
+    my $waste_stored = $planet_stats->{waste_stored};
+    my $waste_capacity = $planet_stats->{waste_capacity};
+    my $waste_filled = ($waste_stored / $waste_capacity) * 100;
     my $waste_disposeable = $self->disposeable_waste($planet_stats);
     
     # Check if waste is overflowing
