@@ -7,21 +7,21 @@ use List::Util qw(min shuffle);
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 
-#has 'rename_spies' => (
-#    isa             => 'Bool',
-#    is              => 'rw',
-#    default         => 1,
-#    documentation   => 'Rename spies if they carry the default name',
-#);
+has 'rename_spies' => (
+    isa             => 'Bool',
+    is              => 'rw',
+    default         => 1,
+    documentation   => 'Rename spies if they carry the default name',
+);
 
 has 'max_training' => (
     isa             => 'Int',
     is              => 'rw',
-    default         => 2,
+    default         => 10,
     documentation   => 'Max number of spies in training',
 );
 
-our @TRAINING_BUILDINGS = qw(IntelTraining TheftTraining PoliticsTraining MayhemTraining);
+our @SPY_SKILLS = qw(intel theft politics mayhem);
 
 sub description {
     return q[This task automates the training of spies];
@@ -38,60 +38,99 @@ sub process_planet {
         unless $intelligence_ministry;
     my $intelligence_ministry_object = $self->build_object($intelligence_ministry);
     
-    my $ministry_data = $self->request(
+    my $spy_data = $self->paged_request(
         object  => $intelligence_ministry_object,
-        method  => 'view',
+        method  => 'view_spies',
+        total   => 'spy_count',
+        data    => 'spies',
     );
     
-    my $spies_in_training = $ministry_data->{spies}{in_training};
+    my @spies_available;
+    my $spies_count = 0;
+    my $spies_in_training = 0;
+    
+    foreach my $spy (@{$spy_data->{spies}}) {
+        $spies_count ++;
+        $spies_in_training ++
+            if $spy->{assignment} eq 'Training';
+        if ($self->rename_spies
+            && $spy->{name} eq 'Agent Null') {
+            my $spy_name = 'Agent '.$spies_count.' '.substr($planet_stats->{name},0,1);
+            $self->log('notice',"Rename spy on %s to %s",$planet_stats->{name},$spy_name);
+            my $response = $self->request(
+                object  => $intelligence_ministry_object,
+                method  => 'name_spy',
+                params  => [$spy->{id},$spy_name],
+            );
+        }
+        if ($spy->{is_available}
+            && $spy->{assigned_to}{body_id} == $planet_stats->{id}
+            && $spy->{name} !~ m/!/) {
+            push (@spies_available,$spy);
+        }
+    }
     
     # Check if we can have more spies
-    my $spy_slots = $ministry_data->{spies}{maximum} > $ministry_data->{spies}{current};
+    my $spy_slots = $intelligence_ministry->{level} - $spies_count;
     
-    if ($spy_slots > 0
-        && $self->can_afford($planet_stats,$ministry_data->{spies}{training_costs})) {
-        $self->log('notice',"Training spy on %s",$planet_stats->{name});
-        $self->request(
+    # Train new spies
+    if ($spy_slots > 0) {
+        $spy_slots = min($spy_slots,5);
+        #&& $self->can_afford($planet_stats,$ministry_data->{spies}{training_costs})
+        $self->log('notice',"Training %i spy/spies on %s",$spy_slots,$planet_stats->{name});
+        my $response = $self->request(
             object  => $intelligence_ministry_object,
             method  => 'train_spy',
             params  => [$spy_slots]
         );
+        $spies_in_training += $spy_slots;
     }
     
+    # Check max spies in training
     return 
-        if $spies_in_training >= $self->max_training;
+        if $spies_in_training >= $self->max_training
+        || scalar @spies_available == 0;
     
-    TRAINING_BUILDING:
-    foreach my $building_name (shuffle @TRAINING_BUILDINGS) {
-        my ($training_building) = $self->find_building($planet_stats->{id},$building_name);
+    my @training_available;
+    my %training_buildings;
+    
+    # Get trainable spies
+    SPY_SKILL:
+    foreach my $skill (@SPY_SKILLS) {
+        my $building_name = ucfirst($skill).'Training';
+        my $training_building = $self->find_building($planet_stats->{id},$building_name);
         next
             unless $training_building;
-        my $training_building_object = $self->build_object($training_building);
-        my $training_building_data = $self->request(
-            object  => $training_building_object,
-            method  => 'view',
-        );
         
-        next TRAINING_BUILDING
-            if scalar @{$training_building_data->{spies}{training_costs}{time}} == 0;
+        $training_buildings{$skill} = $self->build_object($training_building);
         
-        SPY:
-        foreach my $spy (@{$training_building_data->{spies}{training_costs}{time}}) {
-            next SPY
-                if $spy->{name} =~ m/\!/; # Indicates reserved spy
-            
-            $self->log('notice',"Training spy on %s at %s",$planet_stats->{name},$building_name);
-            
-            $self->request(
-                object  => $training_building_object,
-                method  => 'train_spy',
-                params  => [$spy->{spy_id}],
-            );
-            
-            $spies_in_training ++;
+        foreach my $spy (@spies_available) {
+            push(@training_available,{ 
+                id      => $spy->{id},
+                name    => $spy->{name},
+                skill   => $skill,
+                points  => $spy->{$skill},
+            });
         }
+    }
+    
+    my @spies_in_training;
+    SPY_TRAINING:
+    foreach my $spy_data (sort { $a->{points} <=> $b->{points} } @training_available) {
         
-        return 
+        next SPY_TRAINING
+            if $spy_data->{id} ~~ \@spies_in_training;
+        
+        $self->log('notice',"Training spy %s on %s in %s",$spy_data->{name},$planet_stats->{name},$spy_data->{skill});
+        $self->request(
+            object  => $training_buildings{$spy_data->{skill}},
+            method  => 'train_spy',
+            params  => [$spy_data->{id}],
+        );
+        push(@spies_in_training,$spy_data->{id});
+        $spies_in_training ++;
+        
+        last SPY_TRAINING
             if $spies_in_training >= $self->max_training;
     }
 }
