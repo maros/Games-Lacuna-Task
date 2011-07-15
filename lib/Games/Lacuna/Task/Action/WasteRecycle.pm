@@ -6,7 +6,7 @@ use List::Util qw(min);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-with 'Games::Lacuna::Role::Waste';
+with 'Games::Lacuna::Task::Role::Waste';
 
 our @RESOURCES_RECYCLEABLE = qw(water ore energy);
 
