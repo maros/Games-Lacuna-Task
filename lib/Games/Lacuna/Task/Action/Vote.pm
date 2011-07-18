@@ -23,6 +23,8 @@ has 'accept_proposition' => (
         Repair \s $NAME_RE
         |
         Seize \s $NAME_RE
+        |
+        Transfer \s Station
     )/xi },
 );
 
