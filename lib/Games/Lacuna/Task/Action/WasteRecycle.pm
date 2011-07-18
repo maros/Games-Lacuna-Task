@@ -19,6 +19,13 @@ sub process_planet {
     
     my $timestamp = DateTime->now->set_time_zone('UTC');
     my %resources;
+    my @recycling_buildings;
+    
+    push (@recycling_buildings,$self->find_building($planet_stats->{id},'WasteRecycling'));
+    push (@recycling_buildings,$self->find_building($planet_stats->{id},'WasteExchanger'));
+    
+    return
+        unless scalar @recycling_buildings;
     
     my $waste_stored = $planet_stats->{waste_stored};
     my $waste_capacity = $planet_stats->{waste_capacity};
@@ -63,8 +70,6 @@ sub process_planet {
     foreach my $resource (@RESOURCES_RECYCLEABLE) {
         $resources{$resource}[2] = ($resources{$resource}[1] / $total_resources_coeficient);
     }
-    
-    my @recycling_buildings = $self->find_building($planet_stats->{id},'WasteRecycling');
     
     # Loop all recycling buildings
     foreach my $recycling_building (@recycling_buildings) {
