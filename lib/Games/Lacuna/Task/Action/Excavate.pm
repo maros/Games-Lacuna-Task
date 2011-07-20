@@ -69,6 +69,8 @@ sub process_planet {
         # Get star info
         my $star_info = $self->get_star($star->{id});
         
+        sleep 1;
+        
         # Loop all bodies
         foreach my $body (@{$star_info->{bodies}}) {
             # Do not excavate habited solar system as excavators will be shot down

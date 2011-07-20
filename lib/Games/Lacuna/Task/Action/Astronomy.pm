@@ -48,7 +48,7 @@ sub process_planet {
     # Get available probes
     my @avaliable_probes = $self->ships(
         planet          => $planet_stats,
-        quantity         => $can_send_probes,
+        quantity        => $can_send_probes,
         type            => 'probe',
         travelling      => 1,
     );
@@ -160,6 +160,8 @@ sub closest_unprobed_stars {
         
         # Check star again (might be probed in the meantime)
         my $star_data = $self->check_star($star->{id});
+        
+        sleep 1;
         
         next STARS
             if defined $star_data->{bodies}
