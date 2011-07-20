@@ -31,11 +31,10 @@ sub process_planet {
         unless $spaceport;
         
     my $spaceport_object = $self->build_object($spaceport);
-    my $spaceport_data = $self->paged_request(
+    my $spaceport_data = $self->request(
         object  => $spaceport_object,
         method  => 'view_all_ships',
-        total   => 'number_of_ships',
-        data    => 'ships',
+        params  => [ { no_paging => 1 } ],
     );
     
     # Get all available scows

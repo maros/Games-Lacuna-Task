@@ -104,11 +104,10 @@ sub process_planet {
         unless scalar @{$trades};
     
     # Get current trade
-    my $trade_data = $self->paged_request(
+    my $trade_data = $self->request(
         object  => $tradeministry_object,
         method  => 'view_my_market',
-        total   => 'trade_count',
-        data    => 'trades',
+        params  => [ { no_paging => 1 } ],
     )->{trades};
     
     my @current_trades = _trade_serialize_response($trade_data);

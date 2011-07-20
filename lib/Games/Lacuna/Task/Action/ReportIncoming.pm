@@ -81,11 +81,10 @@ sub process_planet {
     my $spaceport_object = $self->build_object($spaceport);
     
     # Get all incoming ships
-    my $ships_data = $self->paged_request(
+    my $ships_data = $self->request(
         object  => $spaceport_object,
         method  => 'view_foreign_ships',
-        total   => 'number_of_ships',
-        data    => 'ships',
+        params  => [ { no_paging => 1 } ],
     );
     
     my @incoming_ships;

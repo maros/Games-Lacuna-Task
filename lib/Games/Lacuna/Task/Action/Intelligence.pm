@@ -45,11 +45,10 @@ sub process_planet {
     if ($security_ministry) {
         
         my $security_ministry_object = $self->build_object($security_ministry);
-        my $foreign_spy_data = $self->paged_request(
+        my $foreign_spy_data = $self->request(
             object  => $security_ministry_object,
             method  => 'view_foreign_spies',
-            total   => 'spy_count',
-            data    => 'spies',
+            params  => [ { no_paging => 1 } ],
         );
         
         $foreign_spies_count = $foreign_spy_data->{spy_count};
@@ -66,11 +65,10 @@ sub process_planet {
         }
     }
     
-    my $spy_data = $self->paged_request(
+    my $spy_data = $self->request(
         object  => $intelligence_ministry_object,
         method  => 'view_spies',
-        total   => 'spy_count',
-        data    => 'spies',
+        params  => [ { no_paging => 1 } ],
     );
     
     # Loop all spies
