@@ -1,9 +1,9 @@
-package Games::Lacuna::Task::Action::WasteDispose;
+package Games::Lacuna::Task::Automator::WasteDispose;
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 with 'Games::Lacuna::Task::Role::Waste',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage','keep_waste_hours'] };
 

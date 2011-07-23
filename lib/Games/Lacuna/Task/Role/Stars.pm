@@ -162,9 +162,9 @@ Games::Lacuna::Task::Role::Stars - Astronomy helper methods
 
 =head1 SYNOPSIS
 
-    package Games::Lacuna::Task::Action::MyTask;
+    package Games::Lacuna::Task::Automator::MyTask;
     use Moose;
-    extends qw(Games::Lacuna::Task::Action);
+    extends qw(Games::Lacuna::Task::Automator);
     with qw(Games::Lacuna::Task::Role::Stars);
     
 =head1 DESCRIPTION

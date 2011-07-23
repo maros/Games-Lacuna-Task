@@ -79,9 +79,9 @@ Games::Lacuna::Task::Role::Building - Helper methods for buildings
 
 =head1 SYNOPSIS
 
-    package Games::Lacuna::Task::Action::MyTask;
+    package Games::Lacuna::Task::Automator::MyTask;
     use Moose;
-    extends qw(Games::Lacuna::Task::Action);
+    extends qw(Games::Lacuna::Task::Automator);
     with qw(Games::Lacuna::Task::Role::Building);
     
 =head1 DESCRIPTION

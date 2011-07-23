@@ -1,9 +1,9 @@
-package Games::Lacuna::Task::Action::Repair;
+package Games::Lacuna::Task::Automator::Repair;
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 
 sub description {
     return q[This task automates the repair of damaged buildings];

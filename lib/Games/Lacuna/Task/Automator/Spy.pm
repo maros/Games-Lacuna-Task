@@ -1,11 +1,11 @@
-package Games::Lacuna::Task::Action::Spy;
+package Games::Lacuna::Task::Automator::Spy;
 
 use 5.010;
 
 use List::Util qw(min shuffle);
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 
 has 'rename_spies' => (
     isa             => 'Bool',
@@ -38,10 +38,11 @@ sub process_planet {
         unless $intelligence_ministry;
     my $intelligence_ministry_object = $self->build_object($intelligence_ministry);
     
-    my $spy_data = $self->request(
+    my $spy_data = $self->paged_request(
         object  => $intelligence_ministry_object,
         method  => 'view_spies',
-        params  => [ { no_paging => 1 } ],
+        total   => 'spy_count',
+        data    => 'spies',
     );
     
     my @spies_available;

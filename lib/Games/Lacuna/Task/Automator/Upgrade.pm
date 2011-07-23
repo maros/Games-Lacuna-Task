@@ -1,11 +1,11 @@
-package Games::Lacuna::Task::Action::Upgrade;
+package Games::Lacuna::Task::Automator::Upgrade;
 
 use 5.010;
 
 use List::Util qw(max);
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 with 'Games::Lacuna::Task::Role::Building',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['start_building_at'] };
 

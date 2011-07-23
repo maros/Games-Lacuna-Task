@@ -1,11 +1,11 @@
-package Games::Lacuna::Task::Action::WasteRecycle;
+package Games::Lacuna::Task::Automator::WasteRecycle;
 
 use 5.010;
 
 use List::Util qw(min);
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 with 'Games::Lacuna::Task::Role::Waste';
 
 our @RESOURCES_RECYCLEABLE = qw(water ore energy);

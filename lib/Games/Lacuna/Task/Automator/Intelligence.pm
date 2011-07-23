@@ -1,11 +1,11 @@
-package Games::Lacuna::Task::Action::Intelligence;
+package Games::Lacuna::Task::Automator::Intelligence;
 
 use 5.010;
 
 use List::Util qw(min);
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 
 has 'offensive_assignment' => (
     isa             => 'ArrayRef',

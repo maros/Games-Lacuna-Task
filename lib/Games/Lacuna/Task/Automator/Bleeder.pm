@@ -1,9 +1,9 @@
-package Games::Lacuna::Task::Action::Bleeder;
+package Games::Lacuna::Task::Automator::Bleeder;
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 
 sub description {
     return q[This task detects and demolishes deployed bleeders];

@@ -1,9 +1,9 @@
-package Games::Lacuna::Task::Action::WasteMonument;
+package Games::Lacuna::Task::Automator::WasteMonument;
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 with 'Games::Lacuna::Task::Role::Building',
     'Games::Lacuna::Task::Role::Waste',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage'] };

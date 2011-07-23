@@ -1,4 +1,4 @@
-package Games::Lacuna::Task::Action::Mining;
+package Games::Lacuna::Task::Automator::Mining;
 
 use 5.010;
 
@@ -6,7 +6,7 @@ use List::Util qw(sum);
 use Games::Lacuna::Client::Types qw(ore_types);
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 with qw(Games::Lacuna::Task::Role::Stars
     Games::Lacuna::Task::Role::Ships);
 

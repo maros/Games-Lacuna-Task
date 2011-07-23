@@ -1,9 +1,9 @@
-package Games::Lacuna::Task::Action::ReportIncoming;
+package Games::Lacuna::Task::Automator::ReportIncoming;
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 with qw(Games::Lacuna::Task::Role::Notify);
 
 sub description {

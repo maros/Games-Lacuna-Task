@@ -1,11 +1,11 @@
-package Games::Lacuna::Task::Action::Glyph;
+package Games::Lacuna::Task::Automator::Glyph;
 
 use 5.010;
 
 use Games::Lacuna::Client::Types qw(ore_types);
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 
 has 'recipies' => (
     isa             => 'ArrayRef[ArrayRef[Lacuna::Task::Type::Ore]]',

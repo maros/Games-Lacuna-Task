@@ -1,4 +1,4 @@
-package Games::Lacuna::Task::Action::Archaeology;
+package Games::Lacuna::Task::Automator::Archaeology;
 
 use 5.010;
 
@@ -6,7 +6,7 @@ use List::Util qw(max sum);
 use Games::Lacuna::Client::Types qw(ore_types);
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 
 sub description {
     return q[This task automates the search for glyphs];

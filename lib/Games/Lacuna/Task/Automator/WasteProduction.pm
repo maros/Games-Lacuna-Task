@@ -1,11 +1,11 @@
-package Games::Lacuna::Task::Action::WasteProduction;
+package Games::Lacuna::Task::Automator::WasteProduction;
 
 use 5.010;
 
 use List::Util qw(min);
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 with 'Games::Lacuna::Task::Role::Waste',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['plan_for_hours'] };
 

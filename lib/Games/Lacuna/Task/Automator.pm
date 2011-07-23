@@ -1,4 +1,4 @@
-package Games::Lacuna::Task::Action;
+package Games::Lacuna::Task::Automator;
 
 use 5.010;
 

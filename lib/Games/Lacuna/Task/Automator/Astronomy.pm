@@ -1,9 +1,9 @@
-package Games::Lacuna::Task::Action::Astronomy;
+package Games::Lacuna::Task::Automator::Astronomy;
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Action);
+extends qw(Games::Lacuna::Task::Automator);
 with qw(Games::Lacuna::Task::Role::Stars
     Games::Lacuna::Task::Role::Ships);
 

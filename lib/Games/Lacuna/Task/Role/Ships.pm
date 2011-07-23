@@ -171,9 +171,9 @@ Games::Lacuna::Task::Role::Ships - Helper methods for fetching and building shi
 
 =head1 SYNOPSIS
 
-    package Games::Lacuna::Task::Action::MyTask;
+    package Games::Lacuna::Task::Automator::MyTask;
     use Moose;
-    extends qw(Games::Lacuna::Task::Action);
+    extends qw(Games::Lacuna::Task::Automator);
     with qw(Games::Lacuna::Task::Role::Ships);
     
 =head1 DESCRIPTION
