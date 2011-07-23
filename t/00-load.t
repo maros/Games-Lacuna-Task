@@ -24,7 +24,7 @@ use_ok( 'Games::Lacuna::Task::Action::ReportIncoming' );
 use_ok( 'Games::Lacuna::Task::Action::Spy' );
 use_ok( 'Games::Lacuna::Task::Action::Trade' );
 use_ok( 'Games::Lacuna::Task::Action::Upgrade' );
-use_ok( 'Games::Lacuna::Task::Action::UpgradeRessource' );
+use_ok( 'Games::Lacuna::Task::Action::UpgradeResource' );
 use_ok( 'Games::Lacuna::Task::Action::Vote' );
 use_ok( 'Games::Lacuna::Task::Action::WasteMonument' );
 use_ok( 'Games::Lacuna::Task::Cache' );
