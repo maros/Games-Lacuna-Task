@@ -7,13 +7,22 @@ sub ships {
     my ($self,%params) = @_;
     
     my $planet_stats = $params{planet};
-    my $type = lc($params{type});
+    my $type = $params{type};
     my $name_prefix = $params{name_prefix};
     my $quantity = $params{quantity} // 1;
     my $travelling = $params{travelling} // 0;
     
     return
         unless $type;
+    
+    # Convert human name
+    if ($type =~ m/[A-Z ]/) {
+        $type = lc($type);
+        $type =~ s/\s(v)$/5/;
+        $type =~ s/\s(iv)$/4/;
+        $type =~ s/\s(i{1,3})$/length($1)/e;
+        $type =~ s/\s+/_/g;
+    }
     
     # Get space port
     my @spaceports = $self->find_building($planet_stats->{id},'SpacePort');
@@ -58,7 +67,7 @@ sub ships {
         
         if (defined $name_prefix) {
             next SHIPS
-                 unless $ship->{name} =~ m/^$name_prefix/;
+                 unless $ship->{name} =~ m/^$name_prefix/i;
         } else {
             next SHIPS
                 if $ship->{name} =~ m/\!/; # Indicates reserved ship
@@ -99,9 +108,9 @@ sub ships {
                 last SHIPYARDS
                     if $buildable_ships->{docks_available} == 0;
                 
-                # Check if probe can be built
+                # Check if type can be built
                 last SHIPYARDS
-                    if $buildable_ships->{buildable}{probe}{can} == 0;
+                    if $buildable_ships->{buildable}{$type}{can} == 0;
                 
                 $self->log('notice',"Building %s on %s",$type,$planet_stats->{name});
                 
@@ -109,7 +118,7 @@ sub ships {
                 $self->request(
                     object  => $shipyard_object,
                     method  => 'build_ship',
-                    params  => [lc($type)],
+                    params  => [$type],
                 );
                 
                 $max_build_quantity --;
