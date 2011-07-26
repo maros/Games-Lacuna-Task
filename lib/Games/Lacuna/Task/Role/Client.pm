@@ -146,6 +146,35 @@ sub request {
     return $response;
 }
 
+sub paged_request {
+    my ($self,%params) = @_;
+    
+    $params{params} ||= [];
+    
+    my $total = delete $params{total};
+    my $data = delete $params{data};
+    my $page = 1;
+    my @result;
+    
+    PAGES:
+    while (1) {
+        push(@{$params{params}},$page);
+        my $response = $self->request(%params);
+        pop(@{$params{params}});
+        
+        foreach my $element (@{$response->{$data}}) {
+            push(@result,$element);
+        }
+        
+        if ($response->{$total} > (25 * $page)) {
+            $page ++;
+        } else {
+            $response->{$data} = \@result;
+            return $response;
+        }
+    }
+}
+
 sub lookup_cache {
     my ($self,$key) = @_;
     
