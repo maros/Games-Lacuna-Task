@@ -55,8 +55,6 @@ has '+database' => (
     required        => 1,
 );
 
-our $WIDTH = 62;
-
 sub _build_config {
     my ($self) = @_;
     
@@ -93,7 +91,7 @@ sub run {
     
     my $empire_name = $self->lookup_cache('config')->{name};
     
-    $self->log('notice',("=" x $WIDTH));
+    $self->log('notice',("=" x $Games::Lacuna::Task::Constants::WIDTH));
     $self->log('notice',"Running tasks for empire %s",$empire_name);
     
     my $global_config = $self->task_config('global');
@@ -129,7 +127,7 @@ sub run {
         next
             if $self->has_exclude && $task_name ~~ $self->exclude;
         
-        $self->log('notice',("-" x $WIDTH));
+        $self->log('notice',("-" x ($Games::Lacuna::Task::Constants::WIDTH - 8)));
         
         my $ok = 1;
         try {
@@ -217,7 +215,7 @@ sub run {
             }
         }
     }
-    $self->log('notice',("=" x $WIDTH));
+    $self->log('notice',("=" x ($Games::Lacuna::Task::Constants::WIDTH - 8)));
 }
 
 

@@ -12,4 +12,6 @@ our %CARGO = (
     plan    => 10000,
 );
 
+our $WIDTH = 78;
+
 1;
