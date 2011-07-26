@@ -1,0 +1,43 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use 5.010;
+
+use Games::Lacuna::Task::CommandProto;
+
+my $call = Games::Lacuna::Task::CommandProto->new;
+$call->run;
+
+=encoding utf8
+
+=head1 NAME
+
+lacuna_command - Perform various tasks in the Lacuna MMPOG
+
+=head1 USAGE
+
+ lacuna_command command [options]
+
+=head2 GLOBAL OPTIONS
+
+=head3 database
+
+Path to the lacuna directory (will be created if it does not exist)
+
+Default: ~/.lacuna/
+
+=head3 loglevel
+
+Prints all messages equal or above the given level
+
+Default: info
+Accepted: debug,info,notice,warn,error
+
+=head3 debug
+
+Enable debug mode
+
+=head3 -? --usage --help  
+
+Prints usage information

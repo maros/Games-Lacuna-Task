@@ -9,19 +9,28 @@ our $VERSION = version->new("1.00");
 
 use Games::Lacuna::Task::Types;
 use Games::Lacuna::Task::Meta::Attribute::Trait::NoIntrospection;
+use Games::Lacuna::Task::Utils qw(class_to_name name_to_class);
 
 use Moose;
 use Try::Tiny;
 use YAML::Any qw(LoadFile);
 
 use Module::Pluggable 
-    search_path => ['Games::Lacuna::Task::Action'],
-    sub_name => 'all_tasks';
+    search_path => ['Games::Lacuna::Task::Automator'],
+    sub_name => 'all_automators';
 
 with qw(Games::Lacuna::Task::Role::Client
     Games::Lacuna::Task::Role::Helper
     Games::Lacuna::Task::Role::Logger
+    Games::Lacuna::Task::Role::Introspect
     MooseX::Getopt);
+
+has 'task_info'  => (
+    is              => 'ro',
+    isa             => 'Bool',
+    default         => 0,
+    documentation   => 'Show task info and configuration',
+);
 
 has 'config' => (
     is              => 'ro',
@@ -42,13 +51,6 @@ has 'task'  => (
     isa             => 'ArrayRef[Str]',
     documentation   => 'Select which tasks to run [Multiple]',
     predicate       => 'has_task',
-);
-
-has 'task_info'  => (
-    is              => 'ro',
-    isa             => 'Bool',
-    default         => 0,
-    documentation   => 'Show task info and configuration',
 );
 
 has '+database' => (
@@ -106,11 +108,10 @@ sub run {
     my @tasks;
     if (! $self->has_task
         || 'all' ~~ $self->task) {
-        @tasks = __PACKAGE__->all_tasks;
+        @tasks = __PACKAGE__->all_automators;
     } else {
         foreach my $task (@{$self->task}) {
-            my $element = join('',map { ucfirst(lc($_)) } split(/_/,$task));
-            my $class = 'Games::Lacuna::Task::Action::'.$element;
+            my $class = name_to_class($task,'Automator');
             push(@tasks,$class)
                 unless $class ~~ \@tasks;
         }
@@ -119,10 +120,7 @@ sub run {
     # Loop all tasks
     TASK:
     foreach my $task_class (@tasks) {
-        my $task_name = $task_class;
-        $task_name =~ s/^.+::([^:]+)$/$1/;
-        $task_name =~ s/(\p{Lower})(\p{Upper}\p{Lower})/$1_$2/g;
-        $task_name = lc($task_name);
+        my $task_name = class_to_name($task_class);
         
         next
             if $self->has_exclude && $task_name ~~ $self->exclude;
@@ -137,46 +135,10 @@ sub run {
             $ok = 0;
         };
         if ($ok) {
-            my $task_meta = $task_class->meta;
             try {
                 if ($self->task_info) {
                     $self->log('notice',"Info for task %s",$task_name);
-                    
-                    $self->log('info',$task_class->description);
-                    
-                    my @attributes;
-                    foreach my $attribute ($task_meta->get_all_attributes) {
-                        next
-                            if $attribute->does('NoIntrospection');
-                        push (@attributes,$attribute);
-                    }
-                    if (scalar @attributes) {
-                        $self->log('info','Available configuration options for task %s',$task_name);
-                        foreach my $attribute (@attributes) {
-                            $self->log('info',"- %s",$attribute->name);
-                            if ($attribute->has_documentation) {
-                                $self->log('info',"  Desctiption: %s",$attribute->documentation);
-                            }
-                            if ($attribute->is_required) {
-                                $self->log('info',"  Is required");
-                            }
-                            if ($attribute->has_type_constraint) {
-                                $self->log('info',"  Type: %s",$attribute->type_constraint->name);
-                            }
-                            if ($attribute->has_default) {
-                                my $default = $attribute->default;
-                                $default = $default->()
-                                    if (ref($default) eq 'CODE');
-                                $self->log('info',"  Default: %s",$default);
-                            }
-                            my $current_config = $self->task_config($task_name);
-                            if (exists $current_config->{$attribute->name}) {
-                                $self->log('info',"  Current configtation: %s",$current_config->{$attribute->name});
-                            }
-                        }
-                    } else {
-                        $self->log('info','Task %s does not take any options',$task_name);
-                    }
+                    $self->inspect($task_class);
                 } else {
                     local $SIG{TERM} = sub {
                         $self->log('warn','Aborted by user');
@@ -192,7 +154,7 @@ sub run {
                     my $config_task = $self->task_config($task_name);
                     my $config_global = $global_config;
                     my $config_final = {};
-                    foreach my $attribute ($task_meta->get_all_attributes) {
+                    foreach my $attribute ($task_class->meta->get_all_attributes) {
                         my $attribute_name = $attribute->name;
                         $config_final->{$attribute_name} = $config_task->{$attribute_name}
                             if defined $config_task->{$attribute_name};
