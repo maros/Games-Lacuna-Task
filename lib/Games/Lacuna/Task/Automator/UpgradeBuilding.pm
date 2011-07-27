@@ -17,13 +17,13 @@ has 'upgrade_buildings' => (
             'WasteSequestration'    => ['waste','storage'],
             
             'OreStorage'            => ['ore','storage'],
-            'WaterStorage'          => ['water','storage'],
-            'FoodReserve'           => ['food','storage'],
-            'EnergyReserve'         => ['energy','storage'],
+            'WaterStorage'          => ['water','storage','max20'],
+            'FoodReserve'           => ['food','storage','max20'],
+            'EnergyReserve'         => ['energy','storage','max20'],
             
             'Stockpile'             => ['global','storage'],
             'PlanetaryCommand'      => ['global','storage'],
-            'DistributionCenter'    => ['global','storage'],
+            'DistributionCenter'    => ['global','storage','max20'],
             
             'AtmosphericEvaporator' => ['water','production'],
             'WaterProduction'       => ['water','production'],
@@ -79,9 +79,6 @@ sub process_planet {
                 if $timestamp < $date_end;
         }
     }
-    
-    my $max_ressouce_level = $self->max_resource_building_level($planet_stats->{id});
-    my $max_building_level = $self->university_level() + 1;
     
     # Check if build queue is filled
     return
@@ -163,6 +160,10 @@ sub find_upgrade_buildings {
         foreach my $tag (@tags) {
             next BUILDING
                 unless $tag ~~ $self->upgrade_buildings->{$building_class};
+            if ($tag =~ /^max(\d+)$/) {
+                next BUILDING
+                    if $building_data->{level} >= $1;
+            }
         }
         
         next BUILDING
