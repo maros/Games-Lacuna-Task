@@ -34,7 +34,7 @@ has 'new_incoming' => (
 sub _build_known_incoming {
     my ($self) = @_;
     
-    my $incoming = $self->lookup_cache('ships/known_incoming');
+    my $incoming = $self->lookup_cache('report/known_incoming');
     $incoming ||= [];
     
     return $incoming;
@@ -59,7 +59,7 @@ after 'run' => sub {
         );
         
         $self->write_cache(
-            key     => 'ships/known_incoming',
+            key     => 'report/known_incoming',
             value   => $self->known_incoming,
             max_age => (60*60*24*7), # Cache one week
         );
