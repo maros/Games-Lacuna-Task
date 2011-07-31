@@ -72,6 +72,9 @@ sub process_planet {
         next BUILDABLE
             if $building_data->{build}{cost}{waste} > $waste_disposeable;
         
+        next BUILDABLE
+            if  $self->find_building($planet_stats->{id},$building_data->{url});
+        
         push(@buildable_monuments,{
             name    => $building_name,
             url     => $building_data->{url},
