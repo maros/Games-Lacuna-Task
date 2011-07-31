@@ -86,7 +86,7 @@ sub ships {
     
     my $total_ships = scalar(@avaliable_ships) + $building_ships + $travelling_ships;
     
-    # We have to build new probes
+    # We have to build new ships
     if (($quantity < 0 || $total_ships < $quantity)
         && scalar @shipyards
         && $max_build_quantity > 0 ) {
@@ -96,7 +96,7 @@ sub ships {
         foreach my $shipyard (@shipyards) {
             my $shipyard_object = $self->build_object($shipyard);
             
-            # Repeat until we have enough probes
+            # Repeat until we have enough ships
             SHIPYARD_QUEUE:
             while ($new_building < $max_build_quantity) {
                 my $buildable_ships = $self->request(
@@ -171,9 +171,9 @@ Games::Lacuna::Task::Role::Ships - Helper methods for fetching and building shi
 
 =head1 SYNOPSIS
 
-    package Games::Lacuna::Task::Automator::MyTask;
+    package Games::Lacuna::Task::Action::MyTask;
     use Moose;
-    extends qw(Games::Lacuna::Task::Automator);
+    extends qw(Games::Lacuna::Task::Action);
     with qw(Games::Lacuna::Task::Role::Ships);
     
 =head1 DESCRIPTION

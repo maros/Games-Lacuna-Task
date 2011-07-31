@@ -11,7 +11,7 @@ use Try::Tiny;
 our $DEFAULT_DIRECTORY = Path::Class::Dir->new($ENV{HOME}.'/.lacuna');
 
 has 'database' => (
-    is              => 'ro',
+    is              => 'rw',
     isa             => 'Path::Class::Dir',
     coerce          => 1,
     documentation   => 'Path to the lacuna directory [Default '.$DEFAULT_DIRECTORY.']',
