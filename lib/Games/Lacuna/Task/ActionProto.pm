@@ -1,42 +1,61 @@
 # ============================================================================
-package Games::Lacuna::Task::CommandProto;
+package Games::Lacuna::Task::ActionProto;
 # ============================================================================
 
 use 5.010;
 
 use Moose;
+with qw(Games::Lacuna::Task::Role::Config
+    Games::Lacuna::Task::Role::Client
+    Games::Lacuna::Task::Role::Logger);
 
 use List::Util qw(max);
 
-use Games::Lacuna::Task::Command;
+use Games::Lacuna::Task::Types;
+use Games::Lacuna::Task::Meta::Attribute::Trait::NoIntrospection;
+use Games::Lacuna::Task::Constants;
 use Games::Lacuna::Task::Utils qw(name_to_class class_to_name);
 
 use Module::Pluggable 
-    search_path => ['Games::Lacuna::Task::Command'],
-    sub_name => 'all_commands';
+    search_path => ['Games::Lacuna::Task::Action'],
+    sub_name => 'all_actions';
 
 sub run {
     my ($self) = @_;
     
     my $command = shift(@ARGV);
+    my $class = name_to_class($command);
     
     if (! defined $command) {
         say "Missing command";
-        $self->usage();
+        $self->print_usage();
     } elsif ($command ~~ [qw(help ? --help -h -?)]) {
-        $self->usage();
-    } elsif (! $command ~~ [all_commands()]) {
+        $self->print_usage();
+    } elsif (! ($class ~~ [all_actions()])) {
         say "Unknown command '$command'";
-        $self->usage();
+        $self->print_usage();
     } else {
-        my $class = name_to_class($command,'Command');
         Class::MOP::load_class($class);
-        my $object = $class->new_with_options;
-        $object->execute();
+        
+        my $pa = $class->process_argv();
+        my $commandline_params = $pa->cli_params();
+        $self->database($commandline_params->{database})
+            if defined $commandline_params->{database};
+        my $task_config = $self->task_config($command);
+        
+        my $object = $class->new(
+            ARGV        => $pa->argv_copy,
+            extra_argv  => $pa->extra_argv,
+            ( $pa->usage ? ( usage => $pa->usage ) : () ),
+            %{ $task_config }, # explicit params to ->new
+            %{ $pa->cli_params }, # params from CLI
+        );
+        
+        $object->execute;
     }
 }
 
-sub usage {
+sub print_usage {
     my ($self) = @_;
     
     my $caller = Path::Class::File->new($0)->basename;
@@ -44,7 +63,7 @@ sub usage {
     my @commands;
     push(@commands,['help','Prints this usage information']);
     
-    foreach my $class (all_commands()) {
+    foreach my $class (all_actions()) {
         my $command = class_to_name($class);
         Class::MOP::load_class($class);
         push(@commands,[$command,$class->description]);

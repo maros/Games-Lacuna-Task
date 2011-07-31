@@ -4,20 +4,19 @@ use strict;
 use warnings;
 use 5.010;
 
-use Games::Lacuna::Task::CommandProto;
+use Games::Lacuna::Task::ActionProto;
 
-my $call = Games::Lacuna::Task::CommandProto->new;
-$call->run;
+Games::Lacuna::Task::ActionProto->new->run;
 
 =encoding utf8
 
 =head1 NAME
 
-lacuna_command - Perform various tasks in the Lacuna MMPOG
+lacuna_run - Run a single task from the commandline
 
 =head1 USAGE
 
- lacuna_command command [options]
+ lacuna_run command [options]
 
 =head2 GLOBAL OPTIONS
 
