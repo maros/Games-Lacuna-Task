@@ -9,7 +9,7 @@ use Games::Lacuna::Task::Utils qw(name_to_class);
 has 'config' => (
     is              => 'ro',
     isa             => 'HashRef',
-    traits          => ['NoGetopt'],
+    traits          => ['NoGetopt','NoIntrospection'],
     lazy_build      => 1,
 );
 

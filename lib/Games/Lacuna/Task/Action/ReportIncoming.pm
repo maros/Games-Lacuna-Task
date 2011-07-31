@@ -15,7 +15,7 @@ has 'known_incoming' => (
     is              => 'rw',
     isa             => 'ArrayRef',
     lazy_build      => 1,
-    traits          => ['Array','NoIntrospection'],
+    traits          => ['Array','NoIntrospection','NoGetopt'],
     handles         => {
         add_known_incoming  => 'push',
     }
@@ -25,7 +25,7 @@ has 'new_incoming' => (
     is              => 'rw',
     isa             => 'ArrayRef',
     default         => sub { [] },
-    traits          => ['Array','NoIntrospection'],
+    traits          => ['Array','NoIntrospection','NoGetopt'],
     handles         => {
         add_new_incoming    => 'push',
         has_new_incoming   => 'count',
