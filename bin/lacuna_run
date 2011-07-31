@@ -12,11 +12,13 @@ Games::Lacuna::Task::ActionProto->new->run;
 
 =head1 NAME
 
-lacuna_run - Run a single task from the commandline
+lacuna_run - Runs a single task from the commandline
 
 =head1 USAGE
 
  lacuna_run command [options]
+ lacuna_run help
+ lacuna_run command --help
 
 =head2 GLOBAL OPTIONS
 

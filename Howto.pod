@@ -6,10 +6,10 @@ HOWTO for the Games::Lacuna::Task automation framework
 
 =head1 USERS
 
-After installing Games::Lacuna::Task you need to start the C<lacuna_task> 
-script. It will prompt you your empire name, server and password and store
-them to in a sqlite database in the C<database> directory (Defaults to
-~/.lacuna)
+After installing Games::Lacuna::Task you need to start either the 
+C<lacuna_run> or the C<lacuna_task> script. It will prompt you your empire 
+name, server and password and store them to in a sqlite database in the 
+C<database> directory (Defaults to ~/.lacuna)
 
 Optionally you can create a configuration file called config.yml in the same
 directory. The file should have the following format:
@@ -23,7 +23,7 @@ directory. The file should have the following format:
     exclude:
       - task2_name
     # Global task options
-    global_task_opion ...
+    global_task_opion: ...
  task1_name:
    task1_option1: 80
    task1_option2: ...
@@ -42,9 +42,8 @@ in the C<Games::Lacuna::Task::Action::*> namespace which should inherit from
 L<Games::Lacuna::Task::Action>.
 
 If your tasks is "planet-centric" you need to implement a C<process_planet>
-method, otherwise you need to override the C<run> method. With Moose method
-modificatiors (e.g. C<after>) you can modify the behaviour of the C<run> 
-method and for example add some cleanup code. The C<process_planet> method 
+method and load the C<Games::Lacuna::Task::Role::PlanetRun> role, otherwise 
+you need to implement the C<run> method. The C<process_planet> method 
 will recieve the planet stats hash as the first argument.
 
 Furthermore your task class has to implement a C<documentation> function
@@ -82,6 +81,14 @@ Helper methods for fetching and building ships.
 =head2 Games::Lacuna::Task::Role::Notify
 
 Helper methods for sending notification e-mails to the user.
+
+=head2 Games::Lacuna::Task::Role::Building
+
+Helper methods for handling buildings.
+
+=head2 Games::Lacuna::Task::Role::CommonAttributes
+
+Role providing common attributes used by multiple actions.
 
 =end
 
