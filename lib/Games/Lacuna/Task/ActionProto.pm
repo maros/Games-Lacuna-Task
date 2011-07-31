@@ -10,6 +10,7 @@ with qw(Games::Lacuna::Task::Role::Config
     Games::Lacuna::Task::Role::Logger);
 
 use List::Util qw(max);
+use Try::Tiny;
 
 use Games::Lacuna::Task::Types;
 use Games::Lacuna::Task::Meta::Attribute::Trait::NoIntrospection;
@@ -23,35 +24,48 @@ use Module::Pluggable
 sub run {
     my ($self) = @_;
     
-    my $command = shift(@ARGV);
-    my $class = name_to_class($command);
+    my $task_name = shift(@ARGV);
+    my $task_class = name_to_class($task_name);
     
-    if (! defined $command) {
+    if (! defined $task_name) {
         say "Missing command";
         $self->print_usage();
-    } elsif ($command ~~ [qw(help ? --help -h -?)]) {
+    } elsif ($task_name ~~ [qw(help ? --help -h -?)]) {
         $self->print_usage();
-    } elsif (! ($class ~~ [all_actions()])) {
-        say "Unknown command '$command'";
+    } elsif (! ($task_class ~~ [all_actions()])) {
+        say "Unknown command '$task_name'";
         $self->print_usage();
     } else {
-        Class::MOP::load_class($class);
+        $self->log('notice',("=" x $Games::Lacuna::Task::Constants::WIDTH));
         
-        my $pa = $class->process_argv();
-        my $commandline_params = $pa->cli_params();
-        $self->database($commandline_params->{database})
-            if defined $commandline_params->{database};
-        my $task_config = $self->task_config($command);
+        my $ok = 1;
+        try {
+            Class::MOP::load_class($task_class);
+        } catch {
+            $self->log('error',"Could not load task %s: %s",$task_name,$_);
+            $ok = 0;
+        };
         
-        my $object = $class->new(
-            ARGV        => $pa->argv_copy,
-            extra_argv  => $pa->extra_argv,
-            ( $pa->usage ? ( usage => $pa->usage ) : () ),
-            %{ $task_config }, # explicit params to ->new
-            %{ $pa->cli_params }, # params from CLI
-        );
-        
-        $object->execute;
+        if ($ok) {
+            my $pa = $task_class->process_argv();
+            my $commandline_params = $pa->cli_params();
+            $self->database($commandline_params->{database})
+                if defined $commandline_params->{database};
+            $self->log('notice',"Running task %s for empire %s",$task_name,$self->lookup_cache('config')->{name});
+            
+            my $task_config = $self->task_config($task_name);            
+            
+            my $object = $task_class->new(
+                ARGV        => $pa->argv_copy,
+                extra_argv  => $pa->extra_argv,
+                ( $pa->usage ? ( usage => $pa->usage ) : () ),
+                %{ $task_config }, # explicit params to ->new
+                %{ $pa->cli_params }, # params from CLI
+            );
+            
+            $object->execute;
+        }
+        $self->log('notice',("=" x $Games::Lacuna::Task::Constants::WIDTH));
     }
 }
 

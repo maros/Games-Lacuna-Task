@@ -32,9 +32,6 @@ sub execute {
     
     my $command_name = class_to_name($self);
     
-    $self->log('notice',("-" x ($Games::Lacuna::Task::Constants::WIDTH - 8)));
-    $self->log('notice',"Running action %s",$command_name);
-    
     try {
         local $SIG{TERM} = sub {
             $self->log('warn','Aborted by user');

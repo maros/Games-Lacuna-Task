@@ -96,6 +96,9 @@ sub run {
         next
             if $self->has_exclude && $task_name ~~ $self->exclude;
         
+        $self->log('notice',("-" x ($Games::Lacuna::Task::Constants::WIDTH - 8)));
+        $self->log('notice',"Running action %s",$task_name);
+        
         my $ok = 1;
         try {
             Class::MOP::load_class($task_class);
