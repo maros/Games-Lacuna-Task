@@ -1,11 +1,12 @@
-package Games::Lacuna::Task::Automator::Spy;
+package Games::Lacuna::Task::Action::Spy;
 
 use 5.010;
 
 use List::Util qw(min shuffle);
 
 use Moose;
-extends qw(Games::Lacuna::Task::Automator);
+extends qw(Games::Lacuna::Task::Action);
+with qw(Games::Lacuna::Task::Role::PlanetRun);
 
 has 'rename_spies' => (
     isa             => 'Bool',

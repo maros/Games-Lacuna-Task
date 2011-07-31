@@ -1,10 +1,11 @@
-package Games::Lacuna::Task::Automator::Trade;
+package Games::Lacuna::Task::Action::Trade;
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Automator);
-with qw(Games::Lacuna::Task::Role::Ships);
+extends qw(Games::Lacuna::Task::Action);
+with qw(Games::Lacuna::Task::Role::Ships
+    Games::Lacuna::Task::Role::PlanetRun);
 
 has 'trades' => (
     is              => 'rw',

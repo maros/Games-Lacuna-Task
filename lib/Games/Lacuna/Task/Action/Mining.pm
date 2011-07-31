@@ -1,4 +1,4 @@
-package Games::Lacuna::Task::Automator::Mining;
+package Games::Lacuna::Task::Action::Mining;
 
 use 5.010;
 
@@ -6,9 +6,10 @@ use List::Util qw(sum);
 use Games::Lacuna::Client::Types qw(ore_types);
 
 use Moose;
-extends qw(Games::Lacuna::Task::Automator);
+extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Stars
-    Games::Lacuna::Task::Role::Ships);
+    Games::Lacuna::Task::Role::Ships
+    Games::Lacuna::Task::Role::PlanetRun);
 
 sub description {
     return q[This task automates the deployment of mining platforms on asteroids];

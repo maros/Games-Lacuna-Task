@@ -1,12 +1,13 @@
-package Games::Lacuna::Task::Automator::UpgradeBuilding;
+package Games::Lacuna::Task::Action::UpgradeBuilding;
 
 use 5.010;
 
 use List::Util qw(max min);
 
 use Moose;
-extends qw(Games::Lacuna::Task::Automator);
+extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Building',
+    'Games::Lacuna::Task::Role::PlanetRun',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['start_building_at'] };
 
 has 'upgrade_buildings' => (

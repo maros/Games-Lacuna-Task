@@ -1,11 +1,12 @@
-package Games::Lacuna::Task::Automator::Excavate;
+package Games::Lacuna::Task::Action::Excavate;
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Automator);
+extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Stars
-    Games::Lacuna::Task::Role::Ships);
+    Games::Lacuna::Task::Role::Ships
+    Games::Lacuna::Task::Role::PlanetRun);
 
 has 'excavator_count' => (
     isa             => 'Int',

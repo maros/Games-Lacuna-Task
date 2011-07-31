@@ -1,10 +1,11 @@
-package Games::Lacuna::Task::Automator::WasteDispose;
+package Games::Lacuna::Task::Action::WasteDispose;
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Automator);
+extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Waste',
+    'Games::Lacuna::Task::Role::PlanetRun',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage','keep_waste_hours'] };
 
 sub description {

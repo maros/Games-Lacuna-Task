@@ -1,11 +1,12 @@
-package Games::Lacuna::Task::Automator::WasteMonument;
+package Games::Lacuna::Task::Action::WasteMonument;
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Automator);
+extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Building',
     'Games::Lacuna::Task::Role::Waste',
+    'Games::Lacuna::Task::Role::PlanetRun',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage'] };
 
 #has 'demolish_waste_monument' => (

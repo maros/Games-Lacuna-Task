@@ -1,9 +1,9 @@
-package Games::Lacuna::Task::Command::SendSpy;
+package Games::Lacuna::Task::Action::SendSpy;
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Command);
+extends qw(Games::Lacuna::Task::Action);
 
 has 'from' => (
     isa         => 'Str',

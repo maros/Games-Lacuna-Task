@@ -1,11 +1,11 @@
-package Games::Lacuna::Task::Command::CounterIntelligence;
+package Games::Lacuna::Task::Action::CounterIntelligence;
 
 use 5.010;
 
 use List::Util qw(min);
 
 use Moose;
-extends qw(Games::Lacuna::Task::Command);
+extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun
     Games::Lacuna::Task::Role::Stars);
 

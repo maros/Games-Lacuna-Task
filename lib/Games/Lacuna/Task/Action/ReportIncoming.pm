@@ -1,10 +1,11 @@
-package Games::Lacuna::Task::Automator::ReportIncoming;
+package Games::Lacuna::Task::Action::ReportIncoming;
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Automator);
-with qw(Games::Lacuna::Task::Role::Notify);
+extends qw(Games::Lacuna::Task::Action);
+with qw(Games::Lacuna::Task::Role::Notify
+    Games::Lacuna::Task::Role::PlanetRun);
 
 sub description {
     return q[This task reports incoming foreign ships];

@@ -1,9 +1,9 @@
-package Games::Lacuna::Task::Automator::Vote;
+package Games::Lacuna::Task::Action::Vote;
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Automator);
+extends qw(Games::Lacuna::Task::Action);
 
 our $BUILDING_COORDINATES_RE = qr/\(-?\d+,-?\d+\)/;
 our $NAME_RE = qr/[[:space:][:alnum:]]+/;
