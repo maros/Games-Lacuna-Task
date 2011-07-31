@@ -43,7 +43,7 @@ sub process_planet {
     
     # Reached max probed stars
     return
-        if $can_send_probes == 0;
+        if $can_send_probes <= 0;
     
     # Get available probes
     my @avaliable_probes = $self->ships(
