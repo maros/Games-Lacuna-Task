@@ -36,7 +36,8 @@ sub run {
         say "Unknown command '$task_name'";
         $self->print_usage();
     } else {
-        $self->log('notice',("=" x $Games::Lacuna::Task::Constants::WIDTH));
+        $ARGV[0] = '--help'
+            if $ARGV[0] eq 'help';
         
         my $ok = 1;
         try {
@@ -51,9 +52,10 @@ sub run {
             my $commandline_params = $pa->cli_params();
             $self->database($commandline_params->{database})
                 if defined $commandline_params->{database};
+            $self->log('notice',("=" x $Games::Lacuna::Task::Constants::WIDTH));
             $self->log('notice',"Running task %s for empire %s",$task_name,$self->lookup_cache('config')->{name});
             
-            my $task_config = $self->task_config($task_name);            
+            my $task_config = $self->task_config($task_name);
             
             my $object = $task_class->new(
                 ARGV        => $pa->argv_copy,
@@ -64,8 +66,8 @@ sub run {
             );
             
             $object->execute;
+            $self->log('notice',("=" x $Games::Lacuna::Task::Constants::WIDTH));
         }
-        $self->log('notice',("=" x $Games::Lacuna::Task::Constants::WIDTH));
     }
 }
 
