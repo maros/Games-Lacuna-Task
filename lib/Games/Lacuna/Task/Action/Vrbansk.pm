@@ -8,20 +8,12 @@ use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun);
 
-has 'recipies' => (
-    isa             => 'ArrayRef[ArrayRef[Lacuna::Task::Type::Ore]]',
-    is              => 'rw',
-    documentation   => 'List of glyph recipies',
-    required        => 1,
-    default         => sub {
-        return [
-            [qw(goethite halite gypsum trona)],
-            [qw(gold anthracite uraninite bauxite)],
-            [qw(kerogen methane sulfur zircon)],
-            [qw(monazite fluorite beryl magnetite)],
-            [qw(rutile chromite chalcopyrite galena)],
-        ]    
-    }
+our @RECIPIES = (
+    [qw(goethite halite gypsum trona)],
+    [qw(gold anthracite uraninite bauxite)],
+    [qw(kerogen methane sulfur zircon)],
+    [qw(monazite fluorite beryl magnetite)],
+    [qw(rutile chromite chalcopyrite galena)],
 );
 
 has 'keep_gylphs' => (
@@ -67,7 +59,7 @@ sub process_planet {
     
     # Get possible recipies
     RECIPIES: 
-    foreach my $recipie (@{$self->recipies}) {
+    foreach my $recipie (@RECIPIES) {
         while (1) {
             my (@recipie,@recipie_name);
             foreach my $glyph (@{$recipie}) {
