@@ -135,11 +135,10 @@ sub ships {
         && defined $name_prefix) {
             
         # Get all available ships
-        my $ships_data = $self->paged_request(
+        my $ships_data = $self->request(
             object  => $spaceport_object,
             method  => 'view_all_ships',
-            total   => 'number_of_ships',
-            data    => 'ships',
+            params  => [ { no_paging => 1 } ],
         );
         
         NEW_SHIPS:
