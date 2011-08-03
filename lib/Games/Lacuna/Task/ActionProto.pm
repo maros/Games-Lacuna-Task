@@ -37,7 +37,7 @@ sub run {
         $self->print_usage();
     } else {
         $ARGV[0] = '--help'
-            if $ARGV[0] eq 'help';
+            if defined $ARGV[0] && $ARGV[0] eq 'help';
         
         my $ok = 1;
         try {
@@ -48,14 +48,23 @@ sub run {
         };
         
         if ($ok) {
-            my $pa = $task_class->process_argv();
+            my $database;
+            my $opt_parser = Getopt::Long::Parser->new( config => [ qw( no_auto_help pass_through ) ] );
+            $opt_parser->getoptions( "database=s" => \$database );
+            
+            $self->database($database)
+                if defined $database;
+            
+            my $task_config = $self->task_config($task_name);
+            
+            my $pa = $task_class->process_argv($task_config);
             my $commandline_params = $pa->cli_params();
-            $self->database($commandline_params->{database})
-                if defined $commandline_params->{database};
+            
             $self->log('notice',("=" x $Games::Lacuna::Task::Constants::WIDTH));
             $self->log('notice',"Running task %s for empire %s",$task_name,$self->lookup_cache('config')->{name});
             
-            my $task_config = $self->task_config($task_name);
+           
+
             
             my $object = $task_class->new(
                 ARGV        => $pa->argv_copy,
