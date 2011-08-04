@@ -3,8 +3,10 @@ package Games::Lacuna::Task::Utils;
 use strict;
 use warnings;
 
+use Unicode::Normalize;
+
 use base qw(Exporter);
-our @EXPORT_OK = qw(class_to_name name_to_class); 
+our @EXPORT_OK = qw(class_to_name name_to_class normalize_name); 
 
 sub class_to_name {
     my ($class) = @_;
@@ -26,6 +28,13 @@ sub name_to_class {
     my $class = 'Games::Lacuna::Task::Action::'.join ('',@parts);
     
     return $class;
+}
+
+sub normalize_name {
+    my $name = shift;
+    my $name_simple = Unicode::Normalize::decompose($name); 
+    $name_simple =~ s/\p{NonSpacingMark}//g;
+    return uc($name_simple);
 }
 
 1;

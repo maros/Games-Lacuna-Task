@@ -9,7 +9,8 @@ use Games::Lacuna::Task::Cache;
 use Games::Lacuna::Task::Constants;
 use Data::Dumper;
 use DateTime;
-use Unicode::Normalize;
+use Games::Lacuna::Task::Utils qw(normalize_name);
+
 
 sub build_object {
     my ($self,$class,@params) = @_;
@@ -253,17 +254,12 @@ sub find_body {
             if $planets->{$id} eq $body;
     }
 
-    my $name_simple = Unicode::Normalize::decompose($body); 
-    $name_simple =~ s/\p{NonSpacingMark}//g;
-    $name_simple = uc($name_simple);
+    my $name_simple = normalize_name($body); 
     
     # Similar match
     foreach my $id (keys %$planets) {
-        my $name_compare = Unicode::Normalize::decompose($planets->{$id}); 
-        $name_compare =~ s/\p{NonSpacingMark}//g;
-        $name_compare = uc($name_compare);
         return $id
-            if $name_simple eq $name_compare;
+            if $name_simple eq normalize_name($planets->{$id});
     }
 
     return;
