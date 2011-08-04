@@ -53,3 +53,18 @@ role {
 };
 
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Role::CommonAttributes - Attributes utilized by multiple actions
+
+=head1 SYNOPSIS
+
+ package Games::Lacuna::Task::Action::MyTask;
+ use Moose;
+ extends qw(Games::Lacuna::Task::Action);
+ with 'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage'] };
+
+=cut

@@ -17,3 +17,11 @@ sub run {
 
 no Moose::Role;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Role::PlanetRun - Helper role for all planet-centric actions
+
+=cut

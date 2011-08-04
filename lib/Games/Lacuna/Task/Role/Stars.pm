@@ -154,6 +154,9 @@ sub stars_by_distance {
         @star_distance;
 }
 
+no Moose::Role;
+1;
+
 =encoding utf8
 
 =head1 NAME
@@ -173,15 +176,21 @@ This role provides astronomy-related helper methods.
 
 =head1 METHODS
 
-=head2 check_star
+=head2 lookup_star
+
+ $star_data = $self->check_star($star_id);
 
 Fetches star data from the API for the given star id
 
 =head2 get_star
 
+ $star_data = $self->check_star($star_id);
+
 Like L<check_star> but queries local caches first
 
 =head2 is_probed_star
+
+ my $bool = $self->is_probed_star($star_id);
 
 Check if a star is probed or not
 
@@ -193,15 +202,24 @@ Returns a list of stars ordered by distance to the given point
 
 =head2 find_star_by_xy
 
- my $star_info = $self->find_star_by_xy($x,$y)
+ my $star_data = $self->find_star_by_xy($x,$y)
 
 Returns a star for the given coordinates
+
+=head2 find_body_by_name
+
+ my $body_data = $self->find_body_by_name($body_name)
+
+Returns body data for the given name
+
+=head2 find_body_by_xy
+
+ my $body_data = $self->find_body_by_name($x,$y)
+
+Returns body data for the given coordinates
 
 =head2 stars
 
 List of all stars on the current game server
 
 =cut
-
-no Moose::Role;
-1;

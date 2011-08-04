@@ -82,6 +82,8 @@ sub _pretty_dump {
     return $dump;
 }
 
+no Moose::Role;
+1;
 
 =encoding utf8
 
@@ -105,6 +107,3 @@ Print a log message. You can use the sprintf syntax.
  $self->log($loglevel,$message,@sprintf_params);
 
 =cut
-
-no Moose::Role;
-1;

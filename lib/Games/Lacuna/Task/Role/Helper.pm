@@ -288,6 +288,10 @@ sub can_afford {
     return 1;
 }
 
+no Moose::Role;
+1;
+
+
 =encoding utf8
 
 =head1 NAME
@@ -372,7 +376,3 @@ Returns a human readable delta for the given date
 Returns a DateTime object for the given date
 
 =cut
-
-
-no Moose::Role;
-1;

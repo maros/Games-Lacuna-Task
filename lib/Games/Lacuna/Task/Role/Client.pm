@@ -242,6 +242,18 @@ Runs a request, caches the response and returns the response.
     method  => Method name,
     params  => [ Params ],
  );
+ 
+=head2 paged_request
+
+Fetches all response elements from a paged method
+
+ my $response =  $self->paged_request(
+    object  => Games::Lacuna::Client::* object,
+    method  => Method name,
+    params  => [ Params ],
+    total   => 'field storing the total number of items',
+    data    => 'field storing the items',
+ );
 
 =head2 lookup_cache
 

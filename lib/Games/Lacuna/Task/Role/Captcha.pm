@@ -55,4 +55,9 @@ return 1;
 
 Games::Lacuna::Role::Captcha - Handle captchas
 
+=head1 SYNOPSIS
+
+This method is used by the client to fetch captchas and present them to the 
+user if possible
+
 =cut

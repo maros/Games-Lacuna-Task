@@ -50,7 +50,13 @@ sub task_config {
     return $config_final;
 }
 
-
-
 no Moose::Role;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Role::Config - Access the config file
+
+=cut

@@ -31,8 +31,45 @@ sub notify {
     );
     
     $email->send( @{ $self->email_send } );
-
 }
 
 no Moose::Role;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Role::Notify - Send email notifications
+
+=head1 SYNOPSIS
+
+ package Games::Lacuna::Task::Action::MyTask;
+ use Moose;
+ extends qw(Games::Lacuna::Task::Action);
+ with qw(Games::Lacuna::Task::Role::Notify);
+ 
+ sub run {
+     my ($self) = @_;
+     $self->notify('Alarm!!','Something has happened');
+ }
+
+=head1 ACCESSORS
+
+=head2 email
+
+Recipient email
+
+=head2 email_send
+
+MIME::Lite send configuration
+
+=head1 METHODS
+
+=head2 notify
+
+Sends an email notification
+
+ $self->log($subject,$message);
+
+=cut
