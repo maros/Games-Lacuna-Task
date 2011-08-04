@@ -7,24 +7,15 @@ use version;
 our $AUTHORITY = 'cpan:MAROS';
 our $VERSION = version->new("1.00");
 
-use Games::Lacuna::Task::Types;
-use Games::Lacuna::Task::Meta::Attribute::Trait::NoIntrospection;
-use Games::Lacuna::Task::Constants;
-use Games::Lacuna::Task::Utils qw(class_to_name name_to_class);
 
 use Moose;
-use Try::Tiny;
-
-use Module::Pluggable 
-    search_path => ['Games::Lacuna::Task::Action'],
-    sub_name => 'all_actions';
-
-with qw(Games::Lacuna::Task::Role::Client
-    Games::Lacuna::Task::Role::Helper
-    Games::Lacuna::Task::Role::Logger
-    Games::Lacuna::Task::Role::Introspect
+extends qw(Games::Lacuna::Task::Base);
+with qw(Games::Lacuna::Task::Role::Introspect
     Games::Lacuna::Task::Role::Config
     MooseX::Getopt);
+
+use Games::Lacuna::Task::Utils qw(class_to_name name_to_class);
+use Try::Tiny;
 
 has 'task_info'  => (
     is              => 'ro',
@@ -79,7 +70,7 @@ sub run {
     my @tasks;
     if (! $self->has_task
         || 'all' ~~ $self->task) {
-        @tasks = __PACKAGE__->all_actions;
+        @tasks = $self->all_actions;
     } else {
         foreach my $task (@{$self->task}) {
             my $class = name_to_class($task);

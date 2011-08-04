@@ -3,13 +3,11 @@ package Games::Lacuna::Task::Action;
 use 5.010;
 
 use Moose;
-with qw(Games::Lacuna::Task::Role::Client
-    Games::Lacuna::Task::Role::Helper
-    Games::Lacuna::Task::Role::Logger
-    MooseX::Getopt);
 
-use Games::Lacuna::Task::Types;
-use Games::Lacuna::Task::Meta::Attribute::Trait::NoIntrospection;
+extends qw(Games::Lacuna::Task::Base);
+
+with qw(Games::Lacuna::Task::Role::Helper
+    MooseX::Getopt);
 
 use Games::Lacuna::Task::Utils qw(class_to_name);
 use Try::Tiny;

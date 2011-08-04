@@ -5,22 +5,17 @@ package Games::Lacuna::Task::ActionProto;
 use 5.010;
 
 use Moose;
-with qw(Games::Lacuna::Task::Role::Config
-    Games::Lacuna::Task::Role::Client
-    Games::Lacuna::Task::Role::Logger);
+extends qw(Games::Lacuna::Task::Base);
+with qw(Games::Lacuna::Task::Role::Config);
 
 use List::Util qw(max);
 use Try::Tiny;
-
-use Games::Lacuna::Task::Types;
-use Games::Lacuna::Task::Meta::Attribute::Trait::NoIntrospection;
-use Games::Lacuna::Task::Constants;
 use Games::Lacuna::Task::Utils qw(name_to_class class_to_name);
 
-use Module::Pluggable 
-    search_path => ['Games::Lacuna::Task::Action'],
-    sub_name => 'all_actions';
-
+#use Module::Pluggable 
+#    search_path => ['Games::Lacuna::Task::Action'],
+#    sub_name => 'all_actions';
+    
 sub run {
     my ($self) = @_;
     
@@ -32,7 +27,7 @@ sub run {
         $self->print_usage();
     } elsif ($task_name ~~ [qw(help ? --help -h -?)]) {
         $self->print_usage();
-    } elsif (! ($task_class ~~ [all_actions()])) {
+    } elsif (! ($task_class ~~ [$self->all_actions()])) {
         say "Unknown command '$task_name'";
         $self->print_usage();
     } else {
@@ -63,9 +58,6 @@ sub run {
             $self->log('notice',("=" x $Games::Lacuna::Task::Constants::WIDTH));
             $self->log('notice',"Running task %s for empire %s",$task_name,$self->lookup_cache('config')->{name});
             
-           
-
-            
             my $object = $task_class->new(
                 ARGV        => $pa->argv_copy,
                 extra_argv  => $pa->extra_argv,
@@ -88,7 +80,7 @@ sub print_usage {
     my @commands;
     push(@commands,['help','Prints this usage information']);
     
-    foreach my $class (all_actions()) {
+    foreach my $class ($self->all_actions()) {
         my $command = class_to_name($class);
         Class::MOP::load_class($class);
         push(@commands,[$command,$class->description]);
