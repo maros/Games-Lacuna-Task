@@ -3,9 +3,10 @@ package Games::Lacuna::Task::Role::Stars;
 use 5.010;
 use Moose::Role;
 
+use Games::Lacuna::Task::Utils qw(normalize_name);
+
 use LWP::Simple;
 use Text::CSV;
-
 
 has 'stars' => (
     is              => 'rw',
@@ -54,14 +55,62 @@ sub _build_stars {
     $self->write_cache(
         key     => 'stars/all',
         value   => \@stars,
-        max_age => (60*60*24*31*2), # Cache two months
+        max_age => (60*60*24*31*3), # Cache three months
     );
     
     return \@stars;
 }
 
+sub find_body_by_name {
+    my ($self,$name) = @_;
+    
+    return
+        unless defined $name;
+    $name = normalize_name($name);
+    
+    my $cache = $self->client->storage->search({ id => { REGEXP => 'stars/[[:digit:]]' }});
+    while( my $block = $cache->next ) {
+        foreach my $item ( @$block ) {
+            foreach my $body (@{$item->value->{bodies}}) {
+                return $body
+                    if normalize_name($body->{name}) eq $name;
+            }
+        }
+    }
+    return;
+}
+
+
+sub find_body_by_xy {
+    my ($self,$x,$y) = @_;
+    
+    return
+        unless defined $x
+        && defined $y
+        && $x =~ m/^\d+$/
+        && $y =~ m/^\d+$/;
+    
+    my $cache = $self->client->storage->search({ id => { REGEXP => 'stars/[[:digit:]]' }});
+    while( my $block = $cache->next ) {
+        foreach my $item ( @$block ) {
+            foreach my $body (@{$item->value->{bodies}}) {
+                return $body
+                    if $body->{x} == $x
+                    && $body->{y} == $y;
+            }
+        }
+    }
+    return;
+}
+
 sub find_star_by_xy {
     my ($self,$x,$y) = @_;
+    
+    return
+        unless defined $x
+        && defined $y
+        && $x =~ m/^\d+$/
+        && $y =~ m/^\d+$/;
     
     foreach my $star (@{$self->stars}) {
         return $star->{id}
@@ -82,7 +131,7 @@ sub get_star {
     # Get from local cache
     $star_cache ||= $self->lookup_cache('stars/'.$star);
     # Get from api
-    $star_cache ||= $self->check_star($star);
+    $star_cache ||= $self->lookup_star($star);
     
     return $star_cache;
 }
@@ -101,7 +150,7 @@ sub is_probed_star {
     return 0;
 }
 
-sub check_star {
+sub lookup_star {
     my ($self,$star) = @_;
     
     return
