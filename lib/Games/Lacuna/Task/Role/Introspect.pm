@@ -17,6 +17,8 @@ sub inspect {
     foreach my $attribute ($task_meta->get_all_attributes) {
         next
             if $attribute->does('NoIntrospection');
+        next
+            if $attribute->does('NoGetopt');
         push (@attributes,$attribute);
     }
     if (scalar @attributes) {
