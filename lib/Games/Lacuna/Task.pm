@@ -71,6 +71,7 @@ sub run {
     if (! $self->has_task
         || 'all' ~~ $self->task) {
         @tasks = $self->all_actions;
+
     } else {
         foreach my $task (@{$self->task}) {
             my $class = name_to_class($task);
@@ -87,9 +88,6 @@ sub run {
         next
             if $self->has_exclude && $task_name ~~ $self->exclude;
         
-        $self->log('notice',("-" x ($Games::Lacuna::Task::Constants::WIDTH - 8)));
-        $self->log('notice',"Running action %s",$task_name);
-        
         my $ok = 1;
         try {
             Class::MOP::load_class($task_class);
@@ -97,8 +95,14 @@ sub run {
             $self->log('error',"Could not load task %s: %s",$task_class,$_);
             $ok = 0;
         };
-
+        
+        next
+            if $task_class->meta->can('no_automatic')
+            && $task_class->meta->no_automatic;
+        
         if ($ok) {
+            $self->log('notice',("-" x ($Games::Lacuna::Task::Constants::WIDTH - 8)));
+            $self->log('notice',"Running action %s",$task_name);
             try {
                 if ($self->task_info) {
                     $self->log('notice',"Info for task %s",$task_name);

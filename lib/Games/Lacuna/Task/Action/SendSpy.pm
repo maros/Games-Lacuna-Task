@@ -2,7 +2,7 @@ package Games::Lacuna::Task::Action::SendSpy;
 
 use 5.010;
 
-use Moose;
+use Moose -traits => 'NoAutomatic';
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Stars',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['target_planet','home_planet'] };

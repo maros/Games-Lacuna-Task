@@ -2,7 +2,7 @@ package Games::Lacuna::Task::Action::FetchSpy;
 
 use 5.010;
 
-use Moose;
+use Moose -traits => 'NoAutomatic';
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Stars',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['target_planet','home_planet'] };
@@ -16,7 +16,7 @@ sub run {
     my $planet_home = $self->home_planet_data();
     my $planet_target = $self->target_planet_data();
     
-    # Get intelligence ministry
+    # Get spaceport
     my ($spaceport) = $self->find_building($planet_home->{id},'Spaceport');
     return $self->log('error','Could not find spaceport')
         unless (defined $spaceport);

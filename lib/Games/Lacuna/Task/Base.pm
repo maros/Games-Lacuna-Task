@@ -8,6 +8,7 @@ use Moose;
 
 use Games::Lacuna::Task::Types;
 use Games::Lacuna::Task::Meta::Attribute::Trait::NoIntrospection;
+use Games::Lacuna::Task::Meta::Class::Trait::NoAutomatic;
 use Games::Lacuna::Task::Constants;
 
 with qw(Games::Lacuna::Task::Role::Client
