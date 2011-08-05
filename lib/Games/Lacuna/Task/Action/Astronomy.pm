@@ -120,8 +120,11 @@ sub check_for_destroyed_probes {
                 next
                     unless $message_data->{message}{body} =~ m/{Empire\s(?<empire_id>\d+)\s(?<empire_name>[^}]+)}/;
                 
+                # Delete star from cache
+                $self->clear_cache('stars/'.$star_id);
+                
                 # Get star data from api and check if solar system is probed
-                $self->check_star($star_id);
+                $self->get_star($star_id);
                 
                 $self->log('warn','A probe in the %s system was shot down by %s',$star_name,$+{empire_name});
                 
@@ -160,7 +163,7 @@ sub closest_unprobed_stars {
             if $self->is_probed_star($star->{id});
         
         # Check star again (might be probed in the meantime)
-        my $star_data = $self->check_star($star->{id});
+        my $star_data = $self->get_star($star->{id});
         
         sleep 1;
         
