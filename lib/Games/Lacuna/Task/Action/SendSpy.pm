@@ -4,23 +4,14 @@ use 5.010;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-
-has 'from' => (
-    isa         => 'Str',
-    is          => 'ro',
-    required    => 1,
-);
-
-has 'to' => (
-    isa         => 'Str',
-    is          => 'ro',
-    required    => 1,
-);
+with 'Games::Lacuna::Task::Role::Stars',
+    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['target_planet','home_planet'] };
 
 has 'spy_name' => (
     isa         => 'Str',
     is          => 'ro',
     predicate   => 'has_spy_name',
+    documentation=> q[Name of spy to be sent],
 );
 
 has 'spy_count' => (
@@ -28,6 +19,7 @@ has 'spy_count' => (
     is          => 'ro',
     required    => 1,
     default     => 1,
+    documentation=> q[Number of spies to be sent],
 );
 
 has 'best_spy' => (
@@ -35,6 +27,7 @@ has 'best_spy' => (
     is          => 'ro',
     required    => 1,
     default     => 1,
+    documentation=> q[Send best available spy],
 );
 
 sub description {
@@ -43,87 +36,45 @@ sub description {
 
 sub run {
     my ($self) = @_;
-    my $planet_from = $self->body_status($self->from);
-    my $planet_to = $self->body_status($self->to);
-    
-    # Get planet
-    return $self->log('error','Could not find planet "%s"',$self->from)
-        unless (defined $planet_from);
-    
-    # Get intelligence ministry
-    my ($intelligence_ministry) = $self->find_building($planet_from->{id},'Intelligence');
-    return $self->log('error','Could not find intelligence ministry')
-        unless (defined $intelligence_ministry);
+    my $planet_home = $self->home_planet_data();
+    my $planet_target = $self->target_planet_data();
     
     # Get spaceport
-    my ($spaceport) = $self->find_building($planet_from->{id},'Spaceport');
+    my ($spaceport) = $self->find_building($planet_home->{id},'Spaceport');
     return $self->log('error','Could not find spaceport')
         unless (defined $spaceport);
-        
-    my $intelligence_ministry_object = $self->build_object($intelligence_ministry);
     my $spaceport_object = $self->build_object($spaceport);
-    
-    my $spy_data = $self->paged_request(
-        object  => $intelligence_ministry_object,
-        method  => 'view_spies',
-        total   => 'spy_count',
-        data    => 'spies',
+
+    my $sendable_spies = $self->request(
+        object      => $spaceport_object,
+        method      => 'prepare_send_spies',
+        params      => [$planet_target->{id},$planet_home->{id}],
     );
-    my $spy_name = $self->spy_name;
     
-    my @spies;
-    SPY:
-    foreach my $spy (@{$spy_data->{spies}}) {
-        next SPY
-            unless scalar @{$spy->{possible_assignments}};
-        next SPY
-            unless $spy->{assigned_to}{body_id} == $planet_from->{id};
-        if ($self->has_spy_name) {
-            push(@spies,$spy)
-                if $self->{name} =~ m/\b($spy_name)\b/;
-        } else {
-            push(@spies,$spy);
-        }
+    unless (scalar @{$sendable_spies->{spies}}) {
+        $self->log('err','No spies available to send');
+        return;
     }
-    
-    if ($self->best_spy) {
-        @spies = sort { $b->{offense_rating} <=> $a->{offense_rating} } @spies;
-    } else {
-        @spies = sort { $a->{offense_rating} <=> $b->{offense_rating} } @spies;
-    }
-    
-    my @send_spies;
-    foreach (1..$self->spy_count) {
-        last
-            if scalar @spies == 0;
-        push(@send_spies,shift(@spies));
-    }
-    
-    return $self->log('error','Could not find spies to send')
-        unless (scalar @send_spies);
-    
-    
-    $self->log('debug','got spies %s',\@send_spies);
-    
-    # TODO get body id
-    
-#    my $star_info = $self->request(
-#        object  => $self->build_object('Map'),
-#        params  => [ 283,29 ],
-#        method  => 'get_star_by_xy',
-#    );
-#    
-#    warn $star_info
 #    
 #    
+#    if ($self->best_spy) {
+#        @spies = sort { $b->{offense_rating} <=> $a->{offense_rating} } @spies;
+#    } else {
+#        @spies = sort { $a->{offense_rating} <=> $b->{offense_rating} } @spies;
+#    }
 #    
-#    my $send_data = $self->request(
-#        object  => $spaceport_object,
-#        method  => 'get_ships_for',
-#        params  => [$planet_from->{id},{ "x" => 283, "y" => 29 }],
-#    );
+#    my @send_spies;
+#    foreach (1..$self->spy_count) {
+#        last
+#            if scalar @spies == 0;
+#        push(@send_spies,shift(@spies));
+#    }
 #    
-#    die $send_data;
+#    return $self->log('error','Could not find spies to send')
+#        unless (scalar @send_spies);
+#    
+#    
+#    $self->log('debug','got spies %s',\@send_spies);
 }
 
 __PACKAGE__->meta->make_immutable;
