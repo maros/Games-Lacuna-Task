@@ -50,6 +50,67 @@ role {
             documentation => 'Keep enough waste for N hours',
         );
     }
+    
+    if ('target_planet' ~~ $p->attributes) {
+        has 'target_planet' => (
+            is      => 'rw',
+            isa     => 'Str',
+            required=> 1,
+            documentation => 'Target planet',
+        );
+        
+        has 'target_planet_data' => (
+            isa             => 'HashRef',
+            is              => 'rw',
+            traits          => ['NoGetopt'],
+            lazy_build      => 1,
+        );
+        method '_build_target_planet_data' => sub {
+            my ($self) = @_;
+            my $target_planet;
+            given ($self->target_planet) {
+                when (/^\d+$/) {
+                    $target_planet = $self->find_body_by_id($_);
+                }
+                when (/^(?<x>-?\d+),(?<y>-?\d+)$/) {
+                    $target_planet = $self->find_body_by_xy($+{x},$+{y});
+                }
+                default {
+                    $target_planet = $self->find_body_by_name($_);
+                }
+            }
+            unless (defined $target_planet) {
+                $self->log('error','Could not find target planet "%s"',$self->target_planet);
+                die;
+            }
+            return $target_planet;
+        };
+    }
+    
+    if ('home_planet' ~~ $p->attributes) {
+        has 'home_planet' => (
+            is      => 'rw',
+            isa     => 'Str',
+            required=> 1,
+            documentation => 'Home planet',
+        );
+        
+        has 'home_planet_data' => (
+            isa             => 'HashRef',
+            is              => 'rw',
+            traits          => ['NoGetopt'],
+            lazy_build      => 1,
+        );
+        method '_build_home_planet_data' => sub {
+            my ($self) = @_;
+            my $home_planet = $self->my_body_status($self->home_planet);
+            unless (defined $home_planet) {
+                $self->log('error','Could not find home planet "%s"',$self->home_planet);
+                die;
+            }
+            return $home_planet;
+        };
+    }
 };
 
 1;
