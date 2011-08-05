@@ -3,10 +3,11 @@ package Games::Lacuna::Task::Utils;
 use strict;
 use warnings;
 
-use Unicode::Normalize;
+use Unicode::Normalize qw(decompose);
+use Scalar::Util qw(blessed);
 
 use base qw(Exporter);
-our @EXPORT_OK = qw(class_to_name name_to_class normalize_name distance); 
+our @EXPORT_OK = qw(class_to_name name_to_class normalize_name distance pretty_dump); 
 
 sub class_to_name {
     my ($class) = @_;
@@ -31,8 +32,9 @@ sub name_to_class {
 }
 
 sub normalize_name {
-    my $name = shift;
-    my $name_simple = Unicode::Normalize::decompose($name); 
+    my ($name) = @_;
+    
+    my $name_simple = decompose($name); 
     $name_simple =~ s/\p{NonSpacingMark}//g;
     return uc($name_simple);
 }
@@ -40,6 +42,21 @@ sub normalize_name {
 sub distance {
     my ($x1,$y1,$x2,$y2) = @_;
     return sqrt( ($x1 - $x2)**2 + ($y1 - $y2)**2 );
+}
+
+sub pretty_dump {
+    my ($value) = @_;
+    
+    return $value
+        unless ref $value;
+    return $value->stringify
+        if blessed($value) && $value->can('stringify');
+    return $value->message
+        if blessed($value) && $value->can('message');
+    my $dump = Data::Dumper::Dumper($value);
+    chomp($dump);
+    $dump =~ s/^\$VAR1\s=\s(.+);$/$1/s;
+    return $dump;
 }
 
 1;
