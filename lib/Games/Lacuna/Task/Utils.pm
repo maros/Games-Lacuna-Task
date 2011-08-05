@@ -6,7 +6,7 @@ use warnings;
 use Unicode::Normalize;
 
 use base qw(Exporter);
-our @EXPORT_OK = qw(class_to_name name_to_class normalize_name); 
+our @EXPORT_OK = qw(class_to_name name_to_class normalize_name distance); 
 
 sub class_to_name {
     my ($class) = @_;
@@ -35,6 +35,11 @@ sub normalize_name {
     my $name_simple = Unicode::Normalize::decompose($name); 
     $name_simple =~ s/\p{NonSpacingMark}//g;
     return uc($name_simple);
+}
+
+sub distance {
+    my ($x1,$y1,$x2,$y2) = @_;
+    return sqrt( ($x1 - $x2)**2 + ($y1 - $y2)**2 );
 }
 
 1;

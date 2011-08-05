@@ -27,7 +27,7 @@ sub all_glyphs {
     
     # Loop all planets
     PLANETS:
-    foreach my $planet_stats ($self->planets) {
+    foreach my $planet_stats ($self->my_planets) {
         # Get archaeology ministry
         my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology');
         

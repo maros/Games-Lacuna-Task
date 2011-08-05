@@ -130,13 +130,13 @@ sub assigned_to_type {
     my ($self,$assigned_to) = @_;
     
     return 'own'
-        if $assigned_to->{body_id} ~~ [ $self->planet_ids ];
+        if $assigned_to->{body_id} ~~ [ $self->my_bodies ];
     
-    my ($closest) = $self->stars_by_distance($assigned_to->{x},$assigned_to->{y});
+    my $body_data = $self->find_body_by_id($assigned_to->{body_id});
     
-    my $star_data = $self->get_star($closest->{id});
-    
-    my ($body_data) = grep { $assigned_to->{body_id} == $_->{id} } @{$star_data->{bodies}};
+    return 'unknown'
+        unless defined $body_data
+        && defined $body_data->{empire};
     
     return $body_data->{empire}{alignment}; 
 }

@@ -44,9 +44,7 @@ sub run {
     my ($self) = @_;
     
     PLANETS:
-    foreach my $body_stats ($self->planets) {
-        next
-            unless $body_stats->{type} eq 'space station';
+    foreach my $body_stats ($self->my_stations) {
         $self->log('info',"Processing space station %s",$body_stats->{name});
         $self->process_space_station($body_stats);
     }

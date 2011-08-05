@@ -47,13 +47,13 @@ sub upgrade_building {
 sub find_buildspot {
     my ($self,$body) = @_;
     
-    my $body_id = $self->find_body($body);
+    my $body_data = $self->my_body_status($body);
     
     return []
-        unless $body_id;
+        unless $body_data;
     
     my @occupied;
-    foreach my $building_data ($self->buildings_body($body_id)) {
+    foreach my $building_data ($self->buildings_body($body_data)) {
         push (@occupied,$building_data->{x}.';'.$building_data->{y});
     }
     
