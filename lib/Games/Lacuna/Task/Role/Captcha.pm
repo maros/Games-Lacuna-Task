@@ -27,7 +27,7 @@ sub get_captcha {
         
         chomp($captcha_solution);
             
-        next CAPTCHA
+        return 0
             if $captcha_solution =~ /^\s*$/;
         
         my $captcha_ok = 0;
