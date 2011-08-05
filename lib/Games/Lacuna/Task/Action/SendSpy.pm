@@ -48,33 +48,44 @@ sub run {
     my $sendable_spies = $self->request(
         object      => $spaceport_object,
         method      => 'prepare_send_spies',
-        params      => [$planet_target->{id},$planet_home->{id}],
+        params      => [$planet_home->{id},$planet_target->{id}],
     );
     
     unless (scalar @{$sendable_spies->{spies}}) {
         $self->log('err','No spies available to send');
         return;
     }
-#    
-#    
-#    if ($self->best_spy) {
-#        @spies = sort { $b->{offense_rating} <=> $a->{offense_rating} } @spies;
-#    } else {
-#        @spies = sort { $a->{offense_rating} <=> $b->{offense_rating} } @spies;
-#    }
-#    
-#    my @send_spies;
-#    foreach (1..$self->spy_count) {
-#        last
-#            if scalar @spies == 0;
-#        push(@send_spies,shift(@spies));
-#    }
-#    
-#    return $self->log('error','Could not find spies to send')
-#        unless (scalar @send_spies);
-#    
-#    
-#    $self->log('debug','got spies %s',\@send_spies);
+    
+    my @spies;
+    if ($self->best_spy) {
+        @spies = sort { $b->{offense_rating} <=> $a->{offense_rating} } @{$sendable_spies->{spies}};
+    } else {
+        @spies = sort { $a->{offense_rating} <=> $b->{offense_rating} } @{$sendable_spies->{spies}};
+    }
+    
+    my @send_spies;
+    foreach (1..$self->spy_count) {
+        last
+            if scalar @spies == 0;
+        my $spy = shift(@spies);
+        push(@send_spies,$spy->{id});
+    }
+    
+    return $self->log('error','Could not find spies to send')
+        unless (scalar @send_spies);
+    
+    my ($send_ship) = sort { $b->{stealth} <=> $a->{stealth} } @{$sendable_spies->{ships}};
+    
+    return $self->log('error','Could not find ship to send')
+        unless ($send_ship);
+    
+    $self->request(
+        object      => $spaceport_object,
+        method      => 'send_spies',
+        params      => [$planet_home->{id},$planet_target->{id},$send_ship->{id},\@send_spies],
+    );
+    
+    $self->log('notice','Sent %i spies with %s to %s',scalar(@send_spies),$send_ship->{name},$planet_target->{name});
 }
 
 __PACKAGE__->meta->make_immutable;
