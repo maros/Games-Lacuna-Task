@@ -64,11 +64,14 @@ sub run {
     }
     
     my @send_spies;
-    foreach (1..$self->spy_count) {
+    foreach my $spy (@spies) {
+        next 
+            if $self->has_spy_name && $spy->{name} !~ m/$spy->name/;
+        next 
+            if $spy->{name} =~ m/!/;
+        push(@send_spies,$spy);
         last
-            if scalar @spies == 0;
-        my $spy = shift(@spies);
-        push(@send_spies,$spy->{id});
+            if scalar @send_spies >= $self->spy_count;
     }
     
     return $self->log('error','Could not find spies to send')

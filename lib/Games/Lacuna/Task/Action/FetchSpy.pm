@@ -7,6 +7,14 @@ extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Stars',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['target_planet','home_planet'] };
 
+has 'spy_count' => (
+    isa         => 'Int',
+    is          => 'ro',
+    predicate   => 'has_spy_count',
+    documentation=> q[Number of spies to be fetched],
+);
+
+
 sub description {
     return q[Fetch spies from other planets];
 }
@@ -33,8 +41,25 @@ sub run {
         return;
     }
     
-    die $fetchable_spies->{spies};
-    die $fetchable_spies->{ships};
+    my ($send_ship) = sort { $b->{stealth} <=> $a->{stealth} } @{$fetchable_spies->{ships}};
+    
+    return $self->log('error','Could not find ship to send')
+        unless ($send_ship);
+    
+    my @fetch_spies;
+    foreach my $spy (@{$fetchable_spies->{spies}}) {
+        push(@fetch_spies,$spy);
+        last
+            if $self->has_spy_count && scalar @fetch_spies >= $self->spy_count;
+    }
+    
+    $self->request(
+        object      => $spaceport_object,
+        method      => 'fetch_spies',
+        params      => [$planet_target->{id},$planet_home->{id},$send_ship->{id},\@fetch_spies],
+    );
+    
+    $self->log('notice','Fetched %i spies with %s from %s',scalar(@fetch_spies),$send_ship->{name},$planet_target->{name});
 }
 
 __PACKAGE__->meta->make_immutable;
