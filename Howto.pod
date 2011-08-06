@@ -96,11 +96,34 @@ Tasks can also be called/embedded/executed directly
 
  use Games::Lacuna::Task::Action::Archaeology;
  my $task = Games::Lacuna::Task::Action::Archaeology->new(
-    database    => $path_to_config_dir, # only needed if client is not provided
+    database    => $path_to_config_dir, # only needed if client is not provided and if different from default
     client      => $game_lacuna_task_client, # will be auto-built if not provided
     other options ...
  );
- $task->run;
+ $task->execute; # Catches exceptions
+ OR 
+ $task->run; # Does not catch exceptions
+
+=head1 INSTALLING
+
+Before installing C<Game::Lacuna::Task> you need to install 
+<Game::Lacuna::Client> from https://github.com/tsee/Games-Lacuna-Client.
+
+Then continue by typing
+
+ perl Makefile.PL
+ make
+ make install
+ make clean
+
+If you have checked out this distribution directly from github then you will 
+probably need to install L<Module::Install> before running the makefile.
+
+ curl -L http://cpanmin.us | perl - App::cpanminus
+ cpanm Module::Install
+
+or
+
+ cpanp i Module::Install
 
 =cut
-
