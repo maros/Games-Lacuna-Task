@@ -13,3 +13,6 @@ cover_db/
 Ganes-Lacuna-Task-*.tar.gz
 .DS_Store
 MANIFEST.bak
+.includepath
+MYMETA.json
+MYMETA.yml

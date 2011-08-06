@@ -34,4 +34,6 @@ requires        'Try::Tiny'                     => 0;
 
 install_script 'bin/lacuna_task';
 
+auto_install();
+
 WriteAll;
