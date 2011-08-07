@@ -263,7 +263,7 @@ sub my_body_id {
         unless defined $body;
 
     return $body
-        if $body =~ m/^\d+$/;
+        if $body =~ m/^\d+$/ && $body ~~ [$self->my_bodies];
 
     return $body->{id}
         if ref($body) eq 'HASH' && exists $body->{id};
