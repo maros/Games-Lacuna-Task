@@ -114,7 +114,9 @@ sub find_building {
         next
             unless $building_data->{name} eq $type
             || $building_data->{url} eq $type_url;
-        if (defined $building_data->{pending_build}) {
+          
+        if (defined $building_data->{pending_build}
+            && $building_data->{level} == 0) {
             my $timestamp = DateTime->now->set_time_zone('UTC');
             my $build_end = $self->parse_date($building_data->{pending_build}{end});
             next 
