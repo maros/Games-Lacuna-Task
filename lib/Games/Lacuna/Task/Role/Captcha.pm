@@ -48,7 +48,6 @@ sub get_captcha {
 
 return 1;
 
-
 =encoding utf8
 
 =head1 NAME

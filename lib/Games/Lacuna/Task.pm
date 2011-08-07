@@ -141,7 +141,7 @@ Games::Lacuna::Task - Automation framework for the Lacuna Expanse MMOPG
     );
     $task->run();
 
-or via commandline (see bin/lacuna_task)
+or via commandline (see bin/lacuna_task and bin/lacuna_run) 
 
 =head1 DESCRIPTION
 

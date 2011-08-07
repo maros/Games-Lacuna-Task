@@ -69,8 +69,6 @@ sub log {
     }
 }
 
-
-
 no Moose::Role;
 1;
 

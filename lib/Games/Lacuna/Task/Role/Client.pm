@@ -215,6 +215,9 @@ sub clear_cache {
     $storage->delete($key);
 }
 
+no Moose::Role;
+1;
+
 =encoding utf8
 
 =head1 NAME
@@ -278,6 +281,3 @@ Removes a value from the cache
  $self->clear_cache($key);
 
 =cut
-
-no Moose::Role;
-1;

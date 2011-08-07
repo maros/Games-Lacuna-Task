@@ -12,10 +12,6 @@ use List::Util qw(max);
 use Try::Tiny;
 use Games::Lacuna::Task::Utils qw(name_to_class class_to_name);
 
-#use Module::Pluggable 
-#    search_path => ['Games::Lacuna::Task::Action'],
-#    sub_name => 'all_actions';
-    
 sub run {
     my ($self) = @_;
     
