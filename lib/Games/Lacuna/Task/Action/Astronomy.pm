@@ -97,7 +97,7 @@ sub check_for_destroyed_probes {
         next
             unless $message->{from_id} == $message->{to_id};
         given($message->{subject}) {
-            when ('Probe Destroyed') {
+            when (['Probe Destroyed','Lost Contact With Probe']) {
                 # TODO check last run so that we do not process old messages
                 #$self->parse_date($message->{date});
                 
@@ -120,13 +120,18 @@ sub check_for_destroyed_probes {
                 next
                     unless $message_data->{message}{body} =~ m/{Empire\s(?<empire_id>\d+)\s(?<empire_name>[^}]+)}/;
                 
-                # Delete star from cache
-                $self->clear_cache('stars/'.$star_id);
-                
+                $self->log('warn','A probe in the %s system was destroyed by %s',$star_name,$+{empire_name});
+
                 # Get star data from api and check if solar system is probed
-                $self->get_star($star_id);
+                my $star_data = $self->get_star_api($star_id);
                 
-                $self->log('warn','A probe in the %s system was shot down by %s',$star_name,$+{empire_name});
+                if ($star_data->{probed} == 0) {
+                    $star_data = $self->get_star_cache($star_id);
+                    $star_data->{probed} = 0;
+                    $self->set_star_cache($star_data);
+                } else {
+                    $self->set_star_cache($star_data);
+                }
                 
                 push(@archive_messages,$message->{id});
             }
