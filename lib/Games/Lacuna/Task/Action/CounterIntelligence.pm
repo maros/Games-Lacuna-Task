@@ -7,7 +7,8 @@ use List::Util qw(min);
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun
-    Games::Lacuna::Task::Role::Stars);
+    Games::Lacuna::Task::Role::Stars
+    Games::Lacuna::Task::Role::Intelligence);
 
 sub description {
     return q[Manage counter intelligence activities];
@@ -126,20 +127,7 @@ sub process_planet {
     }
 }
 
-sub assigned_to_type {
-    my ($self,$assigned_to) = @_;
-    
-    return 'own'
-        if $assigned_to->{body_id} ~~ [ $self->my_bodies ];
-    
-    my $body_data = $self->find_body_by_id($assigned_to->{body_id});
-    
-    return 'unknown'
-        unless defined $body_data
-        && defined $body_data->{empire};
-    
-    return $body_data->{empire}{alignment}; 
-}
+
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
