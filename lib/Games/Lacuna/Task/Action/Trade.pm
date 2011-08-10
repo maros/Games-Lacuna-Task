@@ -4,7 +4,8 @@ use 5.010;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-with qw(Games::Lacuna::Task::Role::Ships);
+with qw(Games::Lacuna::Task::Role::Ships
+    Games::Lacuna::Task::Role::PlanetRun);
 
 has 'trades' => (
     is              => 'rw',
@@ -104,15 +105,15 @@ sub process_planet {
         unless scalar @{$trades};
     
     # Get current trade
-    my $trade_data = $self->request(
+    my $trade_data = $self->paged_request(
         object  => $tradeministry_object,
         method  => 'view_my_market',
-        params  => [ { no_paging => 1 } ],
+        total   => 'trade_count',
+        data    => 'trades',
     )->{trades};
     
     my @current_trades = _trade_serialize_response($trade_data);
     
-    # Check max number of trades
     return
         if scalar @current_trades >= $tradeministry->{level};
     
@@ -326,8 +327,9 @@ sub _trade_serialize_response {
                     $moniker = 'glyph:'.$+{type};
                     $quantity = 1;
                 }
-                when (/^(?<type>\w+)\s\(.+\)$/) {
+                when (/^(?<type>[[:alpha:][:space:]]+)\s\(.+\)$/) {
                     $moniker = 'ship:'.lc($+{type});
+                    $moniker =~ s/\s+/_/g;
                     $quantity = 1;
                 }
                 when (/^(?<type>[[:alpha:][:space:]]+)\s\((?<level>.+)\)\splan$/) {

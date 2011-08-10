@@ -86,7 +86,7 @@ sub ships {
     
     my $total_ships = scalar(@avaliable_ships) + $building_ships + $travelling_ships;
     
-    # We have to build new probes
+    # We have to build new ships
     if (($quantity < 0 || $total_ships < $quantity)
         && scalar @shipyards
         && $max_build_quantity > 0 ) {
@@ -96,7 +96,7 @@ sub ships {
         foreach my $shipyard (@shipyards) {
             my $shipyard_object = $self->build_object($shipyard);
             
-            # Repeat until we have enough probes
+            # Repeat until we have enough ships
             SHIPYARD_QUEUE:
             while ($new_building < $max_build_quantity) {
                 my $buildable_ships = $self->request(
@@ -135,11 +135,10 @@ sub ships {
         && defined $name_prefix) {
             
         # Get all available ships
-        my $ships_data = $self->paged_request(
+        my $ships_data = $self->request(
             object  => $spaceport_object,
             method  => 'view_all_ships',
-            total   => 'number_of_ships',
-            data    => 'ships',
+            params  => [ { no_paging => 1 } ],
         );
         
         NEW_SHIPS:
@@ -163,8 +162,10 @@ sub ships {
     return @avaliable_ships;
 }
 
-=encoding utf8
+no Moose::Role;
+1;
 
+=encoding utf8
 =head1 NAME
 
 Games::Lacuna::Task::Role::Ships - Helper methods for fetching and building ships
@@ -224,6 +225,3 @@ will be renamed to add the prefix.
 =back
 
 =cut
-
-no Moose::Role;
-1;

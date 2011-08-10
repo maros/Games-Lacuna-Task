@@ -6,6 +6,7 @@ use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Building',
     'Games::Lacuna::Task::Role::Waste',
+    'Games::Lacuna::Task::Role::PlanetRun',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage'] };
 
 #has 'demolish_waste_monument' => (
@@ -71,6 +72,9 @@ sub process_planet {
         
         next BUILDABLE
             if $building_data->{build}{cost}{waste} > $waste_disposeable;
+        
+        next BUILDABLE
+            if  $self->find_building($planet_stats->{id},$building_data->{url});
         
         push(@buildable_monuments,{
             name    => $building_name,

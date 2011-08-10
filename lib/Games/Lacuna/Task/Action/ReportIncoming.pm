@@ -4,7 +4,8 @@ use 5.010;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-with qw(Games::Lacuna::Task::Role::Notify);
+with qw(Games::Lacuna::Task::Role::Notify
+    Games::Lacuna::Task::Role::PlanetRun);
 
 sub description {
     return q[This task reports incoming foreign ships];
@@ -14,7 +15,7 @@ has 'known_incoming' => (
     is              => 'rw',
     isa             => 'ArrayRef',
     lazy_build      => 1,
-    traits          => ['Array','NoIntrospection'],
+    traits          => ['Array','NoIntrospection','NoGetopt'],
     handles         => {
         add_known_incoming  => 'push',
     }
@@ -24,7 +25,7 @@ has 'new_incoming' => (
     is              => 'rw',
     isa             => 'ArrayRef',
     default         => sub { [] },
-    traits          => ['Array','NoIntrospection'],
+    traits          => ['Array','NoIntrospection','NoGetopt'],
     handles         => {
         add_new_incoming    => 'push',
         has_new_incoming   => 'count',
@@ -34,7 +35,7 @@ has 'new_incoming' => (
 sub _build_known_incoming {
     my ($self) = @_;
     
-    my $incoming = $self->lookup_cache('ships/known_incoming');
+    my $incoming = $self->lookup_cache('report/known_incoming');
     $incoming ||= [];
     
     return $incoming;
@@ -59,7 +60,7 @@ after 'run' => sub {
         );
         
         $self->write_cache(
-            key     => 'ships/known_incoming',
+            key     => 'report/known_incoming',
             value   => $self->known_incoming,
             max_age => (60*60*24*7), # Cache one week
         );
@@ -81,10 +82,11 @@ sub process_planet {
     my $spaceport_object = $self->build_object($spaceport);
     
     # Get all incoming ships
-    my $ships_data = $self->request(
+    my $ships_data = $self->paged_request(
         object  => $spaceport_object,
         method  => 'view_foreign_ships',
-        params  => [ { no_paging => 1 } ],
+        total   => 'number_of_ships',
+        data    => 'ships',
     );
     
     my @incoming_ships;

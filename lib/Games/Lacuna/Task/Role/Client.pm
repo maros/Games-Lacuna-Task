@@ -11,7 +11,7 @@ use Try::Tiny;
 our $DEFAULT_DIRECTORY = Path::Class::Dir->new($ENV{HOME}.'/.lacuna');
 
 has 'database' => (
-    is              => 'ro',
+    is              => 'rw',
     isa             => 'Path::Class::Dir',
     coerce          => 1,
     documentation   => 'Path to the lacuna directory [Default '.$DEFAULT_DIRECTORY.']',
@@ -146,6 +146,35 @@ sub request {
     return $response;
 }
 
+sub paged_request {
+    my ($self,%params) = @_;
+    
+    $params{params} ||= [];
+    
+    my $total = delete $params{total};
+    my $data = delete $params{data};
+    my $page = 1;
+    my @result;
+    
+    PAGES:
+    while (1) {
+        push(@{$params{params}},$page);
+        my $response = $self->request(%params);
+        pop(@{$params{params}});
+        
+        foreach my $element (@{$response->{$data}}) {
+            push(@result,$element);
+        }
+        
+        if ($response->{$total} > (25 * $page)) {
+            $page ++;
+        } else {
+            $response->{$data} = \@result;
+            return $response;
+        }
+    }
+}
+
 sub lookup_cache {
     my ($self,$key) = @_;
     
@@ -186,6 +215,9 @@ sub clear_cache {
     $storage->delete($key);
 }
 
+no Moose::Role;
+1;
+
 =encoding utf8
 
 =head1 NAME
@@ -213,6 +245,18 @@ Runs a request, caches the response and returns the response.
     method  => Method name,
     params  => [ Params ],
  );
+ 
+=head2 paged_request
+
+Fetches all response elements from a paged method
+
+ my $response =  $self->paged_request(
+    object  => Games::Lacuna::Client::* object,
+    method  => Method name,
+    params  => [ Params ],
+    total   => 'field storing the total number of items',
+    data    => 'field storing the items',
+ );
 
 =head2 lookup_cache
 
@@ -237,6 +281,3 @@ Removes a value from the cache
  $self->clear_cache($key);
 
 =cut
-
-no Moose::Role;
-1;

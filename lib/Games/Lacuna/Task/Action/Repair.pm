@@ -4,6 +4,7 @@ use 5.010;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
+with qw(Games::Lacuna::Task::Role::PlanetRun);
 
 sub description {
     return q[This task automates the repair of damaged buildings];

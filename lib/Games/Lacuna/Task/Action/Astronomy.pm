@@ -5,7 +5,8 @@ use 5.010;
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Stars
-    Games::Lacuna::Task::Role::Ships);
+    Games::Lacuna::Task::Role::Ships
+    Games::Lacuna::Task::Role::PlanetRun);
 
 sub description {
     return q[This task automates probing of stars];
@@ -43,7 +44,7 @@ sub process_planet {
     
     # Reached max probed stars
     return
-        if $can_send_probes == 0;
+        if $can_send_probes <= 0;
     
     # Get available probes
     my @avaliable_probes = $self->ships(
@@ -96,7 +97,7 @@ sub check_for_destroyed_probes {
         next
             unless $message->{from_id} == $message->{to_id};
         given($message->{subject}) {
-            when ('Probe Destroyed') {
+            when (['Probe Destroyed','Lost Contact With Probe']) {
                 # TODO check last run so that we do not process old messages
                 #$self->parse_date($message->{date});
                 
@@ -119,10 +120,18 @@ sub check_for_destroyed_probes {
                 next
                     unless $message_data->{message}{body} =~ m/{Empire\s(?<empire_id>\d+)\s(?<empire_name>[^}]+)}/;
                 
+                $self->log('warn','A probe in the %s system was destroyed by %s',$star_name,$+{empire_name});
+
                 # Get star data from api and check if solar system is probed
-                $self->check_star($star_id);
+                my $star_data = $self->get_star_api($star_id);
                 
-                $self->log('warn','A probe in the %s system was shot down by %s',$star_name,$+{empire_name});
+                if ($star_data->{probed} == 0) {
+                    $star_data = $self->get_star_cache($star_id);
+                    $star_data->{probed} = 0;
+                    $self->set_star_cache($star_data);
+                } else {
+                    $self->set_star_cache($star_data);
+                }
                 
                 push(@archive_messages,$message->{id});
             }
@@ -159,7 +168,7 @@ sub closest_unprobed_stars {
             if $self->is_probed_star($star->{id});
         
         # Check star again (might be probed in the meantime)
-        my $star_data = $self->check_star($star->{id});
+        my $star_data = $self->get_star($star->{id});
         
         sleep 1;
         

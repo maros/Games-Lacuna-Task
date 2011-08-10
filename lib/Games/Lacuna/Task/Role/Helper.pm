@@ -9,7 +9,8 @@ use Games::Lacuna::Task::Cache;
 use Games::Lacuna::Task::Constants;
 use Data::Dumper;
 use DateTime;
-use Unicode::Normalize;
+use Games::Lacuna::Task::Utils qw(normalize_name);
+
 
 sub build_object {
     my ($self,$class,@params) = @_;
@@ -45,42 +46,63 @@ sub empire_status {
         )->{empire};
 }
 
-sub planets {
+sub my_planets {
     my $self = shift;
     
     my @planets;
-    foreach my $planet ($self->planet_ids) {
-        push(@planets,$self->body_status($planet));
+    foreach my $body_id ($self->my_bodies) {
+        my $body_status = $self->my_body_status($body_id);
+        next
+            unless $body_status->{type} eq 'habitable planet';
+        push(@planets,$body_status);
     }
     return @planets;
 }
 
-sub body_status {
+sub my_stations {
+    my $self = shift;
+    
+    my @stations;
+    foreach my $body_id ($self->my_bodies) {
+        my $body_status = $self->my_body_status($body_id);
+        next
+            unless $body_status->{type} eq 'space station';
+        push(@stations,$body_status);
+    }
+    return @stations;
+}
+
+sub my_body_status {
     my ($self,$body) = @_;
     
-    my $body_id = $self->find_body($body);
-    return
-        unless $body_id;
+    return 
+        unless defined $body;
+    
+    return $body
+        if ref($body) eq 'HASH';
+    
+    my $body_id = $self->my_body_id($body);
 
-    my $key = 'body/'.$body_id;
-    my $body_status = $self->lookup_cache($key);
+    my $body_status = $self->lookup_cache('body/'.$body_id);
+    
     return $body_status
-        if $body_status;
+        if defined $body_status;
     
     $body_status = $self->request(
         object  => $self->build_object('Body', id => $body_id),
         method  => 'get_status',
-    )->{body};
+    );
     
-    return $body_status;
+    return
+        unless defined $body_status;
+    
+    return $body_status->{body};
 }
-
-
 
 sub find_building {
     my ($self,$body,$type) = @_;
     
-    my $body_id = $self->find_body($body);
+    my $body_id = $self->my_body_id($body);
     return 
         unless $body_id;
 
@@ -92,6 +114,14 @@ sub find_building {
         next
             unless $building_data->{name} eq $type
             || $building_data->{url} eq $type_url;
+          
+        if (defined $building_data->{pending_build}
+            && $building_data->{level} == 0) {
+            my $timestamp = DateTime->now->set_time_zone('UTC');
+            my $build_end = $self->parse_date($building_data->{pending_build}{end});
+            next 
+                if ($build_end > $timestamp);
+        }
         push (@results,$building_data);
     }
     
@@ -102,7 +132,7 @@ sub find_building {
 sub buildings_body {
     my ($self,$body) = @_;
     
-    my $body_id = $self->find_body($body);
+    my $body_id = $self->my_body_id($body);
     return
         unless $body_id;
 
@@ -121,10 +151,14 @@ sub buildings_body {
 }
 
 sub max_resource_building_level {
-    my ($self,$planet_id) = @_;
+    my ($self,$body_id) = @_;
+    
+    $body_id = $self->my_body_id($body_id);
+    return
+        unless $body_id;
     
     my $max_resource_level = 15;
-    my $stockpile = $self->find_building($planet_id,'Stockpile');
+    my $stockpile = $self->find_building($body_id,'Stockpile');
     if (defined $stockpile) {
        $max_resource_level += int(sprintf("%i",$stockpile->{level}/3));
     }
@@ -137,9 +171,7 @@ sub university_level {
     my ($self) = @_;
     
     my @university_levels;
-    foreach my $planet_stats ($self->planets) {
-        next
-            unless $planet_stats->{type} eq 'habitable planet';
+    foreach my $planet_stats ($self->my_planets) {
         my $university = $self->find_building($planet_stats,'University');
         next 
             unless $university;
@@ -148,7 +180,7 @@ sub university_level {
     return max(@university_levels);
 }
 
-sub planet_ids {
+sub my_bodies {
     my $self = shift;
     
     my $empire_status = $self->empire_status();
@@ -226,14 +258,14 @@ sub parse_date {
     return;
 }
 
-sub find_body {
+sub my_body_id {
     my ($self,$body) = @_;
 
     return
-        unless $body;
+        unless defined $body;
 
     return $body
-        if $body =~ m/^\d+$/;
+        if $body =~ m/^\d+$/ && $body ~~ [$self->my_bodies];
 
     return $body->{id}
         if ref($body) eq 'HASH' && exists $body->{id};
@@ -247,17 +279,12 @@ sub find_body {
             if $planets->{$id} eq $body;
     }
 
-    my $name_simple = Unicode::Normalize::decompose($body); 
-    $name_simple =~ s/\p{NonSpacingMark}//g;
-    $name_simple = uc($name_simple);
+    my $name_simple = normalize_name($body); 
     
     # Similar match
     foreach my $id (keys %$planets) {
-        my $name_compare = Unicode::Normalize::decompose($planets->{$id}); 
-        $name_compare =~ s/\p{NonSpacingMark}//g;
-        $name_compare = uc($name_compare);
         return $id
-            if $name_simple eq $name_compare;
+            if $name_simple eq normalize_name($planets->{$id});
     }
 
     return;
@@ -266,9 +293,7 @@ sub find_body {
 sub can_afford {
     my ($self,$planet_data,$cost) = @_;
     
-    unless (ref($planet_data) eq 'HASH') {
-        $planet_data = $self->body_status($self->find_body($planet_data));
-    }
+    $planet_data = $self->my_body_status($planet_data);
     
     foreach my $resource (qw(food ore water energy)) {
         return 0
@@ -282,6 +307,10 @@ sub can_afford {
     return 1;
 }
 
+no Moose::Role;
+1;
+
+
 =encoding utf8
 
 =head1 NAME
@@ -290,15 +319,34 @@ Games::Lacuna::Task::Role::Helper - Various helper methods
 
 =head1 METHODS
 
-=head2 body_status
+=head2 my_bodies
 
- my $body_status = $self->body_status($body_id OR $body_name);
+Returns an array of your body IDs
+
+=head2 my_planets
+
+Returns an array of your planet IDs
+
+=head2 my_stations
+
+Returns an array of your stations IDs
+
+=head2 my_body_status
+
+ my $body_status = $self->my_body_status($body_id OR $body_name);
 
 Returns the status hash of a given body/planet.
 
+=head2 my_body_id
+
+ my $body_id = $self->my_body_id($body_name);
+
+Returns the id for a given body name. Ignores case and accents
+so that eg. 'Hà Nôi' equals 'HA NOI'.
+
 =head2 buildings_body
 
- my $body_buildings = $self->buildings_body($body_id OR $body_name);
+ my $body_buildings = $self->buildings_body($body_id OR $boSdy_name);
 
 Returns all buildings for a given planet.
 
@@ -320,9 +368,7 @@ Returns a L<Game::Lacuna::Client::*> object
 
 =head2 can_afford
 
- $self->can_afford($planet_id,$cost_hash);
- OR
- $self->can_afford($planet_stats_hash,$cost_hash);
+ $self->can_afford($planet_id or $planet_stats_hash,$cost_hash);
 
 Calculates if the upgrade/repair can be afforded
 
@@ -332,13 +378,6 @@ Calculates if the upgrade/repair can be afforded
 
 Finds all buildings on a given body of a given type ordered by level.
 
-=head2 find_body
-
- my $body_id = $self->find_body($body_name);
-
-Returns the body ID for the given body name. Ignores case and accents
-so that eg. 'Hà Nôi' equals 'HA NOI'.
-
 =head2 home_planet_id
 
 Returns the id of the empire' home planet id
@@ -346,10 +385,6 @@ Returns the id of the empire' home planet id
 =head2 planet_ids
 
 Returns the empire' planet ids
-
-=head2 planets
-
-Returns the empire' planet status hashes
 
 =head2 university_level
 
@@ -366,7 +401,3 @@ Returns a human readable delta for the given date
 Returns a DateTime object for the given date
 
 =cut
-
-
-no Moose::Role;
-1;

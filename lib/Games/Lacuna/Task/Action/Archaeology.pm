@@ -7,6 +7,7 @@ use Games::Lacuna::Client::Types qw(ore_types);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
+with qw(Games::Lacuna::Task::Role::PlanetRun);
 
 sub description {
     return q[This task automates the search for glyphs];
@@ -16,17 +17,17 @@ sub all_glyphs {
     my ($self) = @_;
     
     # Fetch total glyph count from cache
-    my $all_gylphs = $self->lookup_cache('glyphs');
+    my $all_glyphs = $self->lookup_cache('glyphs');
     
-    return $all_gylphs
-        if defined $all_gylphs;
+    return $all_glyphs
+        if defined $all_glyphs;
     
     # Set all glyphs to zero
-    $all_gylphs = { map { $_ => 0 } ore_types() };
+    $all_glyphs = { map { $_ => 0 } ore_types() };
     
     # Loop all planets
     PLANETS:
-    foreach my $planet_stats ($self->planets) {
+    foreach my $planet_stats ($self->my_planets) {
         # Get archaeology ministry
         my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology');
         
@@ -35,33 +36,34 @@ sub all_glyphs {
         
         # Get all glyphs
         my $archaeology_ministry_object = $self->build_object($archaeology_ministry);
-        my $gylph_data = $self->request(
+        my $glyph_data = $self->request(
             object  => $archaeology_ministry_object,
             method  => 'get_glyphs',
         );
         
-        foreach my $glyph (@{$gylph_data->{glyphs}}) {
-            $all_gylphs->{$glyph->{type}} ||= 0;
-            $all_gylphs->{$glyph->{type}} ++;
+        foreach my $glyph (@{$glyph_data->{glyphs}}) {
+            $all_glyphs->{$glyph->{type}} ||= 0;
+            $all_glyphs->{$glyph->{type}} ++;
         }
     }
     
     # Write total glyph count to cache
     $self->write_cache(
         key     => 'glyphs',
-        value   => $all_gylphs,
+        value   => $all_glyphs,
         max_age => (60*60*24),
     );
     
-    return $all_gylphs;
+    return $all_glyphs;
 }
 
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
-    my $all_gylphs = $self->all_glyphs;
-    my $total_glyphs = sum(values %{$all_gylphs});
-    my $max_glyphs = max(values %{$all_gylphs});
+    my $all_glyphs = $self->all_glyphs;
+    
+    my $total_glyphs = sum(values %{$all_glyphs});
+    my $max_glyphs = max(values %{$all_glyphs});
     my $timestamp = DateTime->now->set_time_zone('UTC');
     
     # Get archaeology ministry
@@ -136,7 +138,7 @@ sub process_planet {
     for my $max_glyph (0..$max_glyphs) {
         foreach my $ore (keys %ores) {
             next
-                if $all_gylphs->{$ore} > $max_glyph;
+                if $all_glyphs->{$ore} > $max_glyph;
             $self->log('notice',"Searching for %s glyph on %s",$ore,$planet_stats->{name});
             $self->request(
                 object  => $archaeology_ministry_object,

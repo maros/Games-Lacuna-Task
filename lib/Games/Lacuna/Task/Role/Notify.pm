@@ -3,7 +3,7 @@ package Games::Lacuna::Task::Role::Notify;
 use 5.010;
 use Moose::Role;
 
-use MIME::Lite;
+use Email::Stuff;
 
 has 'email' => (
     is              => 'rw',
@@ -22,17 +22,57 @@ has 'email_send' => (
 sub notify {
     my ($self,$subject,$message) = @_;
     
-    my $email = MIME::Lite->new(
-        From    => $self->email,
-        To      => $self->email,
-        Subject => $subject,
-        Type    => 'TEXT',
-        Data    => $message,
-    );
+    my $email = Email::Stuff
+        ->from($self->email)
+        ->to($self->email)
+        ->subject($subject);
+        
+    if ($message =~ m/<html>/i) {
+        $email->html_body($message);
+    } else {
+        $email->text_body($message);
+    }
     
     $email->send( @{ $self->email_send } );
-
 }
 
 no Moose::Role;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Role::Notify - Send email notifications
+
+=head1 SYNOPSIS
+
+ package Games::Lacuna::Task::Action::MyTask;
+ use Moose;
+ extends qw(Games::Lacuna::Task::Action);
+ with qw(Games::Lacuna::Task::Role::Notify);
+ 
+ sub run {
+     my ($self) = @_;
+     $self->notify('Alarm!!','Something has happened');
+ }
+
+=head1 ACCESSORS
+
+=head2 email
+
+Recipient email
+
+=head2 email_send
+
+MIME::Lite send configuration
+
+=head1 METHODS
+
+=head2 notify
+
+Sends an email notification
+
+ $self->log($subject,$message);
+
+=cut

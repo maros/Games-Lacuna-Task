@@ -1,6 +1,11 @@
 # Avoid archives of this distribution
 \bGames-Lacuna-Client-[\d\.\_]+
 
+# Avoid eclipse files
+.includepath
+.project
+.settings
+
 # Avoid version control files.
 \bRCS\b
 \bCVS\b

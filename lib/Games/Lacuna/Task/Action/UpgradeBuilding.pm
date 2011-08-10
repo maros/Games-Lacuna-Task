@@ -7,6 +7,7 @@ use List::Util qw(max min);
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Building',
+    'Games::Lacuna::Task::Role::PlanetRun',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['start_building_at'] };
 
 has 'upgrade_buildings' => (
@@ -17,13 +18,13 @@ has 'upgrade_buildings' => (
             'WasteSequestration'    => ['waste','storage'],
             
             'OreStorage'            => ['ore','storage'],
-            'WaterStorage'          => ['water','storage'],
-            'FoodReserve'           => ['food','storage'],
-            'EnergyReserve'         => ['energy','storage'],
+            'WaterStorage'          => ['water','storage','max20'],
+            'FoodReserve'           => ['food','storage','max20'],
+            'EnergyReserve'         => ['energy','storage','max20'],
             
             'Stockpile'             => ['global','storage'],
             'PlanetaryCommand'      => ['global','storage'],
-            'DistributionCenter'    => ['global','storage'],
+            'DistributionCenter'    => ['global','storage','max20'],
             
             'AtmosphericEvaporator' => ['water','production'],
             'WaterProduction'       => ['water','production'],
@@ -79,9 +80,6 @@ sub process_planet {
                 if $timestamp < $date_end;
         }
     }
-    
-    my $max_ressouce_level = $self->max_resource_building_level($planet_stats->{id});
-    my $max_building_level = $self->university_level() + 1;
     
     # Check if build queue is filled
     return
@@ -163,6 +161,11 @@ sub find_upgrade_buildings {
         foreach my $tag (@tags) {
             next BUILDING
                 unless $tag ~~ $self->upgrade_buildings->{$building_class};
+        }
+        
+        foreach my $tag (@{$self->upgrade_buildings->{$building_class}}) {
+            next BUILDING
+                if $tag =~ m/max(?<level>\d+)$/ && $building_data->{level} >= $+{level};
         }
         
         next BUILDING

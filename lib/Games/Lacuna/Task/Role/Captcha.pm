@@ -27,7 +27,7 @@ sub get_captcha {
         
         chomp($captcha_solution);
             
-        next CAPTCHA
+        return 0
             if $captcha_solution =~ /^\s*$/;
         
         my $captcha_ok = 0;
@@ -48,11 +48,15 @@ sub get_captcha {
 
 return 1;
 
-
 =encoding utf8
 
 =head1 NAME
 
 Games::Lacuna::Role::Captcha - Handle captchas
+
+=head1 SYNOPSIS
+
+This method is used by the client to fetch captchas and present them to the 
+user if possible
 
 =cut

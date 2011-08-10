@@ -5,7 +5,8 @@ use 5.010;
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Stars
-    Games::Lacuna::Task::Role::Ships);
+    Games::Lacuna::Task::Role::Ships
+    Games::Lacuna::Task::Role::PlanetRun);
 
 has 'excavator_count' => (
     isa             => 'Int',
@@ -24,7 +25,7 @@ sub process_planet {
     my ($self,$planet_stats) = @_;
     
     my $timestamp = DateTime->now->set_time_zone('UTC');
-    my $max_age = $timestamp->subtract( days => 30 );
+    my $max_age = $timestamp->subtract( days => 40 );
     
     # Get archaeology ministry
     my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology');

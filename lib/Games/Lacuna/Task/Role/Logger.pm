@@ -3,6 +3,7 @@ package Games::Lacuna::Task::Role::Logger;
 use 5.010;
 use Moose::Role;
 
+use Games::Lacuna::Task::Utils qw(pretty_dump);
 use IO::Interactive qw(is_interactive);
 use Term::ANSIColor;
 
@@ -24,7 +25,7 @@ sub log {
     my $level_name = shift(@msgs)
         if $msgs[0] ~~ \@LEVELS;
     
-    @msgs = map { _pretty_dump($_) } @msgs;
+    @msgs = map { pretty_dump($_) } @msgs;
     
     my $format = shift(@msgs) // '';
     my $logmessage = sprintf( $format, map { $_ // 'UNDEF' } @msgs );
@@ -68,20 +69,8 @@ sub log {
     }
 }
 
-sub _pretty_dump {
-    my $value = shift;
-    return $value
-        unless ref $value;
-    return $value->stringify
-        if blessed $value && $value->can('stringify');
-    return $value->message
-        if blessed $value && $value->can('message');
-    my $dump = Data::Dumper::Dumper($value);
-    chomp($dump);
-    $dump =~ s/^\$VAR1\s=\s(.+);$/$1/s;
-    return $dump;
-}
-
+no Moose::Role;
+1;
 
 =encoding utf8
 
@@ -105,6 +94,3 @@ Print a log message. You can use the sprintf syntax.
  $self->log($loglevel,$message,@sprintf_params);
 
 =cut
-
-no Moose::Role;
-1;
