@@ -44,7 +44,7 @@ sub run {
     my $report_content = join("\n",@report_content);
     $report_html =~ s/\@REPORT\@/$report_content/g;
 
-    warn $report_html;
+#    warn $report_html;
     $self->notify(
         "[$empire_name] Status report",
         $report_html
