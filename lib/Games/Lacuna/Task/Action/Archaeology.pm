@@ -60,9 +60,10 @@ sub all_glyphs {
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
-    my $all_gylphs = $self->all_glyphs;
-    my $total_glyphs = sum(values %{$all_gylphs});
-    my $max_glyphs = max(values %{$all_gylphs});
+    my $all_glyphs = $self->all_glyphs;
+    
+    my $total_glyphs = sum(values %{$all_glyphs});
+    my $max_glyphs = max(values %{$all_glyphs});
     my $timestamp = DateTime->now->set_time_zone('UTC');
     
     # Get archaeology ministry
@@ -137,7 +138,7 @@ sub process_planet {
     for my $max_glyph (0..$max_glyphs) {
         foreach my $ore (keys %ores) {
             next
-                if $all_gylphs->{$ore} > $max_glyph;
+                if $all_glyphs->{$ore} > $max_glyph;
             $self->log('notice',"Searching for %s glyph on %s",$ore,$planet_stats->{name});
             $self->request(
                 object  => $archaeology_ministry_object,
