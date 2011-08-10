@@ -161,10 +161,11 @@ sub find_upgrade_buildings {
         foreach my $tag (@tags) {
             next BUILDING
                 unless $tag ~~ $self->upgrade_buildings->{$building_class};
-            if ($tag =~ /^max(\d+)$/) {
-                next BUILDING
-                    if $building_data->{level} >= $1;
-            }
+        }
+        
+        foreach my $tag (@{$self->upgrade_buildings->{$building_class}}) {
+            next BUILDING
+                if $tag =~ m/max(?<level>\d+)$/ && $building_data->{level} >= $+{level};
         }
         
         next BUILDING
