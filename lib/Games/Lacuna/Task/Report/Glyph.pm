@@ -17,7 +17,7 @@ sub report_glyph {
        $self->_report_glyph_planet($planet_id,$table);
     }
     
-    return $table->render_html;
+    return $table;
 }
 
 sub _report_glyph_planet {

@@ -18,7 +18,7 @@ sub report_intelligence {
        $self->_report_intelligence_body($planet_id,$table);
     }
     
-    return $table->render_html;
+    return $table;
 }
 
 sub _report_intelligence_body {

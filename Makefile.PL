@@ -33,6 +33,7 @@ requires        'DateTime'                      => 0;
 requires        'Try::Tiny'                     => 0;
 
 requires        'Email::Stuff'                  => 0;
+requires        'Text::Table'                   => 0;
 
 install_script 'bin/lacuna_task';
 install_script 'bin/lacuna_run';

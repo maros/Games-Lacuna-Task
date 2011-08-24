@@ -11,7 +11,13 @@ extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Notify',all_reports();
 
 use Games::Lacuna::Task::Table;
+use Moose::Util::TypeConstraints;
 use Games::Lacuna::Task::Utils qw(pretty_dump class_to_name);
+use IO::Interactive qw(is_interactive);
+
+subtype 'Lacuna::Task::Type::Output' 
+    => as enum([qw(email stdout)])
+    => message { "Not a valid output type '$_'" };
 
 has 'report' => (
     is              => 'rw',
@@ -19,6 +25,19 @@ has 'report' => (
     documentation   => 'Specifies which sub-reports to include in the empire report',
     default         => sub { 
         [ map { class_to_name($_) } all_reports() ]
+    },
+);
+
+has 'output' => (
+    is              => 'rw',
+    isa             => 'Lacuna::Task::Type::Output',
+    documentation   => 'Specifies how the report should be presented to the user',
+    default         => sub { 
+        if (is_interactive) {
+            return 'stdout';
+        } else {
+            return 'email';
+        }
     },
 );
 
@@ -32,23 +51,35 @@ sub run {
     my $empire_name = $self->lookup_cache('config')->{name};
 
     my $report_html = join '',<DATA>;
-    my @report_content;
+    my @report_tables;
     foreach my $report (@{$self->report}) {
         my $method = 'report_'.$report;
-        push(@report_content,'<div>');
         foreach my $report_data ($self->$method()) {
-            push(@report_content,$report_data);
+            push(@report_tables,$report_data);
         }
-        push(@report_content,'</div>');
     }
-    my $report_content = join("\n",@report_content);
-    $report_html =~ s/\@REPORT\@/$report_content/g;
-
-#    warn $report_html;
-    $self->notify(
-        "[$empire_name] Status report",
-        $report_html
-    );
+    
+    given ($self->output) {
+        when ('email') {
+            my $report_content =
+                join "\n",
+                map { $_->render_html() } 
+                @report_tables;
+            $report_html =~ s/\@REPORT\@/$report_content/g;
+            
+            $self->notify(
+                "[$empire_name] Status report",
+                $report_html
+            );
+        }
+        when ('stdout') {
+            my $report_content =
+                join "\n",
+                map { $_->render_text() } 
+                @report_tables;
+            say $report_content;
+        }
+    }
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -16,7 +16,7 @@ sub report_incoming {
        $self->_report_incoming_planet($planet_id,$table);
     }
     
-    return $table->render_html;
+    return $table;
 }
 
 sub _report_incoming_planet {

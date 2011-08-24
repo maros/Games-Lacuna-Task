@@ -18,7 +18,7 @@ sub report_mining {
        $self->_report_mining_body($planet_id,$table);
     }
     
-    return $table->render_html;
+    return $table;
 }
 
 sub _report_mining_body {

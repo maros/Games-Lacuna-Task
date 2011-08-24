@@ -3,6 +3,7 @@ package Games::Lacuna::Task::Table;
 use 5.010;
 
 use Moose;
+use Text::Table;
 
 has 'headline' => (
     is              => 'rw',
@@ -26,6 +27,36 @@ has 'data' => (
         add_row         => 'push',
     },
 );
+
+sub render_text {
+    my ($self) = @_;
+    
+    my @header =
+        map { ($_,\"|") }
+        @{$self->columns};
+    pop @header;
+    
+    my $table = Text::Table->new(
+        @header
+    );
+    
+    foreach my $row ($self->rows) {
+        my @row;
+        foreach my $column (@{$self->columns}) {
+            my $column_key = lc($column);
+            $column_key =~ s/\s+/_/g;
+            push(@row,$row->{$column_key} // '');
+        }
+        $table->add(@row);
+    }
+    
+    my $content = '*'.uc($self->headline)."*\n";
+    $content .= $table->title;
+    $content .= $table->rule('-','+');
+    $content .= $table->body;
+    
+    return $content;
+}
 
 sub render_html {
     my ($self) = @_;

@@ -16,7 +16,7 @@ sub report_fleet {
        $self->_report_fleet_body($planet_id,$table);
     }
     
-    return $table->render_html;
+    return $table;
 }
 
 sub _report_fleet_body {
