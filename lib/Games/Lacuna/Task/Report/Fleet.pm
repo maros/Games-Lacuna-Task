@@ -9,7 +9,7 @@ sub report_fleet {
     
     my $table = Games::Lacuna::Task::Table->new(
         headline=> 'Fleet Report',
-        columns => ['Planet','Count','Type','Task','Cargo','Speed','Stealth'],
+        columns => ['Planet','Count','Type','Task','Cargo','Speed','Stealth','Combat'],
     );
     
     foreach my $planet_id ($self->my_planets) {

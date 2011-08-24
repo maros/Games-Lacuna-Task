@@ -65,7 +65,7 @@ sub _report_incoming_planet {
             my $from = 'unknown';
             $incoming{$element->{id}}{ship} = $element->{type_human};
             if (defined $element->{from}) {
-                $incoming{$element->{id}}{from} = $element->{from}{empire}{name}.' '.$element->{from}{name};
+                $incoming{$element->{id}}{from} = ($element->{from}{empire}{name} // 'unknown').' '.($element->{from}{name} // 'unknown');
             }
         }
     }
