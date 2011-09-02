@@ -17,6 +17,7 @@ requires        'KiokuDB'                       => 0;
 requires        'KiokuDB::Backend::DBI'         => 0;
 
 requires        'Path::Class'                   => 0;
+requires        'MooseX::Getopt'                => 0;
 requires        'MooseX::Types::Path::Class'    => 0;
 requires        'MooseX::Role::Parameterized'   => 0;
 
