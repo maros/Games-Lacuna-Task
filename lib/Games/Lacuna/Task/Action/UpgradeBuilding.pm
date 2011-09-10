@@ -68,22 +68,13 @@ sub description {
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
-    my $building_count = 0;
     my @buildings = $self->buildings_body($planet_stats->{id});
     my $timestamp = DateTime->now->set_time_zone('UTC');
-    
-    # Get build queue size
-    foreach my $building_data (@buildings) {
-        if (defined $building_data->{pending_build}) {
-            my $date_end = $self->parse_date($building_data->{pending_build}{end});
-            $building_count ++
-                if $timestamp < $date_end;
-        }
-    }
+    my $build_queue_size = $self->build_queue_size($planet_stats->{id});
     
     # Check if build queue is filled
     return
-        if ($building_count > $self->start_building_at);
+        if ($build_queue_size > $self->start_building_at);
     
     my @upgradeable_buildings;
     
@@ -131,10 +122,10 @@ sub process_planet {
             
         foreach my $building_data (@upgradeable_buildings) {
             my $upgrade = $self->upgrade_building($planet_stats,$building_data);
-            $building_count ++
+            $build_queue_size ++
                 if $upgrade;
             return
-                if ($building_count > $self->start_building_at);
+                if ($build_queue_size > $self->start_building_at);
         }
     }
     

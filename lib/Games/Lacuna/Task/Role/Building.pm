@@ -12,8 +12,6 @@ sub upgrade_building {
         method  => 'view',
     );
     
-    return
-    
     return 0
         unless $building_detail->{building}{upgrade}{can};
     
@@ -67,6 +65,26 @@ sub find_buildspot {
     }
     
     return \@buildable;
+}
+
+sub build_queue_size {
+    my ($self,$body) = @_;
+    
+    my @buildings = $self->buildings_body($body);
+    my $timestamp = DateTime->now->set_time_zone('UTC');
+    
+    my $building_count = 0;
+    
+    # Get build queue size
+    foreach my $building_data (@buildings) {
+        if (defined $building_data->{pending_build}) {
+            my $date_end = $self->parse_date($building_data->{pending_build}{end});
+            $building_count ++
+                if $timestamp < $date_end;
+        }
+    }
+    
+    return $building_count;
 }
 
 no Moose::Role;
