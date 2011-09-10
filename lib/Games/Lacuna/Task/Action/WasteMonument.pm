@@ -7,25 +7,33 @@ extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Building',
     'Games::Lacuna::Task::Role::Waste',
     'Games::Lacuna::Task::Role::PlanetRun',
-    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage'] };
+    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage','start_building_at'] };
 
-#has 'demolish_waste_monument' => (
-#    isa             => 'Bool',
-#    is              => 'rw',
-#    required        => 1,
-#    default         => 0,
-#    documentation   => 'Demolish old waste monuments',
-#);
+our @WASTE_MONUMENTS = (
+    'Junk Henge Sculpture',
+    'Great Ball of Junk',
+    'Metal Junk Arches',
+    'Space Junk Park',
+    'Pyramid Junk Sculpture',
+);
 
 sub description {
-    return q[This task automates the building of waste monuments];
+    return q[This task automates the building and demoltion of waste monuments];
 }
 
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
+    # Check min university level
     return
         if $self->university_level < 21;
+    
+    my $timestamp = DateTime->now->set_time_zone('UTC');
+    my $build_queue_size = $self->build_queue_size($planet_stats->{id});
+    
+    # Check if build queue is filled
+    return
+        if ($build_queue_size > $self->start_building_at);
     
     # Get stored waste
     my $waste_stored = $planet_stats->{waste_stored};
@@ -37,68 +45,70 @@ sub process_planet {
     return 
         if ($waste_filled < $self->dispose_percentage);
     
-    my $buildable_spot = $self->find_buildspot($planet_stats);
+    my (@existing_monuments);
+    foreach my $monument_type (reverse @WASTE_MONUMENTS) {
+        my ($existing_monument) = $self->find_building($planet_stats->{id},$monument_type);
+        next
+            unless defined $existing_monument;
+        next
+            if defined $existing_monument->{pending_build};
+        next
+            if $existing_monument->{level} > 1;
+        push(@existing_monuments,$existing_monument);
+    }
+    
+    # We have no waste monument yet
+    return 
+        unless (scalar @existing_monuments);
+    
+    my $buildable_spots = $self->find_buildspot($planet_stats);
     
     return 
-        if scalar @{$buildable_spot} == 0;
+        if scalar @{$buildable_spots} == 0;
     
+    my $build_spot =  $buildable_spots->[int(rand(scalar @{$buildable_spots}))];
     my $body_object = $self->build_object('Body', id => $planet_stats->{id});
     
     my $buildable_data = $self->request(
         object  => $body_object,
         method  => 'get_buildable',
-        params  => [ $buildable_spot->[0][0],$buildable_spot->[0][1],'Waste' ],
+        params  => [ $build_spot->[0],$build_spot->[1],'Waste' ],
     );
-    
-    my @buildable_monuments;
     
     BUILDABLE:
-    foreach my $building_name (keys %{$buildable_data->{buildable}}) {
-        my $building_data = $buildable_data->{buildable}{$building_name};
-        my $building_url = $building_data->{url};
-        $building_url =~ s/^\///;
+    foreach my $existing_monument (@existing_monuments) {
+        next BUILDABLE
+            unless $buildable_data->{buildable}{$existing_monument->{name}};
+        
+        my $buildable_data_monument = $buildable_data->{buildable}{$existing_monument->{name}};
         
         next BUILDABLE
-            unless $building_name->{build}{can};
+            if $buildable_data_monument->{build}{cost}{waste} >= 0
+            || ($buildable_data_monument->{build}{cost}{waste} * -1) > $waste_disposeable;
         
         next BUILDABLE
-            unless 'Happiness' ~~ $building_data->{build}{tags};
+            unless $buildable_data_monument->{build}{reason}[0] == 1009;
         
-        next BUILDABLE
-            unless $building_data->{build}{no_plot_use} eq '1';
+        my $existing_monument_object = $self->build_object($existing_monument);
         
-        next BUILDABLE
-            if $building_data->{build}{cost}{waste} > 0;
+        $self->log('notice',"Demolish %s on %s",$existing_monument->{name},$planet_stats->{name});
+        $self->request(
+            object  => $existing_monument_object,
+            method  => 'demolish',
+        );
+
+        my $new_monument_object = $self->build_object($buildable_data_monument->{url});
         
-        next BUILDABLE
-            if $building_data->{build}{cost}{waste} > $waste_disposeable;
+        $self->log('notice',"Building %s on %s",$existing_monument->{name},$planet_stats->{name});
         
-        next BUILDABLE
-            if  $self->find_building($planet_stats->{id},$building_data->{url});
+        $self->request(
+            object  => $new_monument_object,
+            method  => 'build',
+            params  => [ $planet_stats->{id}, $existing_monument->{x},$existing_monument->{y}],
+        );
         
-        push(@buildable_monuments,{
-            name    => $building_name,
-            url     => $building_data->{url},
-            waste   => $building_data->{build}{cost}{waste},
-        });
+        $waste_disposeable += $buildable_data_monument->{build}{cost}{waste};
     }
-    
-    return
-        unless (scalar @buildable_monuments);
-    
-    @buildable_monuments = sort { $a->{waste} <=> $b->{waste} } @buildable_monuments;
-    
-    warn \@buildable_monuments;
-    
-    my $waste_monument_object = $self->build_object($buildable_monuments[0]->{url});
-    
-    $self->log('notice',"Building %s on %s",$buildable_monuments[0]->{name},$planet_stats->{name});
-    
-    $self->request(
-        object  => $waste_monument_object,
-        method  => 'build',
-        params  => [ $planet_stats->{id}, $buildable_spot->[0][0],$buildable_spot->[0][1]],
-    );
 }
 
 __PACKAGE__->meta->make_immutable;
