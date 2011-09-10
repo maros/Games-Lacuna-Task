@@ -37,8 +37,8 @@ sub process_planet {
     return
         unless defined $archaeology_ministry;
     return
-        unless $archaeology_ministry->{level} == 15;
-    
+        unless $archaeology_ministry->{level} >= 15;
+        
     # Get spaceport
     my $spaceport_object = $self->build_object($spaceport);
     
