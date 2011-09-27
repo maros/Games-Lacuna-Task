@@ -3,13 +3,14 @@ package Games::Lacuna::Task::Report::Fleet;
 use 5.010;
 
 use Moose::Role;
+use List::Util qw(max min);
 
 sub report_fleet {
     my ($self) = @_;
     
     my $table = Games::Lacuna::Task::Table->new(
         headline=> 'Fleet Report',
-        columns => ['Planet','Count','Type','Task','Cargo','Speed','Stealth','Combat'],
+        columns => ['Planet','Count','Type','Task','Hold Size','Speed','Stealth','Combat'],
     );
     
     foreach my $planet_id ($self->my_planets) {
@@ -44,21 +45,36 @@ sub _report_fleet_body {
     SHIPS:
     foreach my $ship (@{$ships_data->{ships}}) {
         
-        my $moniker = join('_',$ship->{type},$ship->{task},$ship->{speed},$ship->{stealth},$ship->{combat},$ship->{hold_size});
+        my $moniker = join('_',$ship->{type},$ship->{task});
         
         $ships{$moniker} ||= {
             count       => 0,
             type        => $ship->{type_human},
             task        => $ship->{task},
-            speed       => $ship->{speed},
-            stealth     => $ship->{stealth},
-            combat      => $ship->{combat},
-            cargo       => $ship->{cargo},
         };
+        warn $moniker;
+        
+        foreach my $quality (qw(speed stealth hold_size combat)) {
+            $ships{$moniker}->{$quality} ||= [];
+            push(@{$ships{$moniker}->{$quality}},$ship->{$quality})
+        }
+        
         $ships{$moniker}{count} ++;
     }
     
+    
     foreach my $ship (sort { $a->{type} cmp $b->{type}  }  values %ships) {
+        
+        foreach my $quality (qw(speed stealth hold_size combat)) {
+            my $min = min(@{$ship->{$quality}});
+            my $max = max(@{$ship->{$quality}});
+            if ($min != $max) {
+                $ship->{$quality} = $min.'-'.$max;
+            } else {
+                $ship->{$quality} = $min;
+            }
+        }
+        
         $table->add_row({
             planet          => $planet_stats->{name},
             %$ship
