@@ -82,6 +82,9 @@ sub my_body_status {
         if ref($body) eq 'HASH';
     
     my $body_id = $self->my_body_id($body);
+    
+    return 
+        unless defined $body_id;
 
     my $body_status = $self->lookup_cache('body/'.$body_id);
     

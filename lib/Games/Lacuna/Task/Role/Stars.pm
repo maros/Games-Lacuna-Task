@@ -235,6 +235,9 @@ sub set_star_cache {
     
     my $star = $star_data->{id};
     
+    return
+        unless defined $star;
+    
     # Write to local cache
     $self->write_cache(
         key     => 'stars/'.$star,

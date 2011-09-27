@@ -31,7 +31,7 @@ has 'report' => (
 has 'output' => (
     is              => 'rw',
     isa             => 'Lacuna::Task::Type::Output',
-    documentation   => 'Specifies how the report should be presented to the user',
+    documentation   => 'Specifies how the report should be presented to the user [Options: email, stdout]',
     default         => sub { 
         if (is_interactive) {
             return 'stdout';
