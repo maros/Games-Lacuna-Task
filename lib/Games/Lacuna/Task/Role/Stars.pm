@@ -153,7 +153,7 @@ sub is_probed_star {
     my ($self,$star) = @_;
     
     return
-        unless $star && $star =~ m/^\d+$/;
+        unless defined $star && $star =~ m/^\d+$/;
     
     my $star_data = $self->get_star($star);
     
@@ -173,7 +173,7 @@ sub get_star {
     my $star_data;
     
     return
-        unless $star && $star =~ m/^\d+$/;
+        unless defined $star && $star =~ m/^\d+$/;
     
     # Get from cache
     $star_data = $self->get_star_cache($star);
@@ -183,14 +183,15 @@ sub get_star {
     # Get from api
     $star_data = $self->get_star_api($star);
     
-    #$self->set_star_cache($star_data);
-    
     return $star_data;
 }
 
 sub get_star_cache {
     my ($self,$star) = @_;
-
+    
+    return
+        unless defined $star && $star =~ m/^\d+$/;
+    
     # Get from runtime cache
     return $STAR_CACHE{$star}
         if defined $STAR_CACHE{$star};
@@ -213,6 +214,9 @@ sub get_star_cache {
 sub get_star_api {
     my ($self,$star) = @_;
     
+    return
+        unless defined $star && $star =~ m/^\d+$/;
+    
     my $star_info = $self->request(
         object  => $self->build_object('Map'),
         params  => [ $star ],
@@ -220,12 +224,16 @@ sub get_star_api {
     );
     
     my $star_data = $star_info->{star};
+    
     if (defined $star_data->{bodies}
         && scalar(@{$star_data->{bodies}}) > 0) {
         $star_data->{probed} = 1;
     } else {
         $star_data->{probed} = 0;
     }
+    
+    # Write to cache
+    $self->set_star_cache($star_data);
     
     return $star_data;
 }

@@ -57,6 +57,7 @@ sub process_planet {
     return 
         if (scalar @avaliable_probes == 0);
     
+    
     my $spaceport_object = $self->build_object($spaceport);
     
     # Get unprobed stars
@@ -160,6 +161,8 @@ sub closest_unprobed_stars {
     
     my @unprobed_stars;
     
+    $self->log('debug','Trying to find %i unprobed solar systems',$limit);
+    
     STARS:
     foreach my $star ($self->stars_by_distance($x,$y)) {
         
@@ -168,7 +171,7 @@ sub closest_unprobed_stars {
             if $self->is_probed_star($star->{id});
         
         # Check star again (might be probed in the meantime)
-        my $star_data = $self->get_star($star->{id});
+        my $star_data = $self->get_star_api($star->{id});
         
         sleep 1;
         
