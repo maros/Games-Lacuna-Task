@@ -18,6 +18,20 @@ subtype 'Lacuna::Task::Type::Food'
     => as enum([ food_types() ])
     => message { "No valid food '$_'" };
 
+subtype 'Lacuna::Task::Type::Coordinate' 
+    => as 'ArrayRef[Int]'
+    => where { scalar(@$_) == 2 }
+    => message { "Not a valid coordinate".Data::Dumper::Dumper($_); };
+
+coerce 'Lacuna::Task::Type::Coordinate' 
+    => from 'Str'
+    => via {
+        return [ split(/[;,x-]/) ];
+    };
+
+MooseX::Getopt::OptionTypeMap->add_option_type_to_map(
+    'Lacuna::Task::Type::Coordinate' => '=s'
+);
 
 #subtype 'Lacuna::Task::Type::File'
 #    => as class_type('Path::Class::File')
