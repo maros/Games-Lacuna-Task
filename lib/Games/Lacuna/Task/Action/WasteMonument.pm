@@ -40,7 +40,7 @@ sub process_planet {
     my $waste_capacity = $planet_stats->{waste_capacity};
     my $waste_filled = ($waste_stored / $waste_capacity) * 100;
     my $waste_disposeable = $self->disposeable_waste($planet_stats);
-
+    
     # Check if waste is overflowing
     return 
         if ($waste_filled < $self->dispose_percentage);
@@ -107,7 +107,12 @@ sub process_planet {
             params  => [ $planet_stats->{id}, $existing_monument->{x},$existing_monument->{y}],
         );
         
+        $build_queue_size ++;
         $waste_disposeable += $buildable_data_monument->{build}{cost}{waste};
+        
+        # Check if build queue is filled
+        return
+            if ($build_queue_size > $self->start_building_at);
     }
 }
 
