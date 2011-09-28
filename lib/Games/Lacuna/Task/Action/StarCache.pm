@@ -1,4 +1,4 @@
-package Games::Lacuna::Task::Action::BuildCache;
+package Games::Lacuna::Task::Action::StarCache;
 
 use 5.010;
 use List::Util qw(max min);
