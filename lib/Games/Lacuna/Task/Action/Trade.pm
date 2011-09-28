@@ -153,11 +153,13 @@ sub process_planet {
                 $offer->{level} //= 1;
                 $offer->{extra_build_level} //= 0;
                 $trade_identifier_part = $offer->{class}.':'.$offer->{type}.':'.$offer->{level};
-                $trade_identifier_part .= $offer->{extra_build_level}
+                $trade_identifier_part .= '+'.$offer->{extra_build_level}
                     if $offer->{extra_build_level} > 0;
             } else {
+                $offer->{type} =~ s/(I{1,3}|IV|VI?)$/_$1/;
                 $trade_identifier_part = $offer->{class}.':'.$offer->{type};
             }
+            $trade_identifier_part = lc($trade_identifier_part);
             $trade_identifier_parts{$trade_identifier_part} = $offer->{quantity};
         }
         
@@ -332,7 +334,7 @@ sub _trade_serialize_response {
                     $moniker =~ s/\s+/_/g;
                     $quantity = 1;
                 }
-                when (/^(?<type>[[:alpha:][:space:]]+)\s\((?<level>.+)\)\splan$/) {
+                when (/^(?<type>[[:alpha:][:space:]]+)\s\((?<level>[^\)]+)\)\splan$/) {
                     $moniker = 'plan:'.lc($+{type}).':'.$+{level};
                     $quantity = 1;
                 }
