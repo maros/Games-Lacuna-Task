@@ -136,9 +136,9 @@ sub check_for_destroyed_probes {
                 
                 push(@archive_messages,$message->{id});
             }
-            when ('Probe Detected!') {
-                push(@archive_messages,$message->{id});
-            }
+#            when ('Probe Detected!') {
+#                push(@archive_messages,$message->{id});
+#            }
         }
     }
     
