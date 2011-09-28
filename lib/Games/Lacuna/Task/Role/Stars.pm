@@ -258,12 +258,12 @@ sub set_star_cache {
 }
 
 sub stars_by_distance {
-    my ($self,$x,$y,$inverse) = @_;
+    my ($self,$x,$y,$distance) = @_;
     
     return 
         unless defined $x && defined $y;
     
-    $inverse //= 0;
+    $distance //= 0;
     
     my $stars = $self->stars;
     
@@ -275,7 +275,8 @@ sub stars_by_distance {
     
     return 
         map { $_->[1] } 
-        sort { $inverse ? ($b->[0] <=> $a->[0]):($a->[0] <=> $b->[0]) } 
+        grep { $_->[0] > $distance }
+        sort { $a->[0] <=> $b->[0] } 
         @star_distance;
 }
 
@@ -327,9 +328,11 @@ Check if a star is probed or not
 
 =head2 stars_by_distance
 
- my @stars = $self->stars_by_distance($x,$y,$inverse)
+ my @stars = $self->stars_by_distance($x,$y,$min_distance)
 
-Returns a list of stars ordered by distance to the given point
+Returns a list of stars ordered by distance to the given point. Optionally
+$min_distance can be added to include only stars with at least the given 
+distance.
 
 =head2 find_star_by_xy
 

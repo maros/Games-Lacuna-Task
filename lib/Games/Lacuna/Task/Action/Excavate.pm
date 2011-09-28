@@ -11,8 +11,15 @@ with qw(Games::Lacuna::Task::Role::Stars
 has 'excavator_count' => (
     isa             => 'Int',
     is              => 'rw',
-    documentation   => 'Defines how many excavators should be dispatched simulaneously',
-    default         => -5,
+    documentation   => 'Number of excavators that should be dispatched simulaneously',
+    default         => -4,
+);
+
+has 'min_distance' => (
+    isa             => 'Int',
+    is              => 'rw',
+    documentation   => 'Min solar system distance',
+    default         => 600,
 );
 
 use Try::Tiny;
@@ -62,7 +69,7 @@ sub process_planet {
     
     # Get probed stars
     STARS:
-    foreach my $star ($self->stars_by_distance($planet_stats->{x},$planet_stats->{y},1)) {
+    foreach my $star ($self->stars_by_distance($planet_stats->{x},$planet_stats->{y})) {
         # Check if star known to be unprobed
         next STARS
             unless $self->is_probed_star($star->{id});
@@ -70,22 +77,26 @@ sub process_planet {
         # Get star info
         my $star_info = $self->get_star($star->{id});
         
-        sleep 1;
-        
         # Loop all bodies
         foreach my $body (@{$star_info->{bodies}}) {
-            # Do not excavate habited solar system as excavators will be shot down
+            # Do not excavate inhabited solar system to avid SAWs
             next STARS
-                if defined $body->{empire} && $body->{type} eq 'habitable planet';
+                if defined $body->{empire} 
+                && $body->{type} eq 'habitable planet'
+                && $body->{empire}{alignment} =~ /^hostile/;
         }
-
+        
         # Loop all bodies again
         BODIES:
         foreach my $body (@{$star_info->{bodies}}) {
             # Only excavate habitable planets
             next BODIES
                 unless $body->{type} eq 'habitable planet';
-
+            
+            #  Do not excavate inhabited body
+            next BODIES
+                if defined $body->{empire};
+            
             # Do not excavate body that has been excavated in past 30 days
             next BODIES
                 if defined $excavate_cache->{$body->{id}}
