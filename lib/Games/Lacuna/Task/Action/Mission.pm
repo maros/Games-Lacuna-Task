@@ -26,8 +26,6 @@ sub process_planet {
     
     my $timestamp = DateTime->now->set_time_zone('UTC');
     
-    warn $self->missions;
-    
     # Get mission command
     my ($missioncommand) = $self->find_building($planet_stats->{id},'MissionCommand');
     return
