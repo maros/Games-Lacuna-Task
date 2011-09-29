@@ -12,11 +12,11 @@ sub check_stored {
         when ([qw(waste water ore food energy)]) {
             return $planet_stats->{$_.'_stored'};
         }
-        when ([ ore_types ]) {
+        when ([ ore_types() ]) {
             my $ores = $self->ore_stored($planet_stats->{id});
             return $ores->{$_}
         }
-        when ([ food_types ]) {
+        when ([ food_types() ]) {
             my $foods = $self->food_stored($planet_stats->{id});
             return $foods->{$_}
         }
@@ -115,8 +115,18 @@ Games::Lacuna::Task::Role::Storage - Storage helper methods
     
 =head1 DESCRIPTION
 
-TODO
+This role provides helper method to query storage buildings.
 
 =head1 METHODS
+
+=head2 check_stored
+
+=head2 food_stored
+
+=head2 ore_stored
+
+=head2 plans_stored
+
+=head2 resource_stored
 
 =cut
