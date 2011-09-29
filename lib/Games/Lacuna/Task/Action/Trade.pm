@@ -11,7 +11,6 @@ has 'trades' => (
     is              => 'rw',
     isa             => 'HashRef',
     required        => 1,
-    default         => sub { {} },
     documentation   => 'Automatic trades per planet',
 );
 
