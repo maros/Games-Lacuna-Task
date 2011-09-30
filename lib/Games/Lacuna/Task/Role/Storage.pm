@@ -46,6 +46,9 @@ sub check_stored {
 sub plans_stored {
     my ($self,$planet_id) = @_;
     
+    $planet_id = $planet_id->{id}
+        if ref($planet_id) eq 'HASH';
+    
     my $cache_key = 'body/'.$planet_id.'/plans';
     
     my $plans = $self->lookup_cache($cache_key);
@@ -72,16 +75,19 @@ sub plans_stored {
 
 sub ore_stored {
     my ($self,$planet_id) = @_;
-    $self->resource_stored($planet_id,'ore','OreStorage');
+    $self->_resource_stored($planet_id,'ore','OreStorage');
 }
 
 sub food_stored {
     my ($self,$planet_id) = @_;
-    $self->resource_stored($planet_id,'food','FoodReserve');
+    $self->_resource_stored($planet_id,'food','FoodReserve');
 }
 
-sub resource_stored {
+sub _resource_stored {
     my ($self,$planet_id,$resource,$building_name) = @_;
+    
+    $planet_id = $planet_id->{id}
+        if ref($planet_id) eq 'HASH';
     
     my $cache_key = 'body/'.$planet_id.'/storage/'.$resource;
     
