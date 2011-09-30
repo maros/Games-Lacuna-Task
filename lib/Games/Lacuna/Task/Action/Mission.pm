@@ -42,11 +42,11 @@ sub process_planet {
     
     MISSIONS:
     foreach my $mission (@{$mission_data->{missions}}) {
-        my $objectives = $self->parse_mission($mission->{objectives});
         next MISSIONS
             unless $mission->{name} ~~ $self->missions;
         
-        next MISSIONS;
+        my $objectives = $self->parse_mission($mission->{objectives});
+        
         # Check if we have the required resources
         my @used_plans;
         foreach my $objective (@{$objectives}) {
@@ -67,6 +67,7 @@ sub process_planet {
                         push (@used_plans,$plan);
                         $found_plan ++;
                     }
+                    
                     next MISSIONS
                         unless $found_plan;
                 }
@@ -103,17 +104,20 @@ sub process_planet {
                 params  => [$mission->{id}],
             );
             $planet_stats = $response->{status}{body};
+            return 1;
         } catch {
             my $error = $_;
-            if (blessed($error)
-                && $error->isa('LacunaRPCException')) {
-                if ($error->code == 1013) {
-                    $self->log('debug',"Could not complete mission %s: %s",$mission->{name},$error->message);
+            if (defined $error) {
+                if (blessed($error)
+                    && $error->isa('LacunaRPCException')) {
+                    if ($error->code == 1013) {
+                        $self->log('debug',"Could not complete mission %s: %s",$mission->{name},$error->message);
+                    } else {
+                        $error->rethrow();
+                    }    
                 } else {
-                    $error->rethrow();
-                }    
-            } else {
-                die($error);
+                    die($error);
+                }
             }
         };
     }
