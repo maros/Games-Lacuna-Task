@@ -54,6 +54,12 @@ Accessors should have a documentation string and meaningfull defaults. You
 can add the 'NoIntrospection' trait if you do not want to display an
 accessor in the task info.
 
+Optionall you can set the 'NoAutomatic' trait, indication that this task
+should not be run automatically/unatented but requires som sort of
+extra input or human interaction.
+
+ use Moose -traits => 'NoAutomatic';
+
 In your task class you have access to various helper methods that are provided
 by several roles:
 
@@ -78,9 +84,21 @@ Helper methods for working with the star map.
 
 Helper methods for fetching and building ships.
 
+=head2 Games::Lacuna::Task::Role::Intelligence
+
+Helper methods for working with spies.
+
 =head2 Games::Lacuna::Task::Role::Notify
 
-Helper methods for sending notification e-mails to the user.
+Helper methods for sending notification e-mails.
+
+=head2 Games::Lacuna::Task::Role::Storage
+
+Helper methods for querying the storage
+
+=head2 Games::Lacuna::Task::Role::Waste
+
+Helper methods for handling waste
 
 =head2 Games::Lacuna::Task::Role::Building
 
@@ -89,8 +107,6 @@ Helper methods for handling buildings.
 =head2 Games::Lacuna::Task::Role::CommonAttributes
 
 Role providing common attributes used by multiple actions.
-
-=end
 
 Tasks can also be called/embedded/executed directly
 

@@ -144,14 +144,42 @@ This role provides helper method to query storage buildings.
 
 =head1 METHODS
 
+=head2 resource_type
+
+ my $type = $self->resource_type('magnetite');
+ # $type now is 'ore'
+
+Returns the type of the requested resource
+
 =head2 check_stored
+
+ my $quantity1 = $self->resource_type($planet_stats,'magnetite');
+ my $quantity2 = $self->resource_type($planet_stats,'water');
+
+Returns the stored quantity for the given resource
 
 =head2 food_stored
 
+ $self->food_stored($planet_id);
+
+Returns a hashref of all stored foods
+
 =head2 ore_stored
+
+ $self->ore_stored($planet_id);
+
+Returns a hashref of all stored ores
 
 =head2 plans_stored
 
-=head2 resource_stored
+ $self->ore_stored($planet_id);
+
+Returns an arrayref of all stored plans
+
+=head2 _resource_stored
+
+ $self->_resource_stored($planet_id,'ore','OreStorage');
+
+Helper method to query storage building for details.
 
 =cut
