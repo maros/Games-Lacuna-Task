@@ -53,6 +53,8 @@ sub my_planets {
     foreach my $body_id ($self->my_bodies) {
         my $body_status = $self->my_body_status($body_id);
         next
+            unless defined $body_status;
+        next
             unless $body_status->{type} eq 'habitable planet';
         push(@planets,$body_status);
     }
