@@ -5,12 +5,31 @@ use Moose::Role;
 
 use Games::Lacuna::Client::Types qw(ore_types food_types);
 
+sub resource_type {
+    my ($self,$type) = @_;
+    
+    given ($type) {
+        when ([qw(waste water ore food energy happiness)]) {
+            return $_;
+        }
+        when ([ ore_types() ]) {
+            return 'ore'
+        }
+        when ([ food_types() ]) {
+            return 'food'
+        }
+    }
+}
+
 sub check_stored {
     my ($self,$planet_stats,$resource) = @_;
     
     given ($resource) {
         when ([qw(waste water ore food energy)]) {
             return $planet_stats->{$_.'_stored'};
+        }
+        when ('happiness') {
+            return $planet_stats->{$_};
         }
         when ([ ore_types() ]) {
             my $ores = $self->ore_stored($planet_stats->{id});
