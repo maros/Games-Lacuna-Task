@@ -56,9 +56,6 @@ sub report_inbox {
                 unless $message->{from_id} == $message->{to_id};
             my $subject = $message->{subject};
             
-            $counter{$subject} ||= 0;
-            $counter{$subject} ++;
-            
             if ($subject =~ $self->delete) {
                 push(@delete,$message->{id});
                 $action{$subject} = 'delete';
@@ -70,6 +67,9 @@ sub report_inbox {
                     if $message->{has_read};
                 $action{$subject} = 'keep';
             }
+            
+            $counter{$subject} ||= 0;
+            $counter{$subject} ++;
         }
         
         $page --;
