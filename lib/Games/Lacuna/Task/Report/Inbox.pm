@@ -66,6 +66,8 @@ sub report_inbox {
                 push(@archive,$message->{id});
                 $action{$subject} = 'archive';
             } else {
+                next MESSAGES
+                    if $message->{has_read};
                 $action{$subject} = 'keep';
             }
         }
