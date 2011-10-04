@@ -25,7 +25,8 @@ has 'delete' => (
             Mining \s Platform \s Deployed | 
             Excavator \s Uncovered \s Plan |
             Control \s Changed \s Hands |
-            Probe \s Detected!
+            Probe \s Detected! |
+            Trade \s Withdrawn
         ) $/x;
     },
 );
