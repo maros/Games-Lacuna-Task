@@ -16,13 +16,11 @@ sub ships {
         unless $type;
     
     # Convert human name
-    if ($type =~ m/[A-Z ]/) {
-        $type = lc($type);
-        $type =~ s/\s(v)$/5/;
-        $type =~ s/\s(iv)$/4/;
-        $type =~ s/\s(i{1,3})$/length($1)/e;
-        $type =~ s/\s+/_/g;
-    }
+    $type = lc($type);
+    $type =~ s/[_ ]\s(v)$/5/;
+    $type =~ s/[_ ]\s(iv)$/4/;
+    $type =~ s/[_ ](i{1,3})$/length($1)/e;
+    #$type =~ s/_//g;
     
     # Get space port
     my @spaceports = $self->find_building($planet_stats->{id},'SpacePort');
@@ -107,6 +105,11 @@ sub ships {
                 # Check available docks
                 last SHIPYARDS
                     if $buildable_ships->{docks_available} == 0;
+                
+                unless (defined $buildable_ships->{buildable}{$type}) {
+                    $self->log('warn',"Invalid ship type %s",$type);
+                    last SHIPYARDS;
+                }
                 
                 # Check if type can be built
                 last SHIPYARDS
