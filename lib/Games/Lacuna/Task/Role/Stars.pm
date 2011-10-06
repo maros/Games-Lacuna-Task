@@ -258,12 +258,10 @@ sub set_star_cache {
 }
 
 sub stars_by_distance {
-    my ($self,$x,$y,$distance) = @_;
+    my ($self,$x,$y,$callback) = @_;
     
     return 
         unless defined $x && defined $y;
-    
-    $distance //= 0;
     
     my $stars = $self->stars;
     
@@ -273,11 +271,16 @@ sub stars_by_distance {
         push(@star_distance,[$dist,$star]);
     }
     
-    return 
-        map { $_->[1] } 
-        grep { $_->[0] > $distance }
-        sort { $a->[0] <=> $b->[0] } 
-        @star_distance;
+    my @return;
+    foreach my $star (sort { $a->[0] <=> $b->[0] } @star_distance) {
+        if (defined $callback) {
+            next
+                unless $callback->($star->[1],$star->[0]);
+        }
+        push(@return,$star->[1])
+    }
+    
+    return @return;
 }
 
 no Moose::Role;
@@ -328,11 +331,10 @@ Check if a star is probed or not
 
 =head2 stars_by_distance
 
- my @stars = $self->stars_by_distance($x,$y,$min_distance)
+ my @stars = $self->stars_by_distance($x,$y,$callback)
 
 Returns a list of stars ordered by distance to the given point. Optionally
-$min_distance can be added to include only stars with at least the given 
-distance.
+$callback can be added to filter the star list.
 
 =head2 find_star_by_xy
 
