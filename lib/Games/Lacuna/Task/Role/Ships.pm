@@ -3,6 +3,8 @@ package Games::Lacuna::Task::Role::Ships;
 use 5.010;
 use Moose::Role;
 
+use Games::Lacuna::Task::Utils qw(parse_ship_type);
+
 sub ships {
     my ($self,%params) = @_;
     
@@ -16,11 +18,7 @@ sub ships {
         unless $type;
     
     # Convert human name
-    $type = lc($type);
-    $type =~ s/[_ ]\s(v)$/5/;
-    $type =~ s/[_ ]\s(iv)$/4/;
-    $type =~ s/[_ ](i{1,3})$/length($1)/e;
-    #$type =~ s/_//g;
+    $type = parse_ship_type($type);
     
     # Get space port
     my @spaceports = $self->find_building($planet_stats->{id},'SpacePort');

@@ -7,7 +7,14 @@ use Unicode::Normalize qw(decompose);
 use Scalar::Util qw(blessed);
 
 use base qw(Exporter);
-our @EXPORT_OK = qw(class_to_name name_to_class normalize_name distance pretty_dump); 
+our @EXPORT_OK = qw(
+    class_to_name
+    name_to_class
+    normalize_name
+    distance 
+    pretty_dump
+    parse_ship_type
+); 
 
 sub class_to_name {
     my ($class) = @_;
@@ -24,7 +31,7 @@ sub name_to_class {
     my ($name) = @_;
     
     my @parts = map { ucfirst(lc($_)) } 
-        split (/_/,$name);
+        split (/[_ ]/,$name);
     
     my $class = 'Games::Lacuna::Task::Action::'.join ('',@parts);
     
@@ -57,6 +64,20 @@ sub pretty_dump {
     chomp($dump);
     $dump =~ s/^\$VAR1\s=\s(.+);$/$1/s;
     return $dump;
+}
+
+sub parse_ship_type {
+    my ($name) = @_;
+    
+    $name = lc($name);
+    $name =~ s/\s+/_/g;
+    $name =~ s/(vi)$/6/i;
+    $name =~ s/(iv)$/4/i;
+    $name =~ s/(v)$/5/i;
+    $name =~ s/(i{1,3})$/length($1)/ei;
+    $name =~ s/_([1-6])$/$1/;
+    
+    return $name;
 }
 
 1;

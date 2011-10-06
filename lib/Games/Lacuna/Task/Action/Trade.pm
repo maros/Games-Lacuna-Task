@@ -7,6 +7,8 @@ extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Ships
     Games::Lacuna::Task::Role::PlanetRun);
 
+use Games::Lacuna::Task::Utils qw(parse_ship_type);
+
 has 'trades' => (
     is              => 'rw',
     isa             => 'HashRef',
@@ -154,9 +156,10 @@ sub process_planet {
                 $trade_identifier_part = $offer->{class}.':'.$offer->{type}.':'.$offer->{level};
                 $trade_identifier_part .= '+'.$offer->{extra_build_level}
                     if $offer->{extra_build_level} > 0;
+            } elsif ($offer->{class} eq 'ship') {
+                $trade_identifier_part = $offer->{class}.':'.parse_ship_type($offer->{type});
             } else {
-                $offer->{type} =~ s/(I{1,3}|IV|VI?)$/_$1/;
-                $trade_identifier_part = $offer->{class}.':'.$offer->{type};
+                $trade_identifier_part = $offer->{class}.':'.lc($offer->{type});
             }
             $trade_identifier_part = lc($trade_identifier_part);
             $trade_identifier_parts{$trade_identifier_part} = $offer->{quantity};
@@ -329,8 +332,7 @@ sub _trade_serialize_response {
                     $quantity = 1;
                 }
                 when (/^(?<type>[[:alpha:][:space:]]+)\s\(.+\)$/) {
-                    $moniker = 'ship:'.lc($+{type});
-                    $moniker =~ s/\s+/_/g;
+                    $moniker = 'ship:'.parse_ship_type($+{type});
                     $quantity = 1;
                 }
                 when (/^(?<type>[[:alpha:][:space:]]+)\s\((?<level>[^\)]+)\)\splan$/) {
