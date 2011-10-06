@@ -67,9 +67,16 @@ sub process_planet {
     
     $self->log('debug','%i excavators available at %s',(scalar @avaliable_excavators),$planet_stats->{name});
     
+    my $callback = sub {
+        my ($star,$distance) = @_;
+        return 0
+            if $distance < $self->min_distance;
+        return 1;
+    };
+    
     # Get probed stars
     STARS:
-    foreach my $star ($self->stars_by_distance($planet_stats->{x},$planet_stats->{y})) {
+    foreach my $star ($self->stars_by_distance($planet_stats->{x},$planet_stats->{y},$callback)) {
         # Check if star known to be unprobed
         next STARS
             unless $self->is_probed_star($star->{id});
@@ -79,6 +86,7 @@ sub process_planet {
         
         # Loop all bodies
         foreach my $body (@{$star_info->{bodies}}) {
+            
             # Do not excavate inhabited solar system to avid SAWs
             next STARS
                 if defined $body->{empire} 
@@ -89,6 +97,7 @@ sub process_planet {
         # Loop all bodies again
         BODIES:
         foreach my $body (@{$star_info->{bodies}}) {
+            
             # Only excavate habitable planets
             next BODIES
                 unless $body->{type} eq 'habitable planet';
