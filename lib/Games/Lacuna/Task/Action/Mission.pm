@@ -2,13 +2,12 @@ package Games::Lacuna::Task::Action::Mission;
 
 use 5.010;
 
-use Moose -traits => 'NoAutomatic';
+use Moosed;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun
     Games::Lacuna::Task::Role::Storage);
 
 use Games::Lacuna::Client::Types qw(ore_types food_types);
-use YAML::Any qw(LoadFile);
 
 sub description {
     return q[Automatically accept missions];
