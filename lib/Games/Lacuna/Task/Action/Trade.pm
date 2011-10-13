@@ -281,7 +281,7 @@ sub process_planet {
             )->{ships};
             
             TRADE_SHIP:
-            foreach my $ship (sort { $a->{hold_size} <=> $b->{hold_size} } @{$trade_ships}) {
+            foreach my $ship (sort { $b->{speed} <=> $a->{speed} } @{$trade_ships}) {
                 next TRADE_SHIP
                     if $ship->{hold_size} < $trade_cargo;
                 next TRADE_SHIP
