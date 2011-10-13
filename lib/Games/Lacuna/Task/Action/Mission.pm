@@ -2,7 +2,7 @@ package Games::Lacuna::Task::Action::Mission;
 
 use 5.010;
 
-use Moosed;
+use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun
     Games::Lacuna::Task::Role::Storage);
