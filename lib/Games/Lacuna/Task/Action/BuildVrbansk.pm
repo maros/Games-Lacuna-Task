@@ -72,7 +72,7 @@ sub run {
         );
     }
     
-    $self->clear_cache('body/'.$planet_stats->{id}.'/buildings');
+    $self->clear_cache('body/'.$planet_home->{id}.'/buildings');
 }
 
 __PACKAGE__->meta->make_immutable;
