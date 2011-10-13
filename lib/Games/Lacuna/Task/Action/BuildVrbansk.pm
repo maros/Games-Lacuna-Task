@@ -71,6 +71,8 @@ sub run {
             params  => [ $planet_home->{id}, $buildable_spot->[0],$buildable_spot->[1]],
         );
     }
+    
+    $self->clear_cache('body/'.$planet_stats->{id}.'/buildings');
 }
 
 __PACKAGE__->meta->make_immutable;
