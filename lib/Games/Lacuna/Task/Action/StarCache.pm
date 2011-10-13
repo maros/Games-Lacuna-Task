@@ -22,10 +22,18 @@ has 'coordinate' => (
     lazy_build  => 1,
 );
 
+has 'skip' => (
+    is          => 'ro',
+    isa         => 'Int',
+    default     => 1,
+    documentation=> q[Skip firt N-queries],
+);
+
 has 'count' => (
     is          => 'ro',
     isa         => 'Int',
     default     => 20,
+    documentation=> q[Number of queries to be cached],
 );
 
 sub _build_coordinate {
@@ -50,9 +58,11 @@ sub run {
     for my $round (2..$self->count) {
         $pos[$_] += $vector[$_] for (0..1);
         $segment_passed++;
-    
-        $self->get_star_area(@pos);
-    
+        
+        if ($round > $self->skip) {
+            $self->get_star_area(@pos);
+        }
+        
         if ($segment_passed == $segment_length) {
             $segment_passed = 0;
             my $buffer = $vector[0];
