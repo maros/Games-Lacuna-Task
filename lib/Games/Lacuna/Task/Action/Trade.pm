@@ -284,6 +284,8 @@ sub process_planet {
             foreach my $ship (sort { $a->{hold_size} <=> $b->{hold_size} } @{$trade_ships}) {
                 next TRADE_SHIP
                     if $ship->{hold_size} < $trade_cargo;
+                next TRADE_SHIP
+                    if $ship->{name} =~ m/!/;
                 $trade_ship_id = $ship->{id};
                 last TRADE_SHIP; 
             }
