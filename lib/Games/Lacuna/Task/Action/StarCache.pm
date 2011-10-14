@@ -53,8 +53,9 @@ sub run {
     my $segment_length = 1;
     my $segment_passed = 0;
     
-    $self->get_star_area(0,0);
-    
+    if ($self->skip <= 1) {
+        $self->get_star_area(0,0);
+    }
     for my $round (2..$self->count) {
         $pos[$_] += $vector[$_] for (0..1);
         $segment_passed++;
