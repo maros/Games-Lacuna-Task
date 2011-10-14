@@ -147,16 +147,17 @@ sub process_planet {
                 };
             }
             
-            # Write to local cache
-            $self->write_cache(
-                key     => $excavate_cache_key,
-                value   => $excavate_cache,
-                max_age => (60*60*24*30), # Cache for 1 month
-            );
-            
-            last STARS
+            last BODIES
                 if scalar(@avaliable_excavators) == 0;
         }
+        
+        # Write to local cache
+        $self->write_cache(
+            key     => $excavate_cache_key,
+            value   => $excavate_cache,
+            max_age => (60*60*24*30), # Cache for 1 month
+        );
+        
         last STARS
             if scalar(@avaliable_excavators) == 0;
     }
