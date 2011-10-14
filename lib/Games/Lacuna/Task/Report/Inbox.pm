@@ -38,6 +38,7 @@ sub report_inbox {
     my $empire_status = $self->empire_status;
     
     my $page = int( $empire_status->{has_new_messages} / 25 ) + ( $empire_status->{has_new_messages} % 25 ? 1:0);
+    $page //= 1;
     
     my (@archive,@delete,%counter,%action);
     
