@@ -12,7 +12,7 @@ with 'Games::Lacuna::Task::Role::Waste',
 our @RESOURCES_RECYCLEABLE = qw(water ore energy);
 
 sub description {
-    return q[This task automates the recycling of waste in the Waste Recycling Center];
+    return q[This task automates the recycling of waste in the Waste Recycling Center and Waste Exchanger];
 }
 
 sub process_planet {

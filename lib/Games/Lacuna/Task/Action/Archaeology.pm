@@ -10,7 +10,7 @@ extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun);
 
 sub description {
-    return q[This task automates the search for glyphs];
+    return q[This task automates the search for glyphs via Archaeology Ministry];
 }
 
 sub all_glyphs {

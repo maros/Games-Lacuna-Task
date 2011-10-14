@@ -37,7 +37,7 @@ has 'reject_proposition' => (
 );
 
 sub description {
-    return q[Parliament vote automation];
+    return q[This task automates parliament voting];
 }
 
 sub run {

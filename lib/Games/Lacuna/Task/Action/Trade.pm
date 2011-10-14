@@ -81,7 +81,7 @@ trade:
 =cut
 
 sub description {
-    return q[Set up automatic trades];
+    return q[This task automates the setup of trades via Trade Ministry];
 }
 
 sub process_planet {

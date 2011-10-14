@@ -8,7 +8,7 @@ extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Stars);
 
 sub description {
-    return q[This task builds a star cache];
+    return q[This task builds a star cache and can help to reduce the number of api calls made by various tasks];
 }
 
 our $MAX_SIZE = 30;

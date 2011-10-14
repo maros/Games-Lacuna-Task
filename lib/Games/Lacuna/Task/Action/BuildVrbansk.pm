@@ -18,7 +18,7 @@ has 'count' => (
 );
 
 sub description {
-    return q[Build halls of vrbansk];
+    return q[Build halls of vrbansk on a given planet];
 }
 
 sub run {
