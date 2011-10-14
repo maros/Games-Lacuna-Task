@@ -6,7 +6,8 @@ use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Stars
     Games::Lacuna::Task::Role::Ships
-    Games::Lacuna::Task::Role::PlanetRun);
+    Games::Lacuna::Task::Role::PlanetRun
+    Games::Lacuna::Task::Role::RPCLimit);
 
 sub description {
     return q[This task automates probing of stars];
