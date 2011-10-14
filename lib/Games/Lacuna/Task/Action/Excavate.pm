@@ -77,15 +77,16 @@ sub process_planet {
     # Get probed stars
     STARS:
     foreach my $star ($self->stars_by_distance($planet_stats->{x},$planet_stats->{y},$callback)) {
-        # Check if star known to be unprobed
-        next STARS
-            unless $self->is_probed_star($star->{id});
-        
         # Get star info
-        my $star_info = $self->get_star($star->{id});
+        my $star_data = $self->get_star($star->{id});
+        
+        # Check star bodies
+        next STARS
+            unless defined $star_data->{bodies}
+            && scalar @{$star_data->{bodies}} > 0;;
         
         # Loop all bodies
-        foreach my $body (@{$star_info->{bodies}}) {
+        foreach my $body (@{$star_data->{bodies}}) {
             
             # Do not excavate inhabited solar system to avid SAWs
             next STARS
@@ -96,7 +97,7 @@ sub process_planet {
         
         # Loop all bodies again
         BODIES:
-        foreach my $body (@{$star_info->{bodies}}) {
+        foreach my $body (@{$star_data->{bodies}}) {
             
             # Only excavate habitable planets
             next BODIES
@@ -116,6 +117,8 @@ sub process_planet {
             if (defined $excavator) {
                 
                 try {
+                    $self->log('notice',"Sending excavator from %s to %s",$planet_stats->{name},$body->{name});
+                    
                     # Send excavator to body
                     my $response = $self->request(
                         object  => $spaceport_object,
@@ -123,14 +126,14 @@ sub process_planet {
                         params  => [ $excavator,{ "body_id" => $body->{id} } ],
                     );
                     
-                    $self->log('notice',"Sending excavator from %s to %s",$planet_stats->{name},$body->{name});
+                    $excavate_cache->{$body} = $timestamp;
                 } catch {
                     my $error = $_;
                     if (blessed($error)
                         && $error->isa('LacunaRPCException')) {
                         if ($error->code == 1010) {
                             $excavate_cache->{$body} = $timestamp;
-                            $self->log('debug',"Could not excavate %s since it was excavated in the last 30 days",$body->{name});
+                            $self->log('debug',"Could not send excavator to %s since it was excavated in the last 30 days",$body->{name});
                             push(@avaliable_excavators,$excavator);
                         } else {
                             $error->rethrow();
@@ -139,10 +142,8 @@ sub process_planet {
                         die($error);
                     }
                 };
-
-                $excavate_cache->{$body} = $timestamp;
             }
-
+            
             last STARS
                 if scalar(@avaliable_excavators) == 0;
         }
