@@ -62,10 +62,6 @@ sub process_planet {
     return
         unless (scalar @avaliable_excavators);
     
-    # Get excavator cache
-    my $excavate_cache_key = 'excavate/'.$planet_stats->{id};
-    my $excavate_cache = $self->lookup_cache($excavate_cache_key) || {};
-    
     $self->log('debug','%i excavators available at %s',(scalar @avaliable_excavators),$planet_stats->{name});
     
     my $callback = sub {
@@ -96,9 +92,14 @@ sub process_planet {
                 && $body->{empire}{alignment} =~ /^hostile/;
         }
         
+        # Get excavator cache
+        my $excavate_cache_key = 'excavate/'.$star->{id};
+        my $excavate_cache = $self->lookup_cache($excavate_cache_key) || {};
+        
         # Loop all bodies again
         BODIES:
         foreach my $body (@{$star_data->{bodies}}) {
+            my $body_id = $body->{id};
             
             # Only excavate habitable planets
             next BODIES
@@ -110,8 +111,8 @@ sub process_planet {
             
             # Do not excavate body that has been excavated in past 30 days
             next BODIES
-                if defined $excavate_cache->{$body->{id}}
-                && $excavate_cache->{$body->{id}} >= $max_age;
+                if defined $excavate_cache->{$body_id}
+                && $excavate_cache->{$body_id} >= $max_age;
             
             my $excavator = pop(@avaliable_excavators);
             
@@ -124,16 +125,16 @@ sub process_planet {
                     my $response = $self->request(
                         object  => $spaceport_object,
                         method  => 'send_ship',
-                        params  => [ $excavator,{ "body_id" => $body->{id} } ],
+                        params  => [ $excavator,{ "body_id" => $body_id } ],
                     );
                     
-                    $excavate_cache->{$body} = $timestamp;
+                    $excavate_cache->{$body_id} = $timestamp;
                 } catch {
                     my $error = $_;
                     if (blessed($error)
                         && $error->isa('LacunaRPCException')) {
                         if ($error->code == 1010) {
-                            $excavate_cache->{$body} = $timestamp;
+                            $excavate_cache->{$body_id} = $timestamp;
                             $self->log('debug',"Could not send excavator to %s since it was excavated in the last 30 days",$body->{name});
                             push(@avaliable_excavators,$excavator);
                         } else {
@@ -145,6 +146,13 @@ sub process_planet {
                 };
             }
             
+            # Write to local cache
+            $self->write_cache(
+                key     => $excavate_cache_key,
+                value   => $excavate_cache,
+                max_age => (60*60*24*30), # Cache for 1 month
+            );
+            
             last STARS
                 if scalar(@avaliable_excavators) == 0;
         }
@@ -152,12 +160,7 @@ sub process_planet {
             if scalar(@avaliable_excavators) == 0;
     }
     
-    # Write to local cache
-    $self->write_cache(
-        key     => $excavate_cache_key,
-        value   => $excavate_cache,
-        max_age => (60*60*24*30*6), # Cache for 6 months
-    );
+
 }
 
 1;
