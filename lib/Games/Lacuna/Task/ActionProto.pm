@@ -79,28 +79,62 @@ sub print_usage {
     foreach my $class ($self->all_actions()) {
         my $command = class_to_name($class);
         Class::MOP::load_class($class);
-        push(@commands,[$command,$class->description]);
+        my $meta = $class->meta;
+        my $description = $class->description;
+        my $no_automatic = $meta->can('no_automatic') ? $meta->no_automatic : 0;
+        $description .= " [Manual]"
+            if $no_automatic;
+        push(@commands,[$command,$description]);
     }
     
-    my $max_length = max(map { length($_->[0]) } @commands);
+    my @attributes;
+    my $meta = $self->meta;
+    foreach my $attribute ($meta->get_all_attributes) {
+        next
+            if $attribute->does('NoGetopt');
+        push(@attributes,['--'.$attribute->name,$attribute->documentation]);
+    }
+    
+    my $global_options = _format_list(@attributes);
+    my $available_commands = _format_list(@commands);
+    
+    say <<USAGE;
+usage: 
+    $caller command [long options...]
+    $caller help
+    $caller command  --help
+
+global options:
+$global_options
+
+available commands:
+$available_commands
+USAGE
+}
+
+sub _format_list {
+    my (@list) = @_;
+    
+    my $max_length = max(map { length($_->[0]) } @list);
     my $description_length = $Games::Lacuna::Task::Constants::WIDTH - $max_length - 7;
     my $prefix_length = $max_length + 5 + 1;
+    my @return;
     
-    say "usage: $caller command [long options...]";
-    say "help: $caller command --help";
-    say "available commands:";
-    foreach my $command (@commands) {
-        my @lines = $self->_split_string($description_length,$command->[1]);
-        say sprintf('    %-*s  %s',$max_length,$command->[0],shift(@lines));
+    foreach my $command (@list) {
+        my $description = $command->[1];
+        $description .= " [Manual]"
+            if $command->[2];
+        my @lines = _split_string($description_length,$description);
+        push (@return,sprintf('    %-*s  %s',$max_length,$command->[0],shift(@lines)));
         while (my $line = shift (@lines)) {
-            say ' 'x $prefix_length.$line;
+            push(@return,' 'x $prefix_length.$line);
         }
     }
-    
+    return join("\n",@return);
 }
 
 sub _split_string {
-    my ($self, $maxlength, $string) = @_;
+    my ($maxlength, $string) = @_;
     
     return $string 
         if length $string <= $maxlength;
