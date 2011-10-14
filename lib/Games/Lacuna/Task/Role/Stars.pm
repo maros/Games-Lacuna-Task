@@ -241,20 +241,29 @@ sub get_star_api {
 sub set_star_cache {
     my ($self,$star_data) = @_;
     
-    my $star = $star_data->{id};
+    my $star_id = $star_data->{id};
     
     return
-        unless defined $star;
+        unless defined $star_id;
+    
+    # Keep body information from previous caches
+    unless (defined $star_data->{bodies}
+        && scalar(@{$star_data->{bodies}}) > 0) {
+        my $star_cache = $self->get_star_cache($star_id);
+        $star_data->{bodies} = $star_cache->{bodies}
+            if defined $star_cache->{bodies}
+            && scalar(@{$star_data->{bodies}}) > 0;
+    }
     
     # Write to local cache
     $self->write_cache(
-        key     => 'stars/'.$star,
+        key     => 'stars/'.$star_id,
         value   => $star_data,
         max_age => (60*60*24*7*8), # Cache eight weeks
     );
     
     # Write to runtime cache
-    $STAR_CACHE{$star} = $star_data;
+    $STAR_CACHE{$star_id} = $star_data;
 }
 
 sub stars_by_distance {

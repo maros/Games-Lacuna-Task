@@ -122,17 +122,9 @@ sub check_for_destroyed_probes {
                     unless $message_data->{message}{body} =~ m/{Empire\s(?<empire_id>\d+)\s(?<empire_name>[^}]+)}/;
                 
                 $self->log('warn','A probe in the %s system was destroyed by %s',$star_name,$+{empire_name});
-
-                # Get star data from api and check if solar system is probed
-                my $star_data = $self->get_star_api($star_id);
                 
-                if ($star_data->{probed} == 0) {
-                    $star_data = $self->get_star_cache($star_id);
-                    $star_data->{probed} = 0;
-                    $self->set_star_cache($star_data);
-                } else {
-                    $self->set_star_cache($star_data);
-                }
+                # Fetch star data from api and check if solar system is probed
+                my $star_data = $self->get_star_api($star_id);
                 
                 push(@archive_messages,$message->{id});
             }
