@@ -250,7 +250,7 @@ sub set_star_cache {
     $self->write_cache(
         key     => 'stars/'.$star,
         value   => $star_data,
-        max_age => (60*60*24*7*4), # Cache four weeks
+        max_age => (60*60*24*7*8), # Cache eight weeks
     );
     
     # Write to runtime cache
