@@ -9,7 +9,7 @@ sub resource_type {
     my ($self,$type) = @_;
     
     given ($type) {
-        when ([qw(waste water ore food energy happiness)]) {
+        when ([qw(waste water ore food energy happiness essentia)]) {
             return $_;
         }
         when ([ ore_types() ]) {
