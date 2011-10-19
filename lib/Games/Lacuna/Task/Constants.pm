@@ -12,8 +12,10 @@ our %CARGO = (
     plan    => 10_000,
 );
 
-our $WIDTH = 78;
+our $SCREEN_WIDTH = 78;
 
 our $RPC_LIMIT = 10_000;
+
+our $MAX_MAP_QUERY = 30;
 
 1;

@@ -55,7 +55,7 @@ sub run {
     
     my $empire_name = $self->lookup_cache('config')->{name};
     
-    $self->log('notice',("=" x $Games::Lacuna::Task::Constants::WIDTH));
+    $self->log('notice',("=" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH));
     $self->log('notice',"Running tasks for empire %s",$empire_name);
     
     my $global_config = $self->config->{global};
@@ -101,7 +101,7 @@ sub run {
             && $task_class->meta->no_automatic;
         
         if ($ok) {
-            $self->log('notice',("-" x ($Games::Lacuna::Task::Constants::WIDTH - 8)));
+            $self->log('notice',("-" x ($Games::Lacuna::Task::Constants::SCREEN_WIDTH - 8)));
             $self->log('notice',"Running action %s",$task_name);
             try {
                 if ($self->task_info) {
@@ -120,7 +120,7 @@ sub run {
             }
         }
     }
-    $self->log('notice',("=" x ($Games::Lacuna::Task::Constants::WIDTH - 8)));
+    $self->log('notice',("=" x ($Games::Lacuna::Task::Constants::SCREEN_WIDTH - 8)));
 }
 
 

@@ -51,7 +51,7 @@ sub run {
             my $pa = $task_class->process_argv($task_config);
             my $commandline_params = $pa->cli_params();
             
-            $self->log('notice',("=" x $Games::Lacuna::Task::Constants::WIDTH));
+            $self->log('notice',("=" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH));
             $self->log('notice',"Running task %s for empire %s",$task_name,$self->lookup_cache('config')->{name});
             
             my $object = $task_class->new(
@@ -63,7 +63,7 @@ sub run {
             );
             
             $object->execute;
-            $self->log('notice',("=" x $Games::Lacuna::Task::Constants::WIDTH));
+            $self->log('notice',("=" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH));
         }
     }
 }
@@ -116,7 +116,7 @@ sub _format_list {
     my (@list) = @_;
     
     my $max_length = max(map { length($_->[0]) } @list);
-    my $description_length = $Games::Lacuna::Task::Constants::WIDTH - $max_length - 7;
+    my $description_length = $Games::Lacuna::Task::Constants::SCREEN_WIDTH - $max_length - 7;
     my $prefix_length = $max_length + 5 + 1;
     my @return;
     
