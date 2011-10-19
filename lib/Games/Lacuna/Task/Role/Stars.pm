@@ -3,6 +3,8 @@ package Games::Lacuna::Task::Role::Stars;
 use 5.010;
 use Moose::Role;
 
+use List::Util qw(max min);
+
 use Games::Lacuna::Task::Utils qw(normalize_name distance);
 
 use LWP::Simple;
@@ -17,6 +19,21 @@ has 'stars' => (
     traits          => ['NoIntrospection','NoGetopt'],
     documentation   => q[List of all known stars],
 );
+
+has 'map_bounds' => (
+    is              => 'rw',
+    isa             => 'HashRef',
+    lazy_build      => 1,
+    traits          => ['NoIntrospection','NoGetopt'],
+    documentation   => q[Map bounds],
+);
+
+sub _build_map_bounds {
+    my ($self) = @_;
+    
+    my $server = $self->lookup_cache('server');
+    return $server->{star_map_size};
+}
 
 sub _build_stars {
     my ($self) = @_;
@@ -150,12 +167,12 @@ sub find_star_by_xy {
 }
 
 sub is_probed_star {
-    my ($self,$star) = @_;
+    my ($self,$star_id) = @_;
     
     return
-        unless defined $star && $star =~ m/^\d+$/;
+        unless defined $star_id && $star_id =~ m/^\d+$/;
     
-    my $star_data = $self->get_star($star);
+    my $star_data = $self->get_star($star_id);
     
     return $star_data->{probed}
         if defined $star_data->{probed};
@@ -168,20 +185,20 @@ sub is_probed_star {
 }
 
 sub get_star {
-    my ($self,$star) = @_;
+    my ($self,$star_id) = @_;
     
     my $star_data;
     
     return
-        unless defined $star && $star =~ m/^\d+$/;
+        unless defined $star_id && $star_id =~ m/^\d+$/;
     
     # Get from cache
-    $star_data = $self->get_star_cache($star);
+    $star_data = $self->get_star_cache($star_id);
     return $star_data
         if defined $star_data;
     
     # Get from api
-    $star_data = $self->get_star_api($star);
+    $star_data = $self->get_star_api_area_by_id($star_id);
     
     return $star_data;
 }
@@ -211,15 +228,94 @@ sub get_star_cache {
     return $star_data;
 }
 
-sub get_star_api {
-    my ($self,$star) = @_;
+sub get_star_api_area_by_id {
+    my ($self,$star_id) = @_;
     
     return
-        unless defined $star && $star =~ m/^\d+$/;
+        unless defined $star_id && $star_id =~ m/^\d+$/;
+    
+    my $stars = $self->stars;
+    my ($x,$y,$min_x,$min_y,$max_x,$max_y,$star_return);
+    
+    foreach my $star (@{$stars}) {
+        if ($star->{id} == $star_id) {
+            $x = $star->{x};
+            $y = $star->{y};
+            last;
+        }
+    }
+    
+    return
+        unless defined $x && defined $y;
+    
+    no warnings 'once';
+    my $step = int($Games::Lacuna::Task::Constants::MAX_MAP_QUERY / 2);
+    
+    $min_x = $x - $step;
+    $min_y = $y - $step;
+    $max_x = $x + $step;
+    $max_y = $y + $step;
+    
+    my $star_list = $self->get_star_api_area_by_xy($min_x,$min_y,$max_x,$max_y);
+    
+    return 
+        unless $star_list;
+    
+    foreach my $star_data (@{$star_list}) {
+        return $star_data
+            if $star_id == $star_data->{id};
+    }
+}
+
+
+sub get_star_api_area_by_xy {
+    my ($self,$min_x,$min_y,$max_x,$max_y) = @_;
+    
+    my $bounds = $self->map_bounds;
+    return
+        if $bounds->{x}[0] >= $max_x || $bounds->{x}[1] <= $min_x;
+    return
+        if $bounds->{y}[0] >= $max_y || $bounds->{y}[1] <= $min_y;
+    
+    $min_x = max($min_x,$bounds->{x}[0]);
+    $max_x = min($max_x,$bounds->{x}[1]);
+    $min_y = max($min_y,$bounds->{y}[0]);
+    $max_y = min($max_y,$bounds->{y}[1]);
     
     my $star_info = $self->request(
         object  => $self->build_object('Map'),
-        params  => [ $star ],
+        params  => [ $min_x,$min_y,$max_x,$max_y ],
+        method  => 'get_stars',
+    );
+    
+    my @return;
+    foreach my $star_data (@{$star_info->{stars}}) {
+        if (defined $star_data->{bodies}
+            && scalar(@{$star_data->{bodies}}) > 0) {
+            $star_data->{probed} = 1;
+        } else {
+            my $star_cache = $self->get_star_cache($star_data->{id});
+            $star_data->{bodies} = $star_cache->{bodies}
+                if defined $star_cache && defined $star_cache->{bodies};
+            $star_data->{probed} = 0;
+        }
+        $self->set_star_cache($star_data);
+        
+        push(@return,$star_data);
+    }
+    
+    return \@return;
+}
+
+sub get_star_api_single {
+    my ($self,$star_id) = @_;
+    
+    return
+        unless defined $star_id && $star_id =~ m/^\d+$/;
+    
+    my $star_info = $self->request(
+        object  => $self->build_object('Map'),
+        params  => [ $star_id ],
         method  => 'get_star',
     );
     
