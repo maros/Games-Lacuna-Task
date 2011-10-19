@@ -9,6 +9,7 @@ use Games::Lacuna::Task::Client;
 use Try::Tiny;
 
 our $DEFAULT_DIRECTORY = Path::Class::Dir->new($ENV{HOME}.'/.lacuna');
+our %LOCAL_CACHE;
 
 has 'database' => (
     is              => 'rw',
@@ -126,20 +127,28 @@ sub request {
         $self->write_cache(
             key     => 'empire',
             value   => $status->{empire},
-            max_age => 21600,
+            max_age => 60*60*24,
+        );
+    }
+    if ($status->{server}) {
+        $self->write_cache(
+            key     => 'server',
+            value   => $status->{server},
+            max_age => 60*60*24,
         );
     }
     if ($status->{body}) {
         $self->write_cache(
             key     => 'body/'.$status->{body}{id},
             value   => $status->{body},
+            max_age => 60*70,
         );
     }
     if ($response->{buildings}) {
         $self->write_cache(
             key     => 'body/'.$status->{body}{id}.'/buildings',
             value   => $response->{buildings},
-            max_age => 600,
+            max_age => 60*70,
         );
     }
     
@@ -195,7 +204,6 @@ sub lookup_cache {
 sub write_cache {
     my ($self,%params) = @_;
     
-    my $storage = $self->client->storage;
     $params{max_age} += time()
         if $params{max_age};
    
@@ -203,6 +211,18 @@ sub write_cache {
         %params
     );
     
+    # Check local write cache
+    my $checksum = $cache->checksum();
+    my $key = $params{key};
+    if (defined $LOCAL_CACHE{$key}) {
+        my $local_cache = $LOCAL_CACHE{$key};
+        return $cache
+            if $local_cache eq $checksum;
+    }
+    
+    $LOCAL_CACHE{$key} = $checksum;
+    
+    my $storage = $self->client->storage;
     $cache->store($storage);
     
     return $cache;
