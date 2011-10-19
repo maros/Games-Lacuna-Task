@@ -13,14 +13,14 @@ has 'excavator_count' => (
     isa             => 'Int',
     is              => 'rw',
     documentation   => 'Number of excavators that should be dispatched simulaneously',
-    default         => -4,
+    default         => -5,
 );
 
 has 'min_distance' => (
     isa             => 'Int',
     is              => 'rw',
     documentation   => 'Min solar system distance',
-    default         => 600,
+    default         => 500,
 );
 
 use Try::Tiny;
