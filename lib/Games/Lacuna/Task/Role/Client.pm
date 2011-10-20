@@ -231,6 +231,7 @@ sub write_cache {
 sub clear_cache {
     my ($self,$key) = @_;
     
+    delete $LOCAL_CACHE{$key};
     my $storage = $self->client->storage;
     $storage->delete($key);
 }
