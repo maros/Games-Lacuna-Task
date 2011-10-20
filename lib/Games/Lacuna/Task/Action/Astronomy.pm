@@ -125,7 +125,7 @@ sub check_for_destroyed_probes {
                 $self->log('warn','A probe in the %s system was destroyed by %s',$star_name,$+{empire_name});
                 
                 # Fetch star data from api and check if solar system is probed
-                my $star_data = $self->get_star_api($star_id);
+                my $star_data = $self->get_star_api_area_by_id($star_id);
                 
                 push(@archive_messages,$message->{id});
             }
@@ -164,7 +164,7 @@ sub closest_unprobed_stars {
             if $self->is_probed_star($star->{id});
         
         # Check star again (might be probed in the meantime)
-        my $star_data = $self->get_star_api($star->{id});
+        my $star_data = $self->get_star_api_area_by_id($star->{id});
         
         sleep 1;
         

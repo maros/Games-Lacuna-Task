@@ -52,7 +52,7 @@ sub process_planet {
                 params  => [$star_id],
             );
             # Check star status
-            $self->get_star_api($star_id);
+            $self->get_star_api_area_by_id($star_id);
         } else {
             $self->add_star_cache($star_id,1);
         }
