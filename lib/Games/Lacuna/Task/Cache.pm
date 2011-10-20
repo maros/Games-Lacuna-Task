@@ -46,8 +46,10 @@ sub checksum {
     my ($self) = @_;
     
     local $Data::Dumper::Indent = 0;
-    local $Data::Dumper::Varname = '';
-    my $string = $self->key.'::'.Data::Dumper::Dump($self->value);
+    my $dump = Data::Dumper::Dumper($self->value);
+    $dump =~ s/^\$VAR1\s=\s//;
+    $dump =~ s/;$//;
+    my $string = $self->key.'::'.$dump;
     return md5_hex($string);
 }
 
