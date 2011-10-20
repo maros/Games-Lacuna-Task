@@ -14,7 +14,7 @@ our %STAR_CACHE;
 
 has 'stars' => (
     is              => 'rw',
-    isa             => 'ArrayRef',
+    isa             => 'HashRef',
     lazy_build      => 1,
     traits          => ['NoIntrospection','NoGetopt'],
     documentation   => q[List of all known stars],
@@ -41,7 +41,7 @@ sub _build_stars {
     my $stars = $self->lookup_cache('stars/all');
     
     return $stars
-        if defined $stars;
+        if defined $stars && ref $stars eq 'HASH';
     
     my $server = $self->lookup_cache('config')->{uri};
     
@@ -52,7 +52,7 @@ sub _build_stars {
     
     $self->log('debug',"Fetching star map from %s. This might take a while.",$starmap_uri);
     
-    my @stars;
+    my %stars;
     my $content = get($starmap_uri);
     
     my $csv = Text::CSV->new ();
@@ -60,16 +60,16 @@ sub _build_stars {
     $csv->column_names( $csv->getline($fh) );
     while( my $row = $csv->getline_hr( $fh ) ){
         delete $row->{color};
-        push(@stars,$row);
+        $stars{$row->{id}} = $row;
     }
     
     $self->write_cache(
         key     => 'stars/all',
-        value   => \@stars,
+        value   => \%stars,
         max_age => (60*60*24*31*3), # Cache three months
     );
     
-    return \@stars;
+    return \%stars;
 }
 
 sub find_body_by_id {
@@ -144,7 +144,7 @@ sub find_star_by_name {
     return
         unless defined $name;
     
-    foreach my $star (@{$self->stars}) {
+    foreach my $star (values %{$self->stars}) {
         return $star->{id}
             if $star->{name} eq $name;;
     }
@@ -159,7 +159,7 @@ sub find_star_by_xy {
         && $x =~ m/^-?\d+$/
         && $y =~ m/^-?\d+$/;
     
-    foreach my $star (@{$self->stars}) {
+    foreach my $star (values %{$self->stars}) {
         return $star->{id}
             if $star->{x} == $x
             && $star->{y} == $y;
@@ -235,18 +235,14 @@ sub get_star_api_area_by_id {
         unless defined $star_id && $star_id =~ m/^\d+$/;
     
     my $stars = $self->stars;
+    
     my ($x,$y,$min_x,$min_y,$max_x,$max_y,$star_return);
     
-    foreach my $star (@{$stars}) {
-        if ($star->{id} == $star_id) {
-            $x = $star->{x};
-            $y = $star->{y};
-            last;
-        }
-    }
-    
     return
-        unless defined $x && defined $y;
+        unless defined $stars->{$star_id};
+    
+    $x = $stars->{$star_id}{x};
+    $y = $stars->{$star_id}{y};
     
     no warnings 'once';
     my $step = int($Games::Lacuna::Task::Constants::MAX_MAP_QUERY / 2);
@@ -371,7 +367,7 @@ sub stars_by_distance {
     my $stars = $self->stars;
     
     my @star_distance;
-    foreach my $star (@{$stars}) {
+    foreach my $star (values %{$stars}) {
         my $dist = distance($star->{x},$star->{y},$x,$y);
         push(@star_distance,[$dist,$star]);
     }
