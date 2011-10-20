@@ -1,6 +1,7 @@
 package Games::Lacuna::Task::Action::Mission;
 
 use 5.010;
+use utf8;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
@@ -114,6 +115,9 @@ sub process_planet {
                 join (", ",@{$mission->{objectives}}),
                 join (", ",@{$mission->{rewards}}),
             );
+            
+            $body =~ s/>=/≥/g;
+            $body =~ tr/></)(/;
             
             $self->request(
                 object  => $inbox_object,
