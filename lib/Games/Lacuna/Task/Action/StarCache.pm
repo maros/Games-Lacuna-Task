@@ -76,8 +76,8 @@ sub get_star_step {
     my ($self,$x,$y) = @_;
     
     my ($cx,$cy) = ($x + $self->coordinate->[0],$y + $self->coordinate->[1]);
-    my ($min_x,$min_y) = ( $x * $MAX_SIZE + $cx , $y * $MAX_SIZE + $cy);
-    my ($max_x,$max_y) = ( ($x+1) * $MAX_SIZE + $cx , ($y+1) * $MAX_SIZE + $cy);
+    my ($min_x,$min_y) = ( $x * $Games::Lacuna::Task::Constants::MAX_MAP_QUERY + $cx , $y * $Games::Lacuna::Task::Constants::MAX_MAP_QUERY + $cy);
+    my ($max_x,$max_y) = ( ($x+1) * $Games::Lacuna::Task::Constants::MAX_MAP_QUERY + $cx , ($y+1) * $Games::Lacuna::Task::Constants::MAX_MAP_QUERY + $cy);
     
     $self->get_star_api_area_by_xy($min_x,$min_y,$max_x,$max_y);
 }
