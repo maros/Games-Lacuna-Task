@@ -68,8 +68,8 @@ sub process_planet {
                             if grep { $plan == $_ } @used_plans;
                         push (@used_plans,$plan);
                         $found_plan ++;
+                        last PLANS;
                     }
-                    
                     next MISSIONS
                         unless $found_plan;
                 }
@@ -93,7 +93,7 @@ sub process_planet {
         
         foreach my $resource_type (@Games::Lacuna::Task::Constants::RESOURCES) {
             my $capacity = $planet_stats->{$resource_type.'_capacity'} - $planet_stats->{$resource_type.'_stored'} - $rewards_resources{$resource_type};
-            next MISSION
+            next MISSIONS
                 if $capacity < -100000;
         }
         
@@ -159,8 +159,7 @@ sub parse_mission {
                 (?<plan>[^(]+)
                 \s
                 \(
-                    >=
-                    \s
+                    (>=\s)?
                     (?<level>\d+)
                     (\+(?<extra_build_level>\d+))?
                 \)
@@ -242,7 +241,7 @@ sub parse_mission {
                 });
             }
             default {
-                warn $_;
+                warn "Unknown mission item: '$_'";
             }
         }
     }
