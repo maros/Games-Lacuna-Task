@@ -86,7 +86,7 @@ sub process_planet {
         # Loop all bodies
         foreach my $body (@{$star_data->{bodies}}) {
             
-            # Do not excavate inhabited solar system to avid SAWs
+            # Do not excavate bodies in inhabited solar system to avoid SAWs
             next STARS
                 if defined $body->{empire} 
                 && $body->{type} eq 'habitable planet'

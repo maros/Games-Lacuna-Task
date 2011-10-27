@@ -3,9 +3,9 @@ package Games::Lacuna::Task;
 # ============================================================================
 
 use 5.010;
-use version;
+
 our $AUTHORITY = 'cpan:MAROS';
-our $VERSION = version->new("1.00");
+our $VERSION = "1.00";
 
 
 use Moose;
