@@ -33,8 +33,8 @@ sub process_planet {
     my ($self,$planet_stats) = @_;
     
     my $now = DateTime->now->set_time_zone('UTC');
-    my $max_age = $now->subtract( days => 31 )->epoch();
     my $timestamp = $now->epoch();
+    my $max_age = $now->subtract( days => 31 )->epoch();
     
     # Get archaeology ministry
     my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology');
