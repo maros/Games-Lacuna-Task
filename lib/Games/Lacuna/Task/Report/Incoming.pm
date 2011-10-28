@@ -37,6 +37,8 @@ sub _report_incoming_planet {
         } else {
             $type = 'hostile';
         }
+        next
+            if $type eq 'own';
         $incoming{$element->{id}} = {
             type    => $type,
             from    => '?',
