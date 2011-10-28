@@ -41,6 +41,12 @@ sub log {
             say $logmessage;
         }
     }
+    
+    if ($self->debug) {
+        state $fh;
+        $fh ||= Path::Class::File->new($self->database,'debug.log')->open('w+');
+        say $fh sprintf("%6s: %s",$level_name,$logmessage);
+    }
 }
 
 no Moose::Role;
