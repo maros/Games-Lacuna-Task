@@ -39,6 +39,12 @@ has 'storage_scope' => (
     isa             => 'KiokuDB::LiveObjects::Scope',
 );
 
+has 'debug' => (
+    is              => 'rw',
+    isa             => 'Bool',
+    default         => 0,
+);
+
 sub _build_storage {
     my ($self) = @_;
     
