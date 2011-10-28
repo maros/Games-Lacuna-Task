@@ -13,7 +13,7 @@ has 'excavator_count' => (
     isa             => 'Int',
     is              => 'rw',
     documentation   => 'Number of excavators that should be dispatched simulaneously',
-    default         => -5,
+    default         => -4,
 );
 
 has 'min_distance' => (
@@ -135,7 +135,6 @@ sub process_planet {
                     if (blessed($error)
                         && $error->isa('LacunaRPCException')) {
                         if ($error->code == 1010) {
-                            $self->log('debug',"1010 Exception: %s",$error->message);
                             $excavate_cache->{$body_id} = $timestamp;
                             $self->log('debug',"Could not send excavator to %s since it was excavated in the last 30 days",$body->{name});
                             push(@avaliable_excavators,$excavator);

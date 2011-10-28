@@ -29,9 +29,11 @@ sub process_planet {
     my $inbox_object = $self->build_object('Inbox');
     
     # Get mission command
-    my ($missioncommand) = $self->find_building($planet_stats->{id},'MissionCommand');
+    my $missioncommand = $self->find_building($planet_stats->{id},'MissionCommand');
+    
     return
         unless $missioncommand;
+    
     my $missioncommand_object = $self->build_object($missioncommand);
     
     my $mission_data = $self->request(

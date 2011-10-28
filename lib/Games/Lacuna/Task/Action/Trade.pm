@@ -29,7 +29,7 @@ trade:
         ask: [ESSENTIA ASKING]
         offers:
           -
-            class: "[ship|glyph|resource|plan]"
+            class: "[ship|glyph|resource|plan|prisoner]"
             type: "[NAME OF ITEM]"
             quantity: [QUANTITY]
             level: [PLAN LEVEL]
@@ -58,6 +58,7 @@ trade:
             class: "plan"
             type: "Geo Thermal Vent"
             level: 1
+            extra_build_level: 1
           -
             class: "plan"
             type: "Vulcano"
