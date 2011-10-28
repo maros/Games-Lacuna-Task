@@ -10,6 +10,7 @@ our %CARGO = (
     ship    => 50_000,
     glyph   => 100,
     plan    => 10_000,
+    prisoner=> 350,
 );
 
 our $SCREEN_WIDTH = 78;

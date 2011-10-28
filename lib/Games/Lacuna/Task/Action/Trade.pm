@@ -263,6 +263,9 @@ sub process_planet {
                         $trade_complete = 0;
                     }
                 }
+                when ('prisoner') {
+                    warn('Prisoner trade class not implemented');
+                }
                 default {
                     $self->log('error','Invalid trade setting: Unknown offer class (%s)',$_);
                     next TRADE;
@@ -339,6 +342,10 @@ sub _trade_serialize_response {
                 }
                 when (/^(?<type>[[:alpha:][:space:]]+)\s\((?<level>[^\)]+)\)\splan$/) {
                     $moniker = 'plan:'.lc($+{type}).':'.$+{level};
+                    $quantity = 1;
+                }
+                when (/^Level\s(?<level>\d+)\sspy\snamed\s[^(]\(prisoner\)/) {
+                    $moniker = 'prisoner:'.lc($+{level});
                     $quantity = 1;
                 }
                 default {
