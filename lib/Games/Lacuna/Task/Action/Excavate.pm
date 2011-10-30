@@ -134,13 +134,22 @@ sub process_planet {
                     my $error = $_;
                     if (blessed($error)
                         && $error->isa('LacunaRPCException')) {
-                        if ($error->code == 1010) {
-                            $excavate_cache->{$body_id} = $timestamp;
-                            $self->log('debug',"Could not send excavator to %s since it was excavated in the last 30 days",$body->{name});
-                            push(@avaliable_excavators,$excavator);
-                        } else {
-                            $error->rethrow();
-                        }    
+                        given ($error->code) {
+                            # Already excavated
+                            when (1010) {
+                                $excavate_cache->{$body_id} = $timestamp;
+                                $self->log('debug',"Could not send excavator to %s since it was excavated in the last 30 days",$body->{name});
+                            }
+                            # Captcha. Body aleady inhabited?
+                            when (1016) {
+                                $self->log('debug',"Send ship to %s requires captcha, body seems to be inhabited",$body->{name});
+                                $self->get_star_api_area_by_id($star->{id});
+                            }
+                            default {
+                                $error->rethrow();
+                            }
+                        }
+                        push(@avaliable_excavators,$excavator);
                     } else {
                         die($error);
                     }
