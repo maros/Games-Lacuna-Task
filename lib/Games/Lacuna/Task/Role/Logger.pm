@@ -42,11 +42,13 @@ sub log {
         }
     }
     
-    if ($self->debug) {
+    if ($self->can('debug') && $self->debug) {
         state $fh;
-        $fh ||= Path::Class::File->new($self->database,'debug.log')->open('w+');
+        $fh ||= Path::Class::File->new($self->configdir,'debug.log')->open('w+');
         say $fh sprintf("%6s: %s",$level_name,$logmessage);
     }
+
+    return ($level_name,$logmessage);
 }
 
 no Moose::Role;
