@@ -12,7 +12,7 @@ with qw(Games::Lacuna::Task::Role::Helper
 use Games::Lacuna::Task::Utils qw(class_to_name);
 use Try::Tiny;
 
-has '+database' => (
+has '+configdir' => (
     required        => 1,
 );
 

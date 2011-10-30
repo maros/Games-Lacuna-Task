@@ -39,12 +39,12 @@ sub run {
         };
         
         if ($ok) {
-            my $database;
+            my $configdir;
             my $opt_parser = Getopt::Long::Parser->new( config => [ qw( no_auto_help pass_through ) ] );
-            $opt_parser->getoptions( "database=s" => \$database );
+            $opt_parser->getoptions( "configdir=s" => \$configdir );
             
-            $self->database($database)
-                if defined $database;
+            $self->configdir($configdir)
+                if defined $configdir && $configdir ne '';
             
             my $task_config = $self->task_config($task_name);
             

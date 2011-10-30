@@ -11,7 +11,7 @@ use Try::Tiny;
 our $DEFAULT_DIRECTORY = Path::Class::Dir->new($ENV{HOME}.'/.lacuna');
 our %LOCAL_CACHE;
 
-has 'database' => (
+has 'configdir' => (
     is              => 'rw',
     isa             => 'Path::Class::Dir',
     coerce          => 1,
@@ -38,12 +38,10 @@ has 'debug' => (
 sub _build_client {
     my ($self) = @_;
     
-    my $database_file = Path::Class::File->new($self->database,'default.db');
-    
     # Build new client
     my $client = Games::Lacuna::Task::Client->new(
         loglevel        => $self->loglevel,
-        storage_file    => $database_file,
+        configdir       => $self->configdir,
         debug           => $self->debug,
     );
     
@@ -247,9 +245,9 @@ Games::Lacuna::Role::Client - Basic methods to access the Lacuna API
 
 =head1 ACCESSORS
 
-=head2 database
+=head2 configdir
 
-Path to the database directory.
+Path to the config directory.
 
 =head2 client
 

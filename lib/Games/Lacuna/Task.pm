@@ -7,7 +7,6 @@ use 5.010;
 our $AUTHORITY = 'cpan:MAROS';
 our $VERSION = "1.00";
 
-
 use Moose;
 extends qw(Games::Lacuna::Task::Base);
 with qw(Games::Lacuna::Task::Role::Introspect
@@ -34,11 +33,11 @@ has 'exclude'  => (
 has 'task'  => (
     is              => 'rw',
     isa             => 'ArrayRef[Str]',
-    documentation   => 'Select which tasks to run [Multiple]',
+    documentation   => 'Select which tasks to run [Multiple, Default all]',
     predicate       => 'has_task',
 );
 
-has '+database' => (
+has '+configdir' => (
     required        => 1,
 );
 

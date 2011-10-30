@@ -21,9 +21,9 @@ has 'client' => (
     clearer         => 'reset_client',
 );
 
-has 'storage_file' => (
+has 'configdir' => (
     is              => 'ro',
-    isa             => 'Path::Class::File',
+    isa             => 'Path::Class::Dir',
     coerce          => 1,
     required        => 1,
 );
@@ -48,10 +48,10 @@ has 'debug' => (
 sub _build_storage {
     my ($self) = @_;
     
-    my $storage_file = $self->storage_file;
+    my $storage_file = Path::Class::File->new($self->configdir,'default.db');
     unless (-e $storage_file->stringify) {
         $self->log('info',"Initializing storage file %s",$storage_file->stringify);
-        my $storage_dir = $self->storage_file->parent->stringify;
+        my $storage_dir = $self->configdir->stringify;
         unless (-e $storage_dir) {
             mkdir($storage_dir)
                 or $self->log('error','Could not create storage directory %s: %s',$storage_dir,$!);

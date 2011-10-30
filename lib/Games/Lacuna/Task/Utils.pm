@@ -30,6 +30,9 @@ sub class_to_name {
 sub name_to_class {
     my ($name) = @_;
     
+    return 
+        unless defined $name;
+    
     my @parts = map { ucfirst(lc($_)) } 
         split (/[_ ]/,$name);
     
