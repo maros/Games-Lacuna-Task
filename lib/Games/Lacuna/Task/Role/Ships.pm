@@ -136,7 +136,7 @@ sub ships {
             
             my $shipyard = 
                 first { $_->{available} > 0 }
-                sort { $b->{seconds_remaining} <=> $a->{seconds_remaining} } 
+                sort { $a->{seconds_remaining} <=> $b->{seconds_remaining} } 
                 values %available_shipyards;
             
             last BUILD_QUEUE
