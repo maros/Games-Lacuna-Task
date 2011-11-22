@@ -2,7 +2,8 @@ package Games::Lacuna::Task::Action::StationPlanBuilder;
 
 use 5.010;
 
-use Moose -traits => 'NoAutomatic';
+use Moose;
+# -traits => 'NoAutomatic';
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Storage',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['home_planet'] };
@@ -18,16 +19,16 @@ has 'plans' => (
     is              => 'rw',
     isa             => 'HashRef',
     required        => 1,
-    documentation   => 'plans to be built',
+    documentation   => 'Plans to be built',
     default         => sub {
         return {
-            ArtMuseum           => { name => 'Art Museum', level => -3 },
+            ArtMuseum           => { name => 'Art Museum', level => -3,  },
             CulinaryInstitute   => { name => 'Culinary Institute', level => -3 },
             IBS                 => { name => 'Interstellar Broadcast System', level => -3 },
             OperaHouse          => { name => 'Opera House', level => -3 },
-            Parliament          => { },
+            Parliament          => { skip => 1 },
             PoliceStation       => { name => 'Police Station', level => -3 },
-            StationCommand      => { name => 'Station Command Center' },
+            StationCommand      => { name => 'Station Command Center', skip => 1 },
             Warehouse           => { count => 13, level => 18 },
         }
     },
@@ -82,14 +83,15 @@ sub run {
     foreach my $level (1..$max_level) {
         PLAN_TYPE:
         foreach my $plan (keys %{$self->plans}) {
-            my $plan_level = $self->plans->{$plan}{level} || $max_level;
-            my $plan_name = $self->plans->{$plan}{name} || $plan;
-            my $count = $self->plans->{$plan}{count} // 1;
+            my $plan_data = $self->plans->{$plan};
+            my $plan_level = $plan_data->{level} || $max_level;
+            my $plan_name = $plan_data->{name} || $plan;
+            my $plan_skip = $plan_data->{skip} || 0;
+            my $count = $plan_data->{count} // 1;
             $plan_level = $max_level + $plan_level
                 if ($plan_level < 0);
-            
             next
-                if $plan_level <= 0;
+                if $level <= $plan_skip;
             
             $total_plans->{$plan}{$level} //= 0;
             if ($total_plans->{$plan}{$level} < $count) {
