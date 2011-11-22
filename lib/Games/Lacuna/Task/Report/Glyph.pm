@@ -13,9 +13,21 @@ sub report_glyph {
         columns => ['Planet',(map { ucfirst($_) } ore_types()),'Total'],
     );
     
+    my $cache_glyphs = { map { $_ => 0 } ore_types() };
+    
     foreach my $planet_id ($self->my_planets) {
-       $self->_report_glyph_planet($planet_id,$table);
+        my %planet_glyphs = $self->_report_glyph_planet($planet_id,$table);
+        while (my ($glyph,$count) = each %planet_glyphs) {
+            $cache_glyphs->{$glyph} += $count;
+        }
     }
+    
+    # Write glyph cache
+    $self->write_cache(
+        key     => 'glyphs',
+        value   => $cache_glyphs,
+        max_age => (60*60*24),
+    );
     
     return $table;
 }
@@ -50,6 +62,8 @@ sub _report_glyph_planet {
         total   => $total_glyphs,
         %all_glyphs,
     });
+    
+    return %all_glyphs;
 }
 
 no Moose::Role;
