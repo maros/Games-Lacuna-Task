@@ -209,6 +209,14 @@ sub delta_date {
     my $timestamp = DateTime->now->set_time_zone('UTC');
     my $date_delta_ms = $timestamp->delta_ms( $date );
     
+    return $date_delta_ms;
+}
+
+sub delta_date_format {
+    my ($self,$date) = @_;
+    
+    my $date_delta_ms = $self->delta_date($date);
+    
     my $delta_days = int($date_delta_ms->delta_minutes / (24*60));
     my $delta_days_rest = $date_delta_ms->delta_minutes % (24*60);
     my $delta_hours = int($delta_days_rest / 60);
@@ -397,7 +405,7 @@ Returns your empire' university level
 
 =head2 delta_date
 
- $self->delta_date($date);
+ $self->delta_date_format($date);
 
 Returns a human readable delta for the given date
 

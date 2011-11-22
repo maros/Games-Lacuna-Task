@@ -75,23 +75,11 @@ sub process_planet {
     # Get probed stars
     STARS:
     foreach my $star ($self->stars_by_distance($planet_stats->{x},$planet_stats->{y},$callback)) {
-        # Get star info
-        my $star_data = $self->get_star($star->{id});
+        # Check star
+        my $star_data = $self->check_start_excavate($star->{id});
         
-        # Check star bodies
         next STARS
-            unless defined $star_data->{bodies}
-            && scalar @{$star_data->{bodies}} > 0;;
-        
-        # Loop all bodies
-        foreach my $body (@{$star_data->{bodies}}) {
-            
-            # Do not excavate bodies in inhabited solar system to avoid SAWs
-            next STARS
-                if defined $body->{empire} 
-                && $body->{type} eq 'habitable planet'
-                && $body->{empire}{alignment} =~ /^hostile/;
-        }
+            unless $star_data;
         
         # Get excavator cache
         my $excavate_cache_key = 'excavate/'.$star->{id};
@@ -170,8 +158,30 @@ sub process_planet {
         last STARS
             if scalar(@avaliable_excavators) == 0;
     }
-    
+}
 
+sub check_start_excavate {
+    my ($self,$star_id) = @_;
+    
+    # Get star info
+    my $star_data = $self->get_star($star_id);
+    
+    # Check star bodies
+    return
+        unless defined $star_data->{bodies}
+        && scalar @{$star_data->{bodies}} > 0;;
+    
+    # Loop all bodies
+    foreach my $body (@{$star_data->{bodies}}) {
+        
+        # Do not excavate bodies in inhabited solar system to avoid SAWs
+        return
+            if defined $body->{empire} 
+            && $body->{type} eq 'habitable planet'
+            && $body->{empire}{alignment} =~ /^hostile/;
+    }
+    
+    return $star_data;
 }
 
 1;
