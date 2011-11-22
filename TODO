@@ -1,9 +1,7 @@
-- empire digest:
-	* storage/ressources running low
-	* attacks
-	* glyph summary
-	* plattform transport ship / production ratio
-	* ...
-- transport routes
-	* glyphs/plans from/to
-
+- Space station management
+    - Supply routes
+- Supply routes
+    - Automatic push (glyph, plan, resources, ..)
+- Mission
+    - Better mission auto-complete
+    - Build/Send ships to mission

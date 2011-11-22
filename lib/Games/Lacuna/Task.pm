@@ -128,7 +128,7 @@ sub run {
 
 =head1 NAME
 
-Games::Lacuna::Task - Automation framework for the Lacuna Expanse MMOPG
+Games::Lacuna::Task - Automation framework for the Lacuna Expanse MMPOG
 
 =head1 SYNOPSIS
 
