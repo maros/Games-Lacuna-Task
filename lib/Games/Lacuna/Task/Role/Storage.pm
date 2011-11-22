@@ -56,10 +56,12 @@ sub plans_stored {
     return $plans
         if defined $plans;
     
-    my $planetary_command = $self->find_building($planet_id,'PlanetaryCommand');
-    my $planetary_command_object = $self->build_object($planetary_command);
+    my $command = $self->find_building($planet_id,'PlanetaryCommand');
+    $command ||= $self->find_building($planet_id,'StationCommand');
+    
+    my $command_object = $self->build_object($command);
     my $response = $self->request(
-        object  => $planetary_command_object,
+        object  => $command_object,
         method  => 'view_plans',
     );
     
