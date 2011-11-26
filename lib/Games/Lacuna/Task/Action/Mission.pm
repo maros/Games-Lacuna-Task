@@ -26,14 +26,10 @@ sub process_planet {
     
     my $timestamp = DateTime->now->set_time_zone('UTC');
     
-    my $inbox_object = $self->build_object('Inbox');
-    
     # Get mission command
     my $missioncommand = $self->find_building($planet_stats->{id},'MissionCommand');
-    
     return
         unless $missioncommand;
-    
     my $missioncommand_object = $self->build_object($missioncommand);
     
     my $mission_data = $self->request(
@@ -109,7 +105,6 @@ sub process_planet {
             );
             $planet_stats = $response->{status}{body};
             
-            my $empire_name = $self->lookup_cache('config')->{name};
             my $body = sprintf("We have completed the mission *%s* on {Planet %i %s}\nObjective: %s\nReward:%s",
                 $mission->{name},
                 $planet_stats->{id},
@@ -118,19 +113,7 @@ sub process_planet {
                 join (", ",@{$mission->{rewards}}),
             );
             
-            $body =~ s/>=/≥/g;
-            $body =~ tr/></)(/;
-            
-            $self->request(
-                object  => $inbox_object,
-                method  => 'send_message',
-                params  => [
-                    $empire_name,
-                    'Mission completed',
-                    $body,
-                ],
-            );
-            
+            $self->send_message('Mission completed',$body);
             return 1;
         } catch {
             my $error = $_;

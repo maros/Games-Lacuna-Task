@@ -320,6 +320,23 @@ sub can_afford {
     return 1;
 }
 
+sub send_message {
+    my ($self, $subject, $message) = @_;
+            
+    $message =~ s/>=/≥/g;
+    $message =~ tr/></)(/;
+    
+    $self->request(
+        object  => $self->build_object('Inbox'),
+        method  => 'send_message',
+        params  => [
+            $self->empire_name,
+            $subject,
+            $message,
+        ],
+    );
+}
+
 no Moose::Role;
 1;
 
