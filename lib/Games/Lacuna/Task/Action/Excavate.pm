@@ -20,7 +20,7 @@ has 'min_distance' => (
     isa             => 'Int',
     is              => 'rw',
     documentation   => 'Min solar system distance',
-    default         => 500,
+    default         => 400,
 );
 
 use Try::Tiny;
@@ -171,15 +171,15 @@ sub check_start_excavate {
         unless defined $star_data->{bodies}
         && scalar @{$star_data->{bodies}} > 0;;
     
-    # Loop all bodies
-    foreach my $body (@{$star_data->{bodies}}) {
-        
-        # Do not excavate bodies in inhabited solar system to avoid SAWs
-        return
-            if defined $body->{empire} 
-            && $body->{type} eq 'habitable planet'
-            && $body->{empire}{alignment} =~ /^hostile/;
-    }
+#    # Loop all bodies
+#    foreach my $body (@{$star_data->{bodies}}) {
+#        
+#        # Do not excavate bodies in inhabited solar system to avoid SAWs
+#        return
+#            if defined $body->{empire} 
+#            && $body->{type} eq 'habitable planet'
+#            && $body->{empire}{alignment} =~ /^hostile/;
+#    }
     
     return $star_data;
 }
