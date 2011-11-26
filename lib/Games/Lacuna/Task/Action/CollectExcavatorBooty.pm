@@ -120,7 +120,7 @@ sub process_planet {
             "type"      => "plan",
             "plan_id"  => $plan->{id},
         });
-        $total_cargo += $available_glyphs->{cargo_space_used_each};
+        $total_cargo += $available_plans->{cargo_space_used_each};
     }
     
     return
@@ -156,7 +156,7 @@ sub process_planet {
         params  => [ $self->home_planet_data->{id} , \@cargo, { ship_id => $trade_ship_id } ]
     );
     
-    $self->log('notice','Sending %i items from %s to %s',scalar(@cargo),$planet_stats->{name},$self->home_planet_data->{name});
+    $self->log('notice','Sending %i item(s) from %s to %s',scalar(@cargo),$planet_stats->{name},$self->home_planet_data->{name});
 }
 
 __PACKAGE__->meta->make_immutable;
