@@ -36,12 +36,18 @@ sub description {
 after 'run' => sub {
     my ($self) = @_;
     
+    my @dispatch_ships;
     foreach my $body_id ($self->_list_planet_attack) {
         my $planet_attack = $self->_list_planet_attack->{$body_id};
-        my $count = $planet_attack->{attacker} - $planet_attack->{defender};
+        
         
         DISPATCH_PLANETS:
         foreach my $dispatch_planet_stats ($self->my_planets) {
+            my $count = $planet_attack->{attacker} - $planet_attack->{defender};
+            
+            last DISPATCH_PLANETS
+                if $count <= 0;
+            
             next DISPATCH_PLANETS
                 if $dispatch_planet_stats->{id} == $body_id;
             
@@ -55,13 +61,37 @@ after 'run' => sub {
             }
             
             my $dispatch_count = $self->dispatch_defender($body_id,$dispatch_planet_stats->{id},min($count,$available));
-            if ($dispatch_count) {
-                $self->log('info','%i defending units from %s dispatched to %s',$dispatch_count,$dispatch_planet_stats->{name},$body_id);
-            }
             
-            last DISPATCH_PLANETS
-                if $count <= 0;
+            if ($dispatch_count) {
+                $planet_attack->{defender} += $dispatch_count;
+                $self->_list_planet_attack->{$body_id}{defender} -= $dispatch_count;
+                
+                my $body_status = $self->my_body_status($body_id);
+                push(@dispatch_ships,{
+                    from_id     => $dispatch_planet_stats->{id},
+                    from_name   => $dispatch_planet_stats->{name},
+                    to_id       => $body_id,
+                    to_name     => $body_status->{name},
+                    count       => $dispatch_count,
+                });
+                $self->log('info','Dispatching %i defending units from %s to %s',$dispatch_count,$dispatch_planet_stats->{name},$body_status->{name});
+            }
         }
+    }
+    
+    if (scalar @dispatch_ships) {
+        my $body = sprintf("We have dispatched defending ships:\n%s",
+            join("\n", map {
+                sprintf("%i ships from {Planet %i %s} to {Planet %i %s}",
+                    $_->{count},
+                    $_->{from_id},
+                    $_->{from_name},
+                    $_->{to_id},
+                    $_->{to_name},
+                );
+            } @dispatch_ships)
+        );
+        $self->send_message('Dispatched defenders',$body);
     }
 };
 
