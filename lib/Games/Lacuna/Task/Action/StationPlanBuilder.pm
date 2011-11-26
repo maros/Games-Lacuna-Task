@@ -76,11 +76,20 @@ sub run {
     # Get total plans
     my $total_plans = _merge_plan_hash($planet_plans,$space_station_plans,$space_station_modules);
     
+    # Get space station lab details
+    my $spacestaion_lab_data = $self->request(
+        object  => $spacestaion_lab_object,
+        method  => 'view',
+    );
+    
     # Get max level
-    my $max_level = $spacestaion_lab->{level};
+    my $max_level = $spacestaion_lab_data->{building}{level};
     
     PLAN_LEVEL:
     foreach my $level (1..$max_level) {
+        last PLAN_LEVEL
+            unless $self->can_afford($planet_home,$spacestaion_lab_data->{make_plan}{level_costs}[$level-1]);
+        
         PLAN_TYPE:
         foreach my $plan (keys %{$self->plans}) {
             my $plan_data = $self->plans->{$plan};
@@ -90,16 +99,17 @@ sub run {
             my $count = $plan_data->{count} // 1;
             $plan_level = $max_level + $plan_level
                 if ($plan_level < 0);
-            next
+            next PLAN_TYPE
                 if $level <= $plan_skip;
-            
             $total_plans->{$plan}{$level} //= 0;
             if ($total_plans->{$plan}{$level} < $count) {
                 $self->log('notice','Building plan %s (%i) on %s',$plan_name,$level,$planet_home->{name});
+                my ($plan_type) = map { $_->{type} } grep { $_->{name} eq $plan_name } @{$spacestaion_lab_data->{make_plan}{types}};
+                
                 my $response = $self->request(
                     object  => $spacestaion_lab_object,
                     method  => 'make_plan',
-                    params  => [lc($plan),$level],
+                    params  => [$plan_type,$level],
                 );
                 #$response->{building}{work}{end};
                 return;
