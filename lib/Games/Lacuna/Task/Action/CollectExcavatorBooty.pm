@@ -61,7 +61,7 @@ has 'min_items' => (
     is              => 'rw',
     isa             => 'Int',
     required        => 1,
-    documentation   => 'Only ship if ..... TODO',
+    documentation   => 'Only send ship if we have n-items to be sent',
     default         => 0,
 );
 
@@ -142,6 +142,7 @@ sub process_planet {
     my $trade_ship_id;
     TRADE_SHIP:
     foreach my $ship (sort { $b->{speed} <=> $a->{speed} } @{$available_trade_ships->{ships}}) {
+        # TODO send multiple ships if cargo requirements exceed capacity of single ship
         next TRADE_SHIP
             if $ship->{hold_size} < $total_cargo;
         next TRADE_SHIP

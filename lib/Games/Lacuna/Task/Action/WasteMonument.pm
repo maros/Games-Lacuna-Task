@@ -52,6 +52,7 @@ sub process_planet {
             unless defined $existing_monument;
         next
             if defined $existing_monument->{pending_build};
+        # Ignore buildings that have already have been upgraded
         next
             if $existing_monument->{level} > 1;
         push(@existing_monuments,$existing_monument);
@@ -61,6 +62,7 @@ sub process_planet {
     return 
         unless (scalar @existing_monuments);
     
+    # Check if monument is buildable
     my $buildable_spots = $self->find_buildspot($planet_stats);
     
     return 

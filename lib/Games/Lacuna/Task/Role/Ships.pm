@@ -60,6 +60,7 @@ sub ships {
         next SHIPS
             unless $ship->{type} eq $type;
         
+        # Check ship prefix and flags
         if (defined $name_prefix) {
             next SHIPS
                  unless $ship->{name} =~ m/^$name_prefix/i;
@@ -68,6 +69,7 @@ sub ships {
                 if $ship->{name} =~ m/\!/; # Indicates reserved ship
         }
         
+        # Get ship activity
         if ($ship->{task} eq 'Docked') {
             push(@avaliable_ships,$ship->{id});
         } elsif ($ship->{task} eq 'Building') {
