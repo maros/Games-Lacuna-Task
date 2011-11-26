@@ -48,6 +48,12 @@ sub _build_client {
     return $client;
 }
 
+sub empire_name {
+    my ($self) = @_;
+    
+    return $self->lookup_cache('config')->{name};
+}
+
 sub request {
     my ($self,%args) = @_;
     

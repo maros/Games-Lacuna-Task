@@ -52,7 +52,7 @@ after 'run' => sub {
             sprintf('%s: %s from %s arrives at %s %s',$_->{planet},$_->{ship},$_->{from_empire},$_->{arrives}->ymd('.'),$_->{arrives}->hms(':'))
         } @{$self->new_incoming});
         
-        my $empire_name = $self->lookup_cache('config')->{name};
+        my $empire_name = $self->empire_name;
         
         $self->notify(
             "[$empire_name] Incoming ship(s) detected!",

@@ -52,7 +52,7 @@ sub run {
             my $commandline_params = $pa->cli_params();
             
             $self->log('notice',("=" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH));
-            $self->log('notice',"Running task %s for empire %s",$task_name,$self->lookup_cache('config')->{name});
+            $self->log('notice',"Running task %s for empire %s",$task_name,$self->empire_name);
             
             my $object = $task_class->new(
                 ARGV        => $pa->argv_copy,

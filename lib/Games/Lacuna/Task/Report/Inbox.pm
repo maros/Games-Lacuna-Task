@@ -77,7 +77,7 @@ sub report_inbox {
         $page --;
     }
     
-    my $empire_name = $self->lookup_cache('config')->{name};
+    my $empire_name = $self->empire_name;
     
     my $table = Games::Lacuna::Task::Table->new(
         headline=> 'Inbox Digest',

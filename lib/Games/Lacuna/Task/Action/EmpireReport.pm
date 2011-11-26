@@ -48,7 +48,7 @@ sub description {
 sub run {
     my ($self) = @_;
     
-    my $empire_name = $self->lookup_cache('config')->{name};
+    my $empire_name = $self->empire_name;
 
     my $report_html = join '',<DATA>;
     my @report_tables;

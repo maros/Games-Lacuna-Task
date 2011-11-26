@@ -52,7 +52,7 @@ after 'run' => sub {
             sprintf('%s: Found deployed bleeder level %i',$_->{planet},$_->{level})
         } @{$self->new_bleeder});
         
-        my $empire_name = $self->lookup_cache('config')->{name};
+        my $empire_name = $self->emire_name;
         
         $self->notify(
             "[$empire_name] Bleeders detected!",
