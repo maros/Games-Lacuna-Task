@@ -43,8 +43,6 @@ sub _report_battle_body {
     );
     
     foreach my $battle (@{$battle_data->{battle_log}}) {
-        next
-            if $battle->{attacking_unit} =~ m/excavator/i;
         my $date = $self->parse_date($battle->{date});
         next
             if $date < $timestamp;
