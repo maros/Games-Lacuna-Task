@@ -51,22 +51,29 @@ sub run {
     
     my $inbox_object = $self->build_object('Inbox');
     
-    # Get inbox for parliament
-    my $inbox_data = $self->request(
-        object  => $inbox_object,
-        method  => 'view_inbox',
-        params  => [{ tags => ['Parliament'],page_number => 1 }],
-    );
-    
     my @trash_messages;
-    
-    MESSAGES:
-    foreach my $message (@{$inbox_data->{messages}}) {
-        if ($message->{subject} =~ m/^(Pass|Reject):\s+/
-            || $message->{subject} =~ $self->accept_proposition
-            || $message->{subject} =~ $self->reject_proposition) {
-            push(@trash_messages,$message->{id});
+    my $page_number = 1;
+    while (1) {
+        # Get inbox for parliament
+        my $inbox_data = $self->request(
+            object  => $inbox_object,
+            method  => 'view_inbox',
+            params  => [{ tags => ['Parliament'],page_number => $page_number }],
+        );
+        
+        MESSAGES:
+        foreach my $message (@{$inbox_data->{messages}}) {
+            if ($message->{subject} =~ m/^(Pass|Reject):\s+/
+                || $message->{subject} =~ $self->accept_proposition
+                || $message->{subject} =~ $self->reject_proposition) {
+                push(@trash_messages,$message->{id});
+            }
         }
+        
+        last
+            if $inbox_data->{message_count} < 25;
+        
+        $page_number++;
     }
     
     # Archive
