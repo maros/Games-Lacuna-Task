@@ -368,20 +368,24 @@ sub stars_by_distance {
     
     my @star_distance;
     foreach my $star (values %{$stars}) {
-        my $dist = distance($star->{x},$star->{y},$x,$y);
-        push(@star_distance,[$dist,$star]);
-    }
-    
-    my @return;
-    foreach my $star (sort { $a->[0] <=> $b->[0] } @star_distance) {
+        my $distance = distance($star->{x},$star->{y},$x,$y);
+        
+        # Shallow clone
+        my $star_data = {
+            %{$star},
+            distance    => $distance,
+        };
+        
+        # Callback
         if (defined $callback) {
             next
-                unless $callback->($star->[1],$star->[0]);
+                unless $callback->($star_data);
         }
-        push(@return,$star->[1])
+        
+        push(@star_distance,$star_data);
     }
     
-    return @return;
+    return (sort { $a->{distance} <=> $b->{distance} } @star_distance);
 }
 
 no Moose::Role;

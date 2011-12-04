@@ -23,6 +23,13 @@ has 'min_distance' => (
     default         => 400,
 );
 
+has 'randomize' => (
+    isa             => 'Bool',
+    is              => 'rw',
+    documentation   => 'Rabdomize probe distance',
+    default         => 1,
+);
+
 use Try::Tiny;
 
 sub description {
@@ -66,9 +73,14 @@ sub process_planet {
     $self->log('debug','%i excavators available at %s',(scalar @avaliable_excavators),$planet_stats->{name});
     
     my $callback = sub {
-        my ($star,$distance) = @_;
+        my ($star) = @_;
         return 0
-            if $distance < $self->min_distance;
+            if $star->{distance} < $self->min_distance;
+        # Randomize distance
+        if ($self->randomize) {
+            $star->{distance_real} = $star->{distance};
+            $star->{distance} *= $star->{distance} *rand();
+        }
         return 1;
     };
     
