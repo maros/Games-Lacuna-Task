@@ -1,6 +1,8 @@
 package Games::Lacuna::Task::Role::Helper;
 
+use utf8;
 use 5.010;
+
 use Moose::Role;
 
 use List::Util qw(max min);

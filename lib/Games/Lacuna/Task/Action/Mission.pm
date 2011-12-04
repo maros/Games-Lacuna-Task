@@ -1,7 +1,6 @@
 package Games::Lacuna::Task::Action::Mission;
 
 use 5.010;
-use utf8;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
