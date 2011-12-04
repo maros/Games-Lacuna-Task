@@ -99,8 +99,12 @@ sub run {
             my $count = $plan_data->{count} // 1;
             $plan_level = $max_level + $plan_level
                 if ($plan_level < 0);
+           
             next PLAN_TYPE
                 if $level <= $plan_skip;
+            next PLAN_TYPE
+                if $level > $plan_level;
+            
             $total_plans->{$plan}{$level} //= 0;
             if ($total_plans->{$plan}{$level} < $count) {
                 $self->log('notice','Building plan %s (%i) on %s',$plan_name,$level,$planet_home->{name});
