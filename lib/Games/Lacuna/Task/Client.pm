@@ -9,6 +9,8 @@ use Games::Lacuna::Client;
 use KiokuDB;
 use Term::ReadKey;
 use IO::Interactive qw(is_interactive);
+use YAML::Any qw(LoadFile);
+use Games::Lacuna::Task::Utils qw(name_to_class);
 
 our $API_KEY = '261cb463-cff4-458a-bbc6-807a6ff59d3e';
 our $SERVER = 'https://us1.lacunaexpanse.com/';
@@ -39,11 +41,54 @@ has 'storage_scope' => (
     isa             => 'KiokuDB::LiveObjects::Scope',
 );
 
-has 'debug' => (
-    is              => 'rw',
-    isa             => 'Bool',
-    default         => 0,
+has 'config' => (
+    is              => 'ro',
+    isa             => 'HashRef',
+    lazy_build      => 1,
 );
+
+sub _build_config {
+    my ($self) = @_;
+    
+    # Get global config
+    my $global_config = {};
+    
+    foreach my $file (qw(lacuna config default)) {
+        my $global_config_file = Path::Class::File->new($self->configdir,$file.'.yml');
+        if (-e $global_config_file) {
+            $self->log('debug',"Loading config from %s",$global_config_file->stringify);
+            $global_config = LoadFile($global_config_file->stringify);
+            last;
+        }
+    }
+    
+    return $global_config;
+}
+
+sub task_config {
+    my ($self,$task_name) = @_;
+    
+    my $task_class = name_to_class($task_name);
+    my $config_task = $self->config->{$task_name} || $self->config->{lc($task_name)} || {};
+    my $config_global = $self->config->{global} || {};
+    
+    my $config_final = {};
+    foreach my $attribute ($task_class->meta->get_all_attributes) {
+        my $attribute_name = $attribute->name;
+        if ($attribute_name eq 'client') {
+            $config_final->{'client'} //= $self;
+        } else {
+            $config_final->{$attribute_name} = $config_task->{$attribute_name}
+                if defined $config_task->{$attribute_name};
+            $config_final->{$attribute_name} //= $config_global->{$attribute_name}
+                if defined $config_global->{$attribute_name};
+            $config_final->{$attribute_name} //= $self->$attribute_name
+                if $self->can($attribute_name);
+        }
+    }
+    
+    return $config_final;
+}
 
 sub _build_storage {
     my ($self) = @_;

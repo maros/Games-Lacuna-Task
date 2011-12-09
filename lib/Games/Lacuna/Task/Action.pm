@@ -4,9 +4,11 @@ use 5.010;
 
 use Moose;
 
-extends qw(Games::Lacuna::Task::Base);
+#extends qw(Games::Lacuna::Task::Base);
 
-with qw(Games::Lacuna::Task::Role::Helper
+with qw(Games::Lacuna::Task::Role::Client
+    Games::Lacuna::Task::Role::Logger
+    Games::Lacuna::Task::Role::Helper
     MooseX::Getopt);
 
 use Games::Lacuna::Task::Utils qw(class_to_name);
@@ -18,9 +20,6 @@ has '+configdir' => (
 
 sub execute {
     my ($self) = @_;
-    
-    $self->loglevel('debug')
-        if $self->debug;
     
     my $client = $self->client();
     

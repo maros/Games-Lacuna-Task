@@ -10,7 +10,6 @@ our $VERSION = "1.00";
 use Moose;
 extends qw(Games::Lacuna::Task::Base);
 with qw(Games::Lacuna::Task::Role::Introspect
-    Games::Lacuna::Task::Role::Config
     MooseX::Getopt);
 
 use Games::Lacuna::Task::Utils qw(class_to_name name_to_class);
@@ -44,9 +43,6 @@ has '+configdir' => (
 sub run {
     my ($self) = @_;
     
-    $self->loglevel('debug')
-        if $self->debug;
-    
     my $client = $self->client();
     
     # Call lazy builder
@@ -57,7 +53,7 @@ sub run {
     $self->log('notice',("=" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH));
     $self->log('notice',"Running tasks for empire %s",$empire_name);
     
-    my $global_config = $self->config->{global};
+    my $global_config = $client->config->{global};
     
     $self->task($global_config->{task})
         if (defined $global_config->{task}
@@ -107,7 +103,7 @@ sub run {
                     $self->log('notice',"Info for task %s",$task_name);
                     $self->inspect($task_class);
                 } else {
-                    my $task_config = $self->task_config($task_name);
+                    my $task_config = $client->task_config($task_name);
                     my $task = $task_class->new(
                         %{$task_config}
                     );

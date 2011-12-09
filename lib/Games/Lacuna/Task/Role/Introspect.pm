@@ -40,7 +40,7 @@ sub inspect {
                     if (ref($default) eq 'CODE');
                 $self->log('info',"  Default: %s",$default);
             }
-            my $current_config = $self->task_config($task_name);
+            my $current_config = $self->client->task_config($task_name);
             if (exists $current_config->{$attribute->name}) {
                 $self->log('info',"  Current configtation: %s",$current_config->{$attribute->name});
             }

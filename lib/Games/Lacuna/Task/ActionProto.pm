@@ -6,7 +6,6 @@ use 5.010;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Base);
-with qw(Games::Lacuna::Task::Role::Config);
 
 use List::Util qw(max);
 use Try::Tiny;
@@ -46,7 +45,7 @@ sub run {
             $self->configdir($configdir)
                 if defined $configdir && $configdir ne '';
             
-            my $task_config = $self->task_config($task_name);
+            my $task_config = $self->client->task_config($task_name);
             
             my $pa = $task_class->process_argv($task_config);
             my $commandline_params = $pa->cli_params();
