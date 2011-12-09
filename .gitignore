@@ -16,3 +16,5 @@ MANIFEST.bak
 .includepath
 MYMETA.json
 MYMETA.yml
+nytprof/
+meta/
