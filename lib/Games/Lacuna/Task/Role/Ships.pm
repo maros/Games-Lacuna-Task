@@ -14,6 +14,7 @@ sub ships {
     my $name_prefix = $params{name_prefix};
     my $quantity = $params{quantity} // 1;
     my $travelling = $params{travelling} // 0;
+    my $build = $params{build} // 1;
     
     return
         unless $type && defined $planet_stats;
@@ -66,8 +67,13 @@ sub ships {
         
         # Check if we have enough ships
         return @avaliable_ships
-            if $quantity > 0 && scalar(@avaliable_ships) >= $quantity;
+            if defined $quantity 
+            && $quantity > 0 
+            && scalar(@avaliable_ships) >= $quantity;
     }
+    
+    return @avaliable_ships
+        unless $build;
     
     # Check if we have a shipyard
     my @shipyards = $self->find_building($planet_stats->{id},'Shipyard');
@@ -79,6 +85,7 @@ sub ships {
     
     # Quantity is defined as free-spaceport slots
     my $max_build_quantity;
+    
     if ($quantity < 0) {
         $max_build_quantity = max($max_ships_possible - $ships_data->{number_of_ships} + $quantity,0);
     # Quantity is defined as number of ships
