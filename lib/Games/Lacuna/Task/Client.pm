@@ -13,7 +13,7 @@ use YAML::Any qw(LoadFile);
 use Games::Lacuna::Task::Utils qw(name_to_class);
 
 our $API_KEY = '6ca1d525-bd4d-4bbb-ae85-b925ed3ea7b7';
-our $SERVER = 'https://us1.lacunaexpanse.com/';
+our $URI = 'https://us1.lacunaexpanse.com/';
 
 has 'client' => (
     is              => 'rw',
@@ -132,6 +132,9 @@ sub _build_client {
         $self->log('debug','Session %s has expired',$session->{session_id});
         $session = {};
     }
+    
+    $config->{api_key} ||= $API_KEY;
+    $config->{uri} ||= $URI;
 
     my $client = Games::Lacuna::Client->new(
         %{$config},
@@ -153,12 +156,12 @@ sub get_config_from_user {
     $self->log('info',"Initializing local database");
     
     while (! defined $server || $server !~ m/^https?:\/\//) {
-        say "Please enter the server url (leave empty for default: '$SERVER'):";
+        say "Please enter the server url (leave empty for default: '$URI'):";
         while ( not defined( $server = ReadLine(-1) ) ) {
             # no key pressed yet
         }
         chomp($server);
-        $server ||= $SERVER;
+        $server ||= $URI;
     }
     
     say "Please enter the api key (leave empty for default: '$API_KEY'):";
