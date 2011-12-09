@@ -12,7 +12,7 @@ use IO::Interactive qw(is_interactive);
 use YAML::Any qw(LoadFile);
 use Games::Lacuna::Task::Utils qw(name_to_class);
 
-our $API_KEY = '261cb463-cff4-458a-bbc6-807a6ff59d3e';
+our $API_KEY = '6ca1d525-bd4d-4bbb-ae85-b925ed3ea7b7';
 our $SERVER = 'https://us1.lacunaexpanse.com/';
 
 has 'client' => (
@@ -121,7 +121,8 @@ sub _build_client {
     my ($self) = @_;
     
     my $storage = $self->storage;
-    my $config = $storage->lookup('config') || $self->get_config_from_user();
+
+    my $config = $self->config->{connect} || $storage->lookup('config') || $self->get_config_from_user();
     my $session = $storage->lookup('session') || {};
 
     # Check session
@@ -137,8 +138,6 @@ sub _build_client {
         %{$session},
         session_persistent  => 1,
     );
-    
-    #$client->assert_session();
 
     return $client;
 }

@@ -4,8 +4,6 @@ use 5.010;
 
 use Moose;
 
-#extends qw(Games::Lacuna::Task::Base);
-
 with qw(Games::Lacuna::Task::Role::Client
     Games::Lacuna::Task::Role::Logger
     Games::Lacuna::Task::Role::Helper
