@@ -1,6 +1,6 @@
 #!*perl*
 
-use Test::More tests => 15;
+use Test::More tests => 16;
 use utf8;
 
 use_ok( 'Games::Lacuna::Task::Utils' );
@@ -16,6 +16,7 @@ use_ok( 'Games::Lacuna::Task::Utils' );
         'Snark  IV'     => 'snark4',
         'Supply Pod V'  => 'supply_pod5',
         'Supply_Pod_VI' => 'supply_pod6',
+        'smuggler  SHIP' => 'smuggler_ship',
     );
     
     while (my ($name,$expect) = each %name) {
