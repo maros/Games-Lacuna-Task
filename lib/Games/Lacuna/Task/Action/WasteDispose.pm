@@ -45,6 +45,8 @@ sub process_planet {
         next
             unless $ship->{type} eq 'scow';
         next
+            if $ship->{name} =~ m/\!/;
+        next
             if $ship->{hold_size} > $waste_disposeable;
             
         $self->log('notice',"Disposing %s waste on %s",$ship->{hold_size},$planet_stats->{name});
