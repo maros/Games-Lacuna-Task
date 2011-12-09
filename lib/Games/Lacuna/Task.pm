@@ -168,6 +168,9 @@ or lacuna.yml.
 Example config.yml
 
  ---
+ connect:
+   name: "empire_name"          # optional
+   password: "empire_password"  # optional
  global:
    task: 
      - excavate
@@ -188,12 +191,17 @@ if no tasks have been set explicitly (e.g. via command line).
 global.exclude specifies which tasks should be skipped default and is only 
 used if no tasks have been set explicitly or via config.
 
+global.exclude_planet and *.exclude_planet can be used to exclude certain
+bodies from being processed.
+
 All other values in the global.* section are used as default values for tasks.
 (e.g. the 'dispose_percentage' setting can be used by the WasteMonument and
-the Dispose task)
+the WasteDispose task)
 
-Username, password, empire name, api key and server url are stored in the 
-sqlite/KiokuDB Storage backend and not in the config file.
+Username, password, empire name, api key and server url may be stored under
+the connect key in the config file. If not present in the config you will be 
+asked to supply this information the first time you run the scripts, and the 
+connect data will be stored in the KiokuDB/sqlite database.
 
 =cut
 
