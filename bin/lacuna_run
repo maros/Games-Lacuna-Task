@@ -12,7 +12,7 @@ Games::Lacuna::Task::ActionProto->new->run;
 
 =head1 NAME
 
-lacuna_run - Runs a single task from the commandline
+lacuna_run - Run a single task in the Lacuna MMPOG
 
 =head1 USAGE
 

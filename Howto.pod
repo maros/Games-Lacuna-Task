@@ -31,6 +31,9 @@ directory. The file should have the following format:
     # Global task options
     global_task_opion: ...
  task1_name:
+   exclude_planet:
+     - Planet A
+     - Planet B
    task1_option1: 80
    task1_option2: ...
  task2_name:
@@ -40,7 +43,7 @@ directory. The file should have the following format:
 
 Information about available tasks and their configuration options is available
 when running C<lacuna_task> with the C<--task_info> option, or via
-C<lacuna_run COMMAND --help>
+C<lacuna_run help --help> or C<lacuna_run COMMAND --help>
 
 =head1 DEVELOPERS
 

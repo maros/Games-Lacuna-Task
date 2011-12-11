@@ -13,11 +13,13 @@ $task->run;
 
 =head1 NAME
 
-lacuna_task - Automate various tasks in the Lacuna MMPOG
+lacuna_task - Run multiple tasks in the Lacuna MMPOG
 
 =head1 USAGE
 
  lacuna_task --task task1 --task name2 ... [options]
+ lacuna_task --task_info
+ lacuna_task --help
 
 =head2 OPTIONS
 
@@ -34,7 +36,7 @@ Multiple
 
 =head3 exclude
 
-Excludes the selected tasks
+Excludes the selected tasks. Only valid if task option has not been set.
 
 Multiple
 
