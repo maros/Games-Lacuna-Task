@@ -24,7 +24,7 @@ has 'upgrade_buildings' => (
             
             'Stockpile'             => ['global','storage'],
             'PlanetaryCommand'      => ['global','storage'],
-            'DistributionCenter'    => ['global','storage','max20'],
+            'DistributionCenter'    => ['global','storage','max18'],
             
             'AtmosphericEvaporator' => ['water','production'],
             'WaterProduction'       => ['water','production'],
@@ -55,7 +55,10 @@ has 'upgrade_buildings' => (
             
             'WasteTreatment'        => ['global','waste','production'],
             'WasteExchanger'        => ['global','waste','production'],
-
+            
+            'Sand'                  => ['extra'],
+            'Grove'                 => ['extra'],
+            'Lagoon'                => ['extra'],
         }
     },
     documentation => 'Building uprade preferences',
@@ -110,7 +113,7 @@ sub process_planet {
     }
     
     # Find any other upgradeable building
-    for my $tag (qw(storage waste global)) {
+    for my $tag (qw(storage waste global extra)) {
         last
             if (scalar @upgradeable_buildings > 0);
         @upgradeable_buildings = $self->find_upgrade_buildings($planet_stats,$tag);
