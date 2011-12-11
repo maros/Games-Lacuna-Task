@@ -133,6 +133,13 @@ sub _build_client {
         $session = {};
     }
     
+    # Aliases
+    $config->{name} ||= delete $config->{empire}
+        if defined $config->{empire};
+    $config->{uri} ||= delete $config->{server}
+        if defined $config->{server};
+    
+    # Defaults
     $config->{api_key} ||= $API_KEY;
     $config->{uri} ||= $URI;
 
