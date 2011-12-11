@@ -50,7 +50,10 @@ sub render_text {
         $table->add(@row);
     }
     
-    my $content = '*'.uc($self->headline)."*\n";
+    my $content = '';
+    if ($self->has_headline) {
+        $content .= '*'.uc($self->headline)."*\n";
+    }
     $content .= $table->title;
     $content .= $table->rule('-','+');
     $content .= $table->body;
