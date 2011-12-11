@@ -137,19 +137,18 @@ Before installing C<Game::Lacuna::Task> you need to install
 
 Then continue by typing
 
- perl Makefile.PL
- make
- make install
- make clean
+ perl Build.PL
+ ./Build
+ ./Build installdeps
+ ./Build install
+ ./Build clean
 
-If you have checked out this distribution directly from github then you will 
-probably need to install L<Module::Install> before running the makefile.
-
+Alternatively you can install missing dependencies via cpanminus:
+ 
+ # Install cpanmius (also available as packages for debian, fedora, ...)
  curl -L http://cpanmin.us | perl - App::cpanminus
- cpanm Module::Install
+ # Now install 'Moose' via cpanminus
+ cpanm Moose
 
-or
-
- cpanp i Module::Install
 
 =cut

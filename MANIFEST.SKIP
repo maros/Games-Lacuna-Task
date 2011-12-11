@@ -47,3 +47,6 @@
 \B\._
 nytprof/
 meta/
+^MYMETA\.json$
+^MYMETA\.yml$
+
