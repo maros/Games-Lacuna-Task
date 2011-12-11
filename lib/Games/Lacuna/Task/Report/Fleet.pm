@@ -52,7 +52,6 @@ sub _report_fleet_body {
             type        => $ship->{type_human},
             task        => $ship->{task},
         };
-        warn $moniker;
         
         foreach my $quality (qw(speed stealth hold_size combat)) {
             $ships{$moniker}->{$quality} ||= [];
