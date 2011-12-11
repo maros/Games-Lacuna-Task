@@ -26,7 +26,7 @@ subtype 'Lacuna::Task::Type::Coordinate'
 coerce 'Lacuna::Task::Type::Coordinate' 
     => from 'Str'
     => via {
-        return [ split(/[;,x-]/) ];
+        return [ split(/[;,x]/) ];
     };
 
 MooseX::Getopt::OptionTypeMap->add_option_type_to_map(
