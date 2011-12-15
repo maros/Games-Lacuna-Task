@@ -19,6 +19,8 @@ sub inspect {
             if $attribute->does('NoIntrospection');
         next
             if $attribute->does('NoGetopt');
+        next
+            if $attribute->name eq 'help_flag';
         push (@attributes,$attribute);
     }
     if (scalar @attributes) {
