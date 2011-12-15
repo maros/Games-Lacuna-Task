@@ -57,7 +57,8 @@ sub my_planets {
         next
             unless defined $body_status;
         next
-            unless $body_status->{type} eq 'habitable planet';
+            unless $body_status->{type} eq 'habitable planet'
+            || $body_status->{type} eq 'gas giant';
         push(@planets,$body_status);
     }
     return @planets;
