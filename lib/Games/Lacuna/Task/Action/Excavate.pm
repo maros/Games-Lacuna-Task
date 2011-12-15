@@ -104,7 +104,7 @@ sub process_planet {
             
             # Only excavate habitable planets
             next BODIES
-                unless $body->{type} eq 'habitable planet';
+                unless $body->{type} eq 'habitable planet' || $body->{type} eq 'gas giant';
             
             #  Do not excavate inhabited body
             next BODIES
