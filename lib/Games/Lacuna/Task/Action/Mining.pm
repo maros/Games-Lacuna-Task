@@ -163,12 +163,7 @@ sub closest_asteroids {
         next STARS
             unless $self->is_probed_star($star->{id});
         
-        # Get star info
-        my $star_info = $self->request(
-            object  => $self->build_object('Map'),
-            params  => [ $star->{id} ],
-            method  => 'get_star',
-        );
+        my $star_info = $self->get_star($star->{id});
         
         foreach my $body (@{$star_info->{star}{bodies}}) {
             next 
