@@ -278,21 +278,10 @@ sub process_planet {
         if ($trade_complete) {
             
             # Get trade ship
-            my $trade_ship_id = 0;
-            my $trade_ships = $self->request(
-                object  => $tradeministry_object,
-                method  => 'get_trade_ships',
-            )->{ships};
+            my $trade_ship_id = $self->trade_ships($planet_stats->{id},$trade_cargo);
             
-            TRADE_SHIP:
-            foreach my $ship (sort { $b->{speed} <=> $a->{speed} } @{$trade_ships}) {
-                next TRADE_SHIP
-                    if $ship->{hold_size} < $trade_cargo;
-                next TRADE_SHIP
-                    if $ship->{name} =~ m/!/;
-                $trade_ship_id = $ship->{id};
-                last TRADE_SHIP; 
-            }
+            next TRADE
+                unless $trade_ship_id;
             
             my $response = $self->request(
                 object  => $tradeministry_object,

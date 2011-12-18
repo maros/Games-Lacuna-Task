@@ -6,6 +6,31 @@ use Moose::Role;
 use List::Util qw(min sum max first);
 use Games::Lacuna::Task::Utils qw(parse_ship_type);
 
+sub trade_ships {
+    my ($self,$body_id,$cargo) = @_;
+    
+    my $trade = $self->find_building($body_id,'Trade');
+    return 
+        unless defined $trade;
+    my $trade_object = $self->build_object($trade);
+    
+    my $trade_ships = $self->request(
+        object  => $trade_object,
+        method  => 'get_trade_ships',
+    )->{ships};
+    
+    TRADE_SHIP:
+    foreach my $ship (sort { $b->{speed} <=> $a->{speed} } @{$trade_ships}) {
+        next TRADE_SHIP
+            if $ship->{hold_size} < $cargo;
+        next TRADE_SHIP
+            if $ship->{name} =~ m/\!/;
+        return $ship->{id};
+    }
+    
+    return;
+}
+
 sub ships {
     my ($self,%params) = @_;
     
