@@ -107,6 +107,22 @@ sub my_body_status {
     return $body_status->{body};
 }
 
+sub get_building_object {
+    my ($self,$body,$type) = @_;
+    
+    my $body_id = $self->my_body_id($body);
+    return 
+        unless $body_id;
+    
+    # Get space port
+    my $building_data = $self->find_building($body_id,$type);
+    
+    return 
+        unless $building_data;
+    
+    return $self->build_object($building_data);
+}
+
 sub find_building {
     my ($self,$body,$type) = @_;
     
