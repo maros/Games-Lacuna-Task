@@ -41,14 +41,10 @@ sub process_planet {
     my ($self,$planet_stats) = @_;
     
     # Get space port
-    my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');
-    my $trade = $self->find_building($planet_stats->{id},'Trade');
-    
+    my $spaceport_object = $self->get_building_object($planet_stats->{id},'SpacePort');
+    my $trade_object = $self->get_building_object($planet_stats->{id},'Trade');
     return 
-        unless $spaceport && $trade;
-    
-    my $spaceport_object = $self->build_object($spaceport);
-    my $trade_object = $self->build_object($trade);
+        unless $spaceport_object && $trade_object;
     
     # Get all available ships
     my $ships_data = $self->request(
@@ -61,6 +57,7 @@ sub process_planet {
     
     SHIPS:
     foreach my $ship (@{$ships_data->{ships}}) {
+        # Dispatch to another planet
         if ( uc($ship->{name}) =~ $self->_planet_re ) {
             my $target_planet = $self->my_body_status($1);
             next SHIPS
@@ -70,12 +67,24 @@ sub process_planet {
             push (@{$dispatch{$target_planet->{id}}},$ship);
             
             $self->log('notice','Dispatching ships from %s to %s',$ship->{name},$planet_stats->{name},$target_planet->{name});
+        # Scuttle
         } elsif ( $ship->{name} =~ m/\b(scuttle|demolish)\b/) {
             $self->log('notice','Scuttling ship %s on %s',$ship->{name},$planet_stats->{name});
             
             $self->request(
                 object  => $spaceport_object,
                 method  => 'scuttle_ship',
+                params  => [$ship->{id}],
+            );
+        # Start mining
+        } elsif ( $ship->{name} =~ m/\b(mining|miner)\b/) {
+            $self->log('notice','Starting to mine with ship %s on %s',$ship->{name},$planet_stats->{name});
+            
+            my $mining_object = $self->get_building_object($planet_stats->{id},'MiningMinistry');
+            
+            $self->request(
+                object  => $mining_object,
+                method  => 'add_cargo_ship_to_fleet',
                 params  => [$ship->{id}],
             );
         }
@@ -85,6 +94,7 @@ sub process_planet {
         
         my @ships = @{$dispatch{$body_id}};
         
+        no warnings 'once';
         my $trade_cargo = scalar(@ships) * $Games::Lacuna::Task::Constants::CARGO{ship};
         
         # Get trade ship
