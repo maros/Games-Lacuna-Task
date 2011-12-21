@@ -71,7 +71,7 @@ sub run {
         }
         
         last
-            if $inbox_data->{message_count} < 25;
+            if scalar(@{$inbox_data->{messages}}) < 25;
         
         $page_number++;
     }
