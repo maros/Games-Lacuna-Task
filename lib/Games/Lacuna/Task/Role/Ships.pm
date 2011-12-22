@@ -6,6 +6,73 @@ use Moose::Role;
 use List::Util qw(min sum max first);
 use Games::Lacuna::Task::Utils qw(parse_ship_type);
 
+sub push_ships {
+    my ($self,$body_id,$ships) = @_;
+    
+    my $trade_object = $self->get_building_object($body_id,'Trade');
+    my $spaceport_object = $self->get_building_object($body_id,'SpacePort');
+    
+    return 
+        unless $trade_object && $spaceport_object;
+    
+    my $trade_cargo = scalar(@{$ships}) * $Games::Lacuna::Task::Constants::CARGO{ship};
+    
+    my @cargo;
+    my $send_with_ship_id;
+    my $send_ship_stay = 0;
+    
+    foreach my $ship (sort { $b->{speed} <=> $a->{speed} }  @{$ships}) {
+        if ($ship->{type} ~~ [qw(galleon hulk cargo freighter hulk smuggler)]
+            && $ship->{hold_size} >= ($trade_cargo - $Games::Lacuna::Task::Constants::CARGO{ship})
+            && ! defined $send_with_ship_id) {
+            $send_with_ship_id =  $ship->{id};
+            $send_ship_stay = 1;
+        } else {
+            push (@cargo,{
+                "type"      => "ship",
+                "ship_id"   => $ship->{id},
+            });
+        }
+    }
+    
+    # Get trade ship
+    $send_with_ship_id ||= $self->trade_ships($body_id,$trade_cargo);
+    
+    return
+        unless $send_with_ship_id;
+
+    # Add minimum cargo
+    push(@cargo,{
+        "type"      => "water",
+        "quantity"  => 1,
+    }) unless scalar(@cargo);
+
+    # Rename ships
+    foreach my $ship (@{$ships}) {
+        my $name = $ship->{name};
+        
+        # Replace one exclamation mark
+        $name =~ s/!//;
+        
+        if ($name ne $ship->{name}) {
+            $self->request(
+                object  => $spaceport_object,
+                method  => 'name_ship',
+                params  => [$ship->{id},$name],
+            );
+        }
+    }
+    
+    my $response = $self->request(
+        object  => $trade_object,
+        method  => 'push_items',
+        params  => [ $body_id, \@cargo, { 
+            ship_id => $send_with_ship_id,
+            stay    => $send_ship_stay,
+        } ]
+    );
+}
+
 sub trade_ships {
     my ($self,$body_id,$cargo) = @_;
     

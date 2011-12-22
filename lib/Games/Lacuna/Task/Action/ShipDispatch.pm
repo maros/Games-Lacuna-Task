@@ -42,9 +42,9 @@ sub process_planet {
     
     # Get space port
     my $spaceport_object = $self->get_building_object($planet_stats->{id},'SpacePort');
-    my $trade_object = $self->get_building_object($planet_stats->{id},'Trade');
+    
     return 
-        unless $spaceport_object && $trade_object;
+        unless $spaceport_object;
     
     # Get all available ships
     my $ships_data = $self->request(
@@ -91,45 +91,7 @@ sub process_planet {
     }
     
     foreach my $body_id (sort { scalar(@{$dispatch{$a}}) <=> scalar(@{$dispatch{$b}}) }keys %dispatch) {
-        
-        my @ships = @{$dispatch{$body_id}};
-        
-        no warnings 'once';
-        my $trade_cargo = scalar(@ships) * $Games::Lacuna::Task::Constants::CARGO{ship};
-        
-        # Get trade ship
-        my $trade_ship_id = $self->trade_ships($planet_stats->{id},$trade_cargo);
-        
-        return
-            unless $trade_ship_id;
-        
-        my @push_ships;
-        
-        foreach my $ship (@ships) {
-            my $name = $ship->{name};
-            
-            # Replace one exclamation mark
-            $name =~ s/!//;
-            
-            if ($name ne $ship->{name}) {
-                $self->request(
-                    object  => $spaceport_object,
-                    method  => 'name_ship',
-                    params  => [$ship->{id},$name],
-                );
-            }
-            
-            push (@push_ships,{
-                "type"      => "ship",
-                "ship_id"   => $ship->{id},
-            });
-        }
-        
-        my $response = $self->request(
-            object  => $trade_object,
-            method  => 'push_items',
-            params  => [ $body_id, \@push_ships, { ship_id => $trade_ship_id } ]
-        );
+        $self->push_ships($planet_stats->{id},$dispatch{$body_id});
     }
 }
 
