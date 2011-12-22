@@ -379,7 +379,7 @@ sub dispatch_defender {
     my $relocateable_ships = min( ($count-$dispatch_ship) , scalar(@relocate_ship), $self->_planet_attack->{$to_body_id}{free_slots} );
     if ($relocateable_ships > 0) {
         my @relocate_ships_final = @relocate_ship[0..($relocateable_ships-1)];
-        $dispatch_ship += $self->push_ships($to_body_id,\@relocate_ships_final);
+        $dispatch_ship += $self->push_ships($from_body_id,$to_body_id,\@relocate_ships_final);
     }
     
     return $dispatch_ship;

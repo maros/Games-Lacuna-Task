@@ -66,7 +66,7 @@ sub process_planet {
             $dispatch{$target_planet->{id}} ||= [];
             push (@{$dispatch{$target_planet->{id}}},$ship);
             
-            $self->log('notice','Dispatching ships from %s to %s',$ship->{name},$planet_stats->{name},$target_planet->{name});
+            $self->log('notice','Dispatching ship %s from %s to %s',$ship->{name},$planet_stats->{name},$target_planet->{name});
         # Scuttle
         } elsif ( $ship->{name} =~ m/\b(scuttle|demolish)\b/) {
             $self->log('notice','Scuttling ship %s on %s',$ship->{name},$planet_stats->{name});
@@ -91,7 +91,9 @@ sub process_planet {
     }
     
     foreach my $body_id (sort { scalar(@{$dispatch{$a}}) <=> scalar(@{$dispatch{$b}}) }keys %dispatch) {
-        $self->push_ships($planet_stats->{id},$dispatch{$body_id});
+        my $target_planet = $self->my_body_status($body_id);
+        $self->log('debug','Dispatching %i ships from %s to %s',scalar(@{$dispatch{$body_id}}), $planet_stats->{name},$target_planet->{name});
+        $self->push_ships($planet_stats->{id},$body_id,$dispatch{$body_id});
     }
 }
 

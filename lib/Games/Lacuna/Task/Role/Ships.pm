@@ -7,10 +7,10 @@ use List::Util qw(min sum max first);
 use Games::Lacuna::Task::Utils qw(parse_ship_type);
 
 sub push_ships {
-    my ($self,$body_id,$ships) = @_;
+    my ($self,$form_id,$to_id,$ships) = @_;
     
-    my $trade_object = $self->get_building_object($body_id,'Trade');
-    my $spaceport_object = $self->get_building_object($body_id,'SpacePort');
+    my $trade_object = $self->get_building_object($form_id,'Trade');
+    my $spaceport_object = $self->get_building_object($form_id,'SpacePort');
     
     return 0
         unless $trade_object && $spaceport_object;
@@ -36,7 +36,7 @@ sub push_ships {
     }
     
     # Get trade ship
-    $send_with_ship_id ||= $self->trade_ships($body_id,$trade_cargo);
+    $send_with_ship_id ||= $self->trade_ships($form_id,$trade_cargo);
     
     return
         unless $send_with_ship_id;
@@ -66,12 +66,13 @@ sub push_ships {
     my $response = $self->request(
         object  => $trade_object,
         method  => 'push_items',
-        params  => [ $body_id, \@cargo, { 
+        params  => [ $to_id, \@cargo, { 
             ship_id => $send_with_ship_id,
             stay    => $send_ship_stay,
         } ]
     );
     
+
     return scalar(@{$ships});
 }
 
