@@ -170,6 +170,7 @@ sub process_planet {
         attacker    => $attacker_count,
         defender    => $defender_count,
         arrive      => $first_attacker_arrive,
+        free_slots  => $self->get_spaceport_slots($planet_stats->{id}),
     });
     
     $self->log('info','%i defending units available on %s',$defender_count,$planet_stats->{name});
@@ -207,6 +208,25 @@ sub get_orbiting_defending_ships {
     }
     
     return $count;
+}
+
+sub get_spaceport_slots {
+    my ($self,$body_id) = @_;
+    
+    my $spaceport = $self->find_building($body_id,'SpacePort');
+    
+    return 0
+        unless scalar $spaceport;
+    
+    my $spaceport_object = $self->build_object($spaceport);
+    
+    # Get all available ships
+    my $spaceport_data = $self->request(
+        object  => $spaceport_object,
+        method  => 'view',
+    );
+    
+    return $spaceport_data->{docks_available};
 }
 
 sub get_local_defending_ships {
@@ -314,29 +334,52 @@ sub dispatch_defender {
         params  => [ { no_paging => 1 }, { tag => [ 'War' ] } ],
     );
     
+    my @relocate_ship;
     my $dispatch_ship = 0;
+    
+    # Loop all war ships
     LOCAL_SHIPS:
     foreach my $ship (@{$ships_data->{ships}}) {
         next LOCAL_SHIPS
-            unless $ship->{type} eq 'fighter'; 
-            # can't we also send sweepers?
+            unless $ship->{type} eq 'fighter'
+            || $ship->{type} eq 'sweeper';
+        
+        next LOCAL_SHIPS
+            if $ship->{name} =~ m/\!/;
+        
+        next LOCAL_SHIPS
+            if $ship->{type} eq 'sweeper'
+            && $ship->{name} !~ m/(dispatch|\$|\+)/;
         
         next LOCAL_SHIPS
             if $ship->{combat} < $self->min_defender_combat;
         
         next LOCAL_SHIPS
-            if $ship->{task} eq 'Docked';
+            unless $ship->{task} eq 'Docked';
         
-        $dispatch_ship++;
+        # Dispatch fighter directly
+        if ($ship->{type} eq 'fighter') {
+            $dispatch_ship++;
+            $self->request(
+                object  => $spaceport_object,
+                method  => 'send_ship',
+                params  => [ $ship->{id}, { body_id => $to_body_id } ],
+            );
+        # Add sweeper to list of dispatchable units
+        } elsif ($ship->{type} eq 'sweeper') {
+            push(@relocate_ship,$ship->{id});
+        }
         
-        $self->request(
-            object  => $spaceport_object,
-            method  => 'send_ship',
-            params  => [ $ship->{id}, { body_id => $to_body_id } ],
-        );
-        
-        last LOCAL_SHIPS
+        # Check if we have enough defenders
+        return $dispatch_ship
             if $dispatch_ship >= $count;
+    }
+    
+    # Relocate sweepers via push
+    my $relocateable_ships = min( ($count-$dispatch_ship) , scalar(@relocate_ship), $self->_planet_attack->{$to_body_id}{free_slots} );
+    if ($relocateable_ships > 0) {
+        my @relocate_ships_final = @relocate_ship[0..($relocateable_ships-1)];
+        $dispatch_ship += $self->push_ships($to_body_id,\@relocate_ships_final);
     }
     
     return $dispatch_ship;

@@ -12,7 +12,7 @@ sub push_ships {
     my $trade_object = $self->get_building_object($body_id,'Trade');
     my $spaceport_object = $self->get_building_object($body_id,'SpacePort');
     
-    return 
+    return 0
         unless $trade_object && $spaceport_object;
     
     my $trade_cargo = scalar(@{$ships}) * $Games::Lacuna::Task::Constants::CARGO{ship};
@@ -71,6 +71,8 @@ sub push_ships {
             stay    => $send_ship_stay,
         } ]
     );
+    
+    return scalar(@{$ships});
 }
 
 sub trade_ships {
