@@ -9,18 +9,10 @@ our $VERSION = "1.00";
 
 use Moose;
 extends qw(Games::Lacuna::Task::Base);
-with qw(Games::Lacuna::Task::Role::Introspect
-    MooseX::Getopt);
+with qw(MooseX::Getopt);
 
 use Games::Lacuna::Task::Utils qw(class_to_name name_to_class);
 use Try::Tiny;
-
-has 'task_info'  => (
-    is              => 'ro',
-    isa             => 'Bool',
-    default         => 0,
-    documentation   => 'Show task info and configuration',
-);
 
 has 'exclude'  => (
     is              => 'rw',
@@ -99,17 +91,11 @@ sub run {
             $self->log('notice',("-" x ($Games::Lacuna::Task::Constants::SCREEN_WIDTH - 8)));
             $self->log('notice',"Running action %s",$task_name);
             try {
-                if ($self->task_info) {
-                    $self->log('notice',"Info for task %s",$task_name);
-                    $self->inspect($task_class);
-                } else {
-                    my $task_config = $client->task_config($task_name);
-                    my $task = $task_class->new(
-                        %{$task_config}
-                    );
-                    $task->execute;
-                } 
-                
+                my $task_config = $client->task_config($task_name);
+                my $task = $task_class->new(
+                    %{$task_config}
+                );
+                $task->execute;
             } catch {
                 $self->log('error',"An error occured while processing %s: %s",$task_class,$_);
             }
