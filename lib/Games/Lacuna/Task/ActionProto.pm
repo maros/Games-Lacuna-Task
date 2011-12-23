@@ -19,12 +19,12 @@ sub run {
     
     if (! defined $task_name) {
         say "Missing command";
-        $self->print_usage();
-    } elsif ($task_name ~~ [qw(help ? --help -h -?)]) {
-        $self->print_usage();
+        $self->global_usage();
+    } elsif ($task_name ~~ [qw(help ? --help -h -? --usage usage)]) {
+        $self->global_usage();
     } elsif (! ($task_class ~~ [$self->all_actions()])) {
         say "Unknown command '$task_name'";
-        $self->print_usage();
+        $self->global_usage();
     } else {
         $ARGV[0] = '--help'
             if defined $ARGV[0] && $ARGV[0] eq 'help';
@@ -39,38 +39,115 @@ sub run {
         
         if ($ok) {
             my $configdir;
+            my $help;
+            
             my $opt_parser = Getopt::Long::Parser->new( config => [ qw( no_auto_help pass_through ) ] );
-            $opt_parser->getoptions( "configdir=s" => \$configdir );
+            $opt_parser->getoptions( 
+                "configdir=s"   => \$configdir,
+                "help|usage|?"  => \$help,
+            );
             
             $self->configdir($configdir)
                 if defined $configdir && $configdir ne '';
             
             my $task_config = $self->client->task_config($task_name);
             
-            my $pa = $task_class->process_argv($task_config);
-            my $commandline_params = $pa->cli_params();
-            
-            $self->log('notice',("=" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH));
-            $self->log('notice',"Running task %s for empire %s",$task_name,$self->empire_name);
-            
-            my $object = $task_class->new(
-                ARGV        => $pa->argv_copy,
-                extra_argv  => $pa->extra_argv,
-                ( $pa->usage ? ( usage => $pa->usage ) : () ),
-                %{ $task_config }, # explicit params to ->new
-                %{ $pa->cli_params }, # params from CLI
-            );
-            
-            $object->execute;
-            $self->log('notice',("=" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH));
+            if ($help) {
+                $self->task_usage($task_class);
+            } else {
+                eval {
+                    my $pa = $task_class->process_argv($task_config);
+                        
+                    my $object = $task_class->new(
+                        ARGV        => $pa->argv_copy,
+                        extra_argv  => $pa->extra_argv,
+                        #usage       => $pa->usage,
+                        %{ $task_config },          # explicit params to ->new
+                        %{ $pa->cli_params },       # params from CLI
+                    );
+                    
+                    $self->log('notice',("=" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH));
+                    $self->log('notice',"Running task %s for empire %s",$task_name,$self->empire_name);
+                    $object->execute;
+                    $self->log('notice',("=" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH));
+                };
+                if (my $error = $@) {
+                    $error =~ s/\n.+//s;
+                    $self->log('error',$error);
+                    $self->task_usage($task_class);
+                    return;
+                }
+            }
         }
     }
 }
 
-sub print_usage {
-    my ($self) = @_;
+
+sub _usage_attributes {
+    my ($self,$class) = @_;
+    
+    my @attributes;
+    
+    my $meta = $class->meta;
+    foreach my $attribute ($meta->get_all_attributes) {
+        next
+            if $attribute->does('NoGetopt');
+        
+        my @names;
+        if ($attribute->can('cmd_flag')) {
+            push(@names,$attribute->cmd_flag);
+        } else {
+            push(@names,$attribute->name);
+        }
+        
+        if ($attribute->can('cmd_aliases')
+            && $attribute->cmd_aliases) {
+            push(@names, @{$attribute->cmd_aliases});
+        }
+        my $attribute_name = join(' ', map { (length($_) == 1) ? "-$_":"--$_" } @names);
+        
+        push(@attributes,[$attribute_name,$attribute->documentation]);
+    }
+    
+    return _format_list(@attributes);
+}
+
+sub _usage_header {
+    my ($self,$command) = @_;
+    
+    $command ||= 'command';
     
     my $caller = Path::Class::File->new($0)->basename;
+    
+    return <<USAGE_HEADER;
+usage: 
+    $caller $command [long options...]
+    $caller help
+    $caller $command --help
+USAGE_HEADER
+}
+
+sub task_usage {
+    my ($self,$task_class) = @_;
+    
+    my $task_name = class_to_name($task_class);
+    
+    my $usage_header = $self->_usage_header($task_name);
+    my $short_description = $task_class->description;
+    my $options = $self->_usage_attributes($task_class);
+    
+    say <<USAGE_ACTION;
+$usage_header
+short description:
+    $short_description
+
+options:
+$options
+USAGE_ACTION
+}
+
+sub global_usage {
+    my ($self) = @_;
     
     my @commands;
     push(@commands,['help','Prints this usage information']);
@@ -86,23 +163,12 @@ sub print_usage {
         push(@commands,[$command,$description]);
     }
     
-    my @attributes;
-    my $meta = $self->meta;
-    foreach my $attribute ($meta->get_all_attributes) {
-        next
-            if $attribute->does('NoGetopt');
-        push(@attributes,['--'.$attribute->name,$attribute->documentation]);
-    }
-    
-    my $global_options = _format_list(@attributes);
+    my $global_options = $self->_usage_attributes($self);
     my $available_commands = _format_list(@commands);
+    my $usage_header = $self->_usage_header();
     
     say <<USAGE;
-usage: 
-    $caller command [long options...]
-    $caller help
-    $caller command  --help
-
+$usage_header
 global options:
 $global_options
 
