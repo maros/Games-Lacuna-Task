@@ -60,15 +60,17 @@ sub process_planet {
         # Dispatch to another planet
         if ( uc($ship->{name}) =~ $self->_planet_re ) {
             my $target_planet = $self->my_body_status($1);
-            next SHIPS
-                if $target_planet->{id} == $planet_stats->{id};
-            
-            $dispatch{$target_planet->{id}} ||= [];
-            push (@{$dispatch{$target_planet->{id}}},$ship);
-            
-            $self->log('notice','Dispatching ship %s from %s to %s',$ship->{name},$planet_stats->{name},$target_planet->{name});
+            unless ($target_planet->{id} == $planet_stats->{id}) {
+                $dispatch{$target_planet->{id}} ||= [];
+                push (@{$dispatch{$target_planet->{id}}},$ship);
+                
+                $self->log('notice','Dispatching ship %s from %s to %s',$ship->{name},$planet_stats->{name},$target_planet->{name});
+                next SHIPS;
+            }
+        }
+        
         # Scuttle
-        } elsif ( $ship->{name} =~ m/\b(scuttle|demolish)\b/) {
+        if ( $ship->{name} =~ m/\b(scuttle|demolish)\b/i) {
             $self->log('notice','Scuttling ship %s on %s',$ship->{name},$planet_stats->{name});
             
             $self->request(
@@ -77,7 +79,7 @@ sub process_planet {
                 params  => [$ship->{id}],
             );
         # Start mining
-        } elsif ( $ship->{name} =~ m/\b(mining|miner)\b/) {
+        } elsif ( $ship->{name} =~ m/\b(mining|miner)\b/i) {
             $self->log('notice','Starting to mine with ship %s on %s',$ship->{name},$planet_stats->{name});
             
             my $mining_object = $self->get_building_object($planet_stats->{id},'MiningMinistry');
