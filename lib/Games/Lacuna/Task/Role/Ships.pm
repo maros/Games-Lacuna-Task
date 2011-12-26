@@ -178,14 +178,16 @@ sub ships {
     # Calc max spaceport capacity
     my $max_ships_possible = sum map { $_->{level} * 2 } @spaceports;
     
-    # Quantity is defined as free-spaceport slots
     my $max_build_quantity;
     
+    # Quantity is defined as free-spaceport slots
     if ($quantity < 0) {
         $max_build_quantity = max($max_ships_possible - $ships_data->{number_of_ships} + $quantity,0);
     # Quantity is defined as number of ships
     } else {
         $max_build_quantity = min($max_ships_possible - $ships_data->{number_of_ships},$quantity);
+        $max_build_quantity -= $building_ships;
+        $max_build_quantity = max($max_build_quantity,0);
     }
     
     # Check if we can build new ships
@@ -257,9 +259,10 @@ sub ships {
                 method  => 'build_ship',
                 params  => [$type],
             );
-            $self->log('notice',"Building %s on %s at shipyard level %i",$type,$planet_stats->{name},$shipyard->{level});
             
             $shipyard->{seconds_remaining} = $ship_building->{building}{work}{seconds_remaining};
+            
+            $self->log('notice',"Building %s on %s at shipyard level %i",$type,$planet_stats->{name},$shipyard->{level});
             
             # Remove shipyard slot
             $shipyard->{available} --;
