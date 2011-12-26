@@ -12,6 +12,7 @@ lib/Games/Lacuna/Task/Action/CollectExcavatorBooty.pm
 lib/Games/Lacuna/Task/Action/CounterIntelligence.pm
 lib/Games/Lacuna/Task/Action/Defence.pm
 lib/Games/Lacuna/Task/Action/EmpireReport.pm
+lib/Games/Lacuna/Task/Action/EvaluateColony.pm
 lib/Games/Lacuna/Task/Action/Excavate.pm
 lib/Games/Lacuna/Task/Action/FetchSpy.pm
 lib/Games/Lacuna/Task/Action/Mining.pm
@@ -20,6 +21,7 @@ lib/Games/Lacuna/Task/Action/OptimizeProbes.pm
 lib/Games/Lacuna/Task/Action/Repair.pm
 lib/Games/Lacuna/Task/Action/ReportIncoming.pm
 lib/Games/Lacuna/Task/Action/SendSpy.pm
+lib/Games/Lacuna/Task/Action/ShipDispatch.pm
 lib/Games/Lacuna/Task/Action/Spy.pm
 lib/Games/Lacuna/Task/Action/StarCache.pm
 lib/Games/Lacuna/Task/Action/StationPlanBuilder.pm
@@ -52,7 +54,6 @@ lib/Games/Lacuna/Task/Role/Client.pm
 lib/Games/Lacuna/Task/Role/CommonAttributes.pm
 lib/Games/Lacuna/Task/Role/Helper.pm
 lib/Games/Lacuna/Task/Role/Intelligence.pm
-lib/Games/Lacuna/Task/Role/Introspect.pm
 lib/Games/Lacuna/Task/Role/Logger.pm
 lib/Games/Lacuna/Task/Role/Notify.pm
 lib/Games/Lacuna/Task/Role/PlanetRun.pm

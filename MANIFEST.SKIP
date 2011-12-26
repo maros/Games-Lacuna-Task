@@ -45,7 +45,11 @@
 \B\.DS_Store
 #   Mac OSX SMB mount metadata files
 \B\._
+
+# NYT Prof
 nytprof/
+nytprof.out
+
 meta/
 ^MYMETA\.json$
 ^MYMETA\.yml$
