@@ -72,6 +72,8 @@ sub process_planet {
                     if $building_data->{level} > $self->university_level;
                 next
                     if $building_data->{level} >= $max_level && $check;
+                next
+                    unless $self->check_upgrade_building($planet_stats,$building_data);
                 
                 $self->upgrade_building($planet_stats,$building_data);
                 

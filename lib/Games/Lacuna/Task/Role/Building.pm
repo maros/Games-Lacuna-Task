@@ -3,7 +3,7 @@ package Games::Lacuna::Task::Role::Building;
 use 5.010;
 use Moose::Role;
 
-sub upgrade_building {
+sub check_upgrade_building {
     my ($self,$planet_stats,$building_data) = @_;
     
     my $building_object = $self->build_object($building_data);
@@ -29,7 +29,15 @@ sub upgrade_building {
         }
     }
     
-    $self->log('notice',"Upgrading %s on %s",$building_detail->{'building'}{'name'},$planet_stats->{name});
+    return 1;
+}
+
+sub upgrade_building {
+    my ($self,$planet_stats,$building_data) = @_;
+    
+    my $building_object = $self->build_object($building_data);
+    
+    $self->log('notice',"Upgrading %s on %s",$building_data->{'name'},$planet_stats->{name});
     
     # Upgrade request
     $self->request(
