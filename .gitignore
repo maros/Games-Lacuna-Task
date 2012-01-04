@@ -16,5 +16,7 @@ MANIFEST.bak
 .includepath
 MYMETA.json
 MYMETA.yml
+nytprof.out
+Build
 nytprof/
 meta/
