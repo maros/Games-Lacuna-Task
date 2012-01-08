@@ -89,3 +89,57 @@ sub render_html {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Table - Simple table for reports
+
+=head1 SYNOPSIS
+
+    my $table = Games::Lacuna::Task::Table->new(
+        headline    => 'Some table',
+        columns     => ['Column 1','Column 2'],
+    );
+    
+    foreach (@data) {
+        $table->add_row({
+            column_1    => $_->[0],
+            column_2    => $_->[1],
+        });
+    }
+    
+    say $table->render_text;
+
+=head1 ACCESSORS
+
+=head3 headline
+
+Headline. [Optional]
+
+=head3 columns
+
+Array of column names. [Required]
+
+=head3 data
+
+Array of HashRefs. Usually not accessed directly.
+
+=head1 METHODS
+
+=head3 render_html
+
+Render table as HTML.
+
+=head3 render_text
+
+Render table as plain text.
+
+=head3 has_headline
+
+Checks if headline is set
+
+=head3 add_row
+
+Add a new row.

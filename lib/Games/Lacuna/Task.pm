@@ -122,12 +122,12 @@ Games::Lacuna::Task - Automation framework for the Lacuna Expanse MMPOG
     );
     $task->run();
 
-or via commandline (see bin/lacuna_task and bin/lacuna_run) 
+or via commandline (see L<bin/lacuna_task> and L<bin/lacuna_run>) 
 
 =head1 DESCRIPTION
 
 This module provides a framework for implementing various automation tasks for
-the Lacuna Expanse. It provides 
+the Lacuna Expanse MMPOG. It provides 
 
 =over
 
@@ -139,7 +139,7 @@ the Lacuna Expanse. It provides
 
 =item * configuration handling
 
-=item * permanent storage (KiokuDB)
+=item * cache for increasing speed and reducing rpc calls
 
 =item * simple access to the Lacuna API (via Games::Lacuna::Client)
 
@@ -157,8 +157,10 @@ Example config.yml
 
  ---
  connect:
-   name: "empire_name"          # optional
-   password: "empire_password"  # optional
+   name: "empire_name"          
+   password: "empire_password"  
+   uri: "http://..."            # optional
+   api_key: "a1f9...."          # optional
  global:
    task: 
      - excavate
@@ -186,10 +188,8 @@ All other values in the global section are used as default values for tasks.
 (e.g. the 'dispose_percentage' setting can be used by the WasteMonument and
 the WasteDispose task)
 
-Username, password, empire name, api key and server url may be stored under
-the connect key in the config file. If not present in the config file you will 
-be asked to supply this information the first time you run the scripts, and 
-the connect data will be stored in the KiokuDB/sqlite database.
+Username, password, empire name, api key and server url must be stored under
+the connect key in the config file.
 
 =cut
 

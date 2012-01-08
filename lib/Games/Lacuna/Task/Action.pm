@@ -49,3 +49,23 @@ sub execute {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action - Abstract action base class
+
+=head1 SYNOPSIS
+
+    package Games::Lacuna::Task::Action::MyAction;
+    
+    use Moose;
+    extends qw(Games::Lacuna::Task::Action);
+
+=head1 DESCRIPTION
+
+TODO
+
+=cut

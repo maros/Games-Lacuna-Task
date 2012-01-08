@@ -85,3 +85,49 @@ sub parse_ship_type {
 }
 
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Utils - Helper functions for Games::Lacuna::Task
+
+=head1 SYNOPSIS
+
+    use Games::Lacuna::Task::Utils qw(class_to_name);
+
+=head1 FUNCTIONS
+
+No functions are exported by default.
+
+=head3 class_to_name
+
+Class name to moniker (lowercase, uderscore separated)
+
+=head3 name_to_class
+
+Moniker to class name (camel case, prefixed with Games::Lacuna::Task::Action::)
+
+=head3 distance
+
+ my $dist = distance($x1,$y1,$x2,$y2);
+
+Calculates map distance
+
+=head3 pretty_dump
+
+ say pretty_dump($value);
+
+Stringifies any value
+
+=head3 normalize_name
+
+Removes diacritic marks and uppercases a string for better compareability
+
+=head3 parse_ship_type
+
+ my $ship_type = parse_ship_type($human_type);
+
+Converts a human ship name into the ship type
+
+=cut
