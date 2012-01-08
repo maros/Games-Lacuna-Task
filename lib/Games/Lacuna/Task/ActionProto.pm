@@ -168,6 +168,8 @@ sub global_usage {
         push(@commands,[$command,$description]);
     }
     
+    @commands = sort { $a->[0] cmp $b->[0] } @commands;
+    
     my $global_options = $self->_usage_attributes($self);
     my $available_commands = _format_list(@commands);
     my $usage_header = $self->_usage_header();
