@@ -83,6 +83,12 @@ sub _build_config {
     $connect_config->{api_key} ||= $API_KEY;
     $connect_config->{uri} ||= $URI;
     
+    # Check required configs
+    $self->abort('Empire name missing in config')
+        unless defined $connect_config->{name};
+    $self->abort('Empire password missing in config')
+        unless defined $connect_config->{password};
+    
     return $global_config;
 }
 
