@@ -39,13 +39,18 @@ sub run {
         
         if ($ok) {
             my $configdir;
+            my $loglevel;
             my $help;
             
             my $opt_parser = Getopt::Long::Parser->new( config => [ qw( no_auto_help pass_through ) ] );
             $opt_parser->getoptions( 
                 "configdir=s"   => \$configdir,
+                "loglevel=s"    => \$loglevel,
                 "help|usage|?"  => \$help,
             );
+            
+            $self->loglevel($loglevel)
+                if $loglevel;
             
             $self->configdir($configdir)
                 if defined $configdir && $configdir ne '';
