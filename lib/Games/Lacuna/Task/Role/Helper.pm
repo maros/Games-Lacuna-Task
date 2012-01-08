@@ -13,47 +13,13 @@ use Data::Dumper;
 use DateTime;
 use Games::Lacuna::Task::Utils qw(normalize_name);
 
-
-sub build_object {
-    my ($self,$class,@params) = @_;
-    
-    # Get class and id from status hash
-    if (ref $class eq 'HASH') {
-        push(@params,'id',$class->{id});
-        $class = $class->{url};
-    }
-    
-    # Get class from url
-    if ($class =~ m/^\//) {
-        $class = 'Buildings::'.Games::Lacuna::Client::Buildings::type_from_url($class);
-    }
-    
-    # Build class name
-    $class = 'Games::Lacuna::Client::'.ucfirst($class)
-        unless $class =~ m/^Games::Lacuna::Client::(.+)$/;
-    
-    return $class->new(
-        client  => $self->client->client,
-        @params
-    );
-}
-
-sub empire_status {
-    my $self = shift;
-    
-    return $self->lookup_cache('empire')
-        || $self->request(
-            object      => $self->build_object('Empire'),
-            method      => 'get_status',
-        )->{empire};
-}
-
 sub my_planets {
     my $self = shift;
     
     my @planets;
     foreach my $body_id ($self->my_bodies) {
         my $body_status = $self->my_body_status($body_id);
+        
         next
             unless defined $body_status;
         next
@@ -396,10 +362,6 @@ so that eg. 'Hà Nôi' equals 'HA NOI'.
  my $body_buildings = $self->buildings_body($body_id OR $boSdy_name);
 
 Returns all buildings for a given planet.
-
-=head2 empire_status
-
-Returns the empire status hash
 
 =head2 build_object
 
