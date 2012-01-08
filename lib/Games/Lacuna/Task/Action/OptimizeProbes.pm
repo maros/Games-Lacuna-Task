@@ -11,15 +11,15 @@ sub description {
     return q[Checks for duplicate probes];
 }
 
-has '_star_cache' => (
+has '_probe_cache' => (
     is              => 'rw',
     isa             => 'HashRef',
     required        => 1,
     default         => sub { {} },
     traits          => ['Hash','NoIntrospection','NoGetopt'],
     handles         => {
-        add_star_cache     => 'set',
-        has_star_cache     => 'exists',
+        add_probe_cache     => 'set',
+        has_probe_cache     => 'exists',
     }
 );
 
@@ -41,20 +41,26 @@ sub process_planet {
         data    => 'stars',
     );
     
-    foreach my $star (@{$observatory_data->{stars}}) {
-        my $star_id = $star->{id};
-        my $has_star_cache = $self->has_star_cache($star_id);
-        if ($has_star_cache) {
-            $self->log('notice',"Abandoning probe from %s in %s",$planet_stats->{name},$star->{name});
+    # Loop all stars
+    foreach my $star_data (@{$observatory_data->{stars}}) {
+        # Update cache
+        $star_data->{last_checked}  = time();
+        $star_data->{probed}        = 1;
+        $self->set_star_cache($star_data);
+        
+        my $star_id = $star_data->{id};
+        if ($self->has_probe_cache($star_id)) {
+            $self->log('notice',"Abandoning probe from %s in %s",$planet_stats->{name},$star_data->{name});
             $self->request(
                 object  => $observatory_object,
                 method  => 'abandon_probe',
                 params  => [$star_id],
             );
+            
             # Check star status
-            $self->get_star_api_area_by_id($star_id);
+            $self->_get_star_api($star_data->{id},$star_data->{x},$star_data->{y});
         } else {
-            $self->add_star_cache($star_id,1);
+            $self->add_probe_cache($star_id,1);
         }
     }
 }

@@ -156,27 +156,29 @@ sub closest_asteroids {
     
     my @asteroids;
     
-    STARS:
-    foreach my $star ($self->stars_by_distance($x,$y)) {
-        
-        # Check if star has yet been probed
-        next STARS
-            unless $self->is_probed_star($star->{id});
-        
-        my $star_info = $self->get_star($star->{id});
-        
-        foreach my $body (@{$star_info->{star}{bodies}}) {
-            next 
-                unless $body->{type} eq 'asteroid';
-            $body->{ore_total} = sum(values %{$body->{ore}});
-            $body->{ore_count} = scalar(grep { $_ > 1 } values %{$body->{ore}});
-            push(@asteroids,$body);
-        }
-        
-        last STARS
-            if scalar(@asteroids) >= $limit;
-    }
-    
+    $self->search_stars_callback(
+        sub {
+            my ($star_data) = @_;
+            
+            foreach my $body (@{$star_data->{star}{bodies}}) {
+                next 
+                    unless $body->{type} eq 'asteroid';
+                $body->{ore_total} = sum(values %{$body->{ore}});
+                $body->{ore_count} = scalar(grep { $_ > 1 } values %{$body->{ore}});
+                push(@asteroids,$body);
+            }
+            
+            return 0
+                if scalar(@asteroids) >= $limit;
+            
+            return 1;
+        },
+        x       => $x,
+        y       => $y,
+        probed  => 1,
+        distance=> 1,
+    );
+
     return @asteroids;
 }
 

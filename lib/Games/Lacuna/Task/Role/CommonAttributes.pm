@@ -70,13 +70,13 @@ role {
             my $target_planet;
             given ($self->target_planet) {
                 when (/^\d+$/) {
-                    $target_planet = $self->find_body_by_id($_);
+                    $target_planet = $self->get_body_by_id($_);
                 }
                 when (/^(?<x>-?\d+),(?<y>-?\d+)$/) {
-                    $target_planet = $self->find_body_by_xy($+{x},$+{y});
+                    $target_planet = $self->get_body_by_xy($+{x},$+{y});
                 }
                 default {
-                    $target_planet = $self->find_body_by_name($_);
+                    $target_planet = $self->get_body_by_name($_);
                 }
             }
             unless (defined $target_planet) {

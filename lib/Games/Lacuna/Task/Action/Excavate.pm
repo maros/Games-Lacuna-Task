@@ -23,13 +23,6 @@ has 'min_distance' => (
     default         => 400,
 );
 
-has 'randomize' => (
-    isa             => 'Bool',
-    is              => 'rw',
-    documentation   => 'Rabdomize probe distance',
-    default         => 1,
-);
-
 use Try::Tiny;
 
 sub description {
@@ -72,128 +65,77 @@ sub process_planet {
     
     $self->log('debug','%i excavators available at %s',(scalar @avaliable_excavators),$planet_stats->{name});
     
-    my $callback = sub {
-        my ($star) = @_;
-        return 0
-            if $star->{distance} < $self->min_distance;
-        # Randomize distance
-        if ($self->randomize) {
-            $star->{distance_real} = $star->{distance};
-            $star->{distance} *= $star->{distance} *rand();
-        }
-        return 1;
-    };
-    
-    # Get probed stars
-    STARS:
-    foreach my $star ($self->stars_by_distance($planet_stats->{x},$planet_stats->{y},$callback)) {
-        # Check star
-        my $star_data = $self->check_start_excavate($star->{id});
-        
-        next STARS
-            unless $star_data;
-        
-        # Get excavator cache
-        my $excavate_cache_key = 'excavate/'.$star->{id};
-        my $excavate_cache = $self->lookup_cache($excavate_cache_key) || {};
-        
-        # Loop all bodies again
-        BODIES:
-        foreach my $body (@{$star_data->{bodies}}) {
-            my $body_id = $body->{id};
+    $self->search_stars_callback(
+        sub {
+            my ($star_data) = @_;
             
-            # Only excavate habitable planets
-            next BODIES
-                unless $body->{type} eq 'habitable planet' || $body->{type} eq 'gas giant';
+            return 1
+                unless scalar @{$star_data->{bodies}};
             
-            #  Do not excavate inhabited body
-            next BODIES
-                if defined $body->{empire};
-            
-            # Do not excavate body that has been excavated in past 30 days
-            next BODIES
-                if defined $excavate_cache->{$body_id}
-                && $excavate_cache->{$body_id} >= $max_age;
-            
-            my $excavator = pop(@avaliable_excavators);
-            
-            if (defined $excavator) {
+            # Loop all bodies
+            BODIES:
+            foreach my $body (@{$star_data->{bodies}}) {
+                my $body_id = $body->{id};
                 
-                try {
-                    $self->log('notice',"Sending excavator from %s to %s",$planet_stats->{name},$body->{name});
-                    
-                    # Send excavator to body
-                    my $response = $self->request(
-                        object  => $spaceport_object,
-                        method  => 'send_ship',
-                        params  => [ $excavator,{ "body_id" => $body_id } ],
-                    );
-                    
-                    $excavate_cache->{$body_id} = $timestamp;
-                } catch {
-                    my $error = $_;
-                    if (blessed($error)
-                        && $error->isa('LacunaRPCException')) {
-                        given ($error->code) {
-                            # Already excavated
-                            when (1010) {
-                                $excavate_cache->{$body_id} = $timestamp;
-                                $self->log('debug',"Could not send excavator to %s since it was excavated in the last 30 days",$body->{name});
+                # Only excavate habitable planets and gas giants
+                next BODIES
+                    unless $body->{type} eq 'habitable planet' || $body->{type} eq 'gas giant';
+                
+                # Do not excavate body that has been excavated in past 30 days
+                next BODIES
+                    if defined $body->{last_excavated}
+                    && $body->{last_excavated} >= $max_age;
+                
+                my $excavator = pop(@avaliable_excavators);
+                
+                if (defined $excavator) {
+                    try {
+                        $self->log('notice',"Sending excavator from %s to %s",$planet_stats->{name},$body->{name});
+                        
+                        # Send excavator to body
+                        my $response = $self->request(
+                            object  => $spaceport_object,
+                            method  => 'send_ship',
+                            params  => [ $excavator,{ "body_id" => $body_id } ],
+                        );
+                        
+                        $self->set_body_excavated($body_id,$timestamp);
+                    } catch {
+                        my $error = $_;
+                        if (blessed($error)
+                            && $error->isa('LacunaRPCException')) {
+                            given ($error->code) {
+                                # Already excavated
+                                when (1010) {
+                                    $self->set_body_excavated($body_id,$timestamp);
+                                    $self->log('debug',"Could not send excavator to %s since it was excavated in the last 30 days",$body->{name});
+                                }
+                                default {
+                                    $error->rethrow();
+                                }
                             }
-                            # Captcha. Body aleady inhabited?
-                            when (1016) {
-                                $self->log('debug',"Send ship to %s requires captcha, body seems to be inhabited",$body->{name});
-                                $self->get_star_api_area_by_id($star->{id});
-                            }
-                            default {
-                                $error->rethrow();
-                            }
+                            push(@avaliable_excavators,$excavator);
+                        } else {
+                            $self->abort($error);
                         }
-                        push(@avaliable_excavators,$excavator);
-                    } else {
-                        die($error);
-                    }
-                };
+                    };
+                }
+                
+                return 0
+                    if scalar(@avaliable_excavators) == 0;
             }
             
-            last BODIES
+            return 0
                 if scalar(@avaliable_excavators) == 0;
-        }
-        
-        # Write to local cache
-        $self->write_cache(
-            key     => $excavate_cache_key,
-            value   => $excavate_cache,
-            max_age => (60*60*24*30), # Cache for 1 month
-        );
-        
-        last STARS
-            if scalar(@avaliable_excavators) == 0;
-    }
-}
-
-sub check_start_excavate {
-    my ($self,$star_id) = @_;
-    
-    # Get star info
-    my $star_data = $self->get_star($star_id);
-    
-    # Check star bodies
-    return
-        unless defined $star_data->{bodies}
-        && scalar @{$star_data->{bodies}} > 0;;
-    
-#    # Loop all bodies
-#    foreach my $body (@{$star_data->{bodies}}) {
-#        
-#        # Do not excavate bodies in inhabited solar system to avoid SAWs
-#        return
-#            if defined $body->{empire} 
-#            && $body->{type} eq 'habitable planet'
-#            && $body->{empire}{alignment} =~ /^hostile/;
-#    }
-    
-    return $star_data;
+            
+            return 1;
+        },
+        x           => $planet_stats->{x},
+        y           => $planet_stats->{y},
+        probed      => 1,
+        distance    => 1,
+        min_distance=> $self->min_distance,
+    );
 }
 
 __PACKAGE__->meta->make_immutable;

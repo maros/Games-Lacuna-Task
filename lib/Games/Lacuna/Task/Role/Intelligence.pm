@@ -9,7 +9,7 @@ sub assigned_to_type {
     return 'own'
         if $assigned_to->{body_id} ~~ [ $self->my_bodies ];
     
-    my $body_data = $self->find_body_by_id($assigned_to->{body_id});
+    my $body_data = $self->get_body_by_id($assigned_to->{body_id});
     
     return 'unknown'
         unless defined $body_data

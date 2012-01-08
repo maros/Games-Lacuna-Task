@@ -79,7 +79,7 @@ sub get_star_step {
     my ($min_x,$min_y) = ( $x * $Games::Lacuna::Task::Constants::MAX_MAP_QUERY + $cx , $y * $Games::Lacuna::Task::Constants::MAX_MAP_QUERY + $cy);
     my ($max_x,$max_y) = ( ($x+1) * $Games::Lacuna::Task::Constants::MAX_MAP_QUERY + $cx , ($y+1) * $Games::Lacuna::Task::Constants::MAX_MAP_QUERY + $cy);
     
-    $self->get_star_api_area_by_xy($min_x,$min_y,$max_x,$max_y);
+    $self->_get_star_api_area_by_xy($min_x,$min_y,$max_x,$max_y);
 }
 
 __PACKAGE__->meta->make_immutable;

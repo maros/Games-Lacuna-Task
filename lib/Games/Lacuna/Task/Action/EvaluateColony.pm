@@ -91,71 +91,71 @@ sub run {
     
     my $planet_stats = $self->my_body_status($self->home_planet_id);
     
-    my $callback = sub {
-        my ($star) = @_;
-        return 0
-            if $star->{distance} > $self->max_distance;
-        return 1;
-    };
-    
     my @bodies;
     
-    STARS:
-    foreach my $star ($self->stars_by_distance($planet_stats->{x},$planet_stats->{y},$callback)) {
-        # Get star info
-        my $star_data = $self->get_star($star->{id});
-        
-        # Check star bodies
-        next STARS
-            unless defined $star_data->{bodies}
-            && scalar @{$star_data->{bodies}} > 0;
-        
-        my $boost = 1;
-        
-        # Distance boost
-        $boost += (0.3) * (1-($star->{distance} / $self->max_distance));
-        
-        foreach my $body (@{$star_data->{bodies}}) {
-            if (defined $body->{empire}) {
-                next STARS
-                    if (($body->{type} eq 'habitable planet' || $body->{type} eq 'gas giant')
-                    && $body->{empire}{alignment} =~ /^hostile/);
-                
-                # Neighbour boost
-                if ($body->{empire}{alignment} eq 'self') {
-                    $boost += 0.1;
-                } elsif ($body->{empire}{alignment} eq 'ally') {
-                    $boost += 0.05;
+    $self->search_stars_callback(
+        sub {
+            my ($star_data) = @_;
+            
+            return 1
+                unless scalar @{$star_data->{bodies}};
+            
+            my $boost = 1;
+            
+            # Distance boost
+            $boost += (0.3) * (1-($star_data->{distance} / $self->max_distance));
+            
+            # Evaluate neighbourhood
+            foreach my $body (@{$star_data->{bodies}}) {
+                if (defined $body->{empire}) {
+                    # No inhabited systems - SAWs might kill our colony ship
+                    return 1
+                        if (($body->{type} eq 'habitable planet' || $body->{type} eq 'gas giant')
+                        && $body->{empire}{alignment} =~ /^hostile/);
+                    
+                    # Neighbour boost
+                    if ($body->{empire}{alignment} eq 'self') {
+                        $boost += 0.1;
+                    } elsif ($body->{empire}{alignment} eq 'ally') {
+                        $boost += 0.05;
+                    }
                 }
             }
-        }
-        
-        foreach my $body (@{$star_data->{bodies}}) {
-            next
-                if defined $body->{empire};
-            next
-                unless $body->{type} eq 'habitable planet' || ($body->{type} eq 'gas giant' && $self->gas_giant);
-            next
-                if $body->{orbit} < $self->min_orbit;
-            next
-                if $body->{orbit} > $self->max_orbit;
             
-            if ($body->{type} eq 'habitable planet') {
+            # Evaluate bodies
+            foreach my $body (@{$star_data->{bodies}}) {
                 next
-                    if $body->{size} < $self->min_size;
-            } elsif ($body->{type} eq 'gas giant') {
+                    if defined $body->{empire};
                 next
-                    if $body->{size} < $self->min_gas_giant_size;
+                    unless $body->{type} eq 'habitable planet' || ($body->{type} eq 'gas giant' && $self->gas_giant);
+                next
+                    if $body->{orbit} < $self->min_orbit;
+                next
+                    if $body->{orbit} > $self->max_orbit;
+                
+                if ($body->{type} eq 'habitable planet') {
+                    next
+                        if $body->{size} < $self->min_size;
+                } elsif ($body->{type} eq 'gas giant') {
+                    next
+                        if $body->{size} < $self->min_gas_giant_size;
+                }
+                
+                my $score = $self->calculate_score($body,$boost);
+                
+                push(@bodies,[$body,$score]);
+                
+                $self->log('debug','Found candidate %s in %s (score %i)',$body->{name},$body->{star_name},$score);
             }
             
-            my $score = $self->calculate_score($body,$boost);
-            
-            push(@bodies,[$body,$score]);
-            
-            $self->log('debug','Found candidate %s in %s (score %i)',$body->{name},$body->{star_name},$score);
-        }
-    }
-    
+            return 1;
+        },
+        x           => $planet_stats->{x},
+        y           => $planet_stats->{y},
+        max_distance=> $self->max_distance,
+        probed      => 1,
+        distance    => 1,
+    );
     
     $self->log('info','Found %i candidates',scalar(@bodies));
     
