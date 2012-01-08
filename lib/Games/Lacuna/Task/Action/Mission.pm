@@ -125,7 +125,7 @@ sub process_planet {
                         $error->rethrow();
                     }    
                 } else {
-                    die($error);
+                    $self->abort($error);
                 }
             }
         };

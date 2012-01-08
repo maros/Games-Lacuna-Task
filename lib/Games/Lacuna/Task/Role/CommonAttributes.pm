@@ -80,8 +80,7 @@ role {
                 }
             }
             unless (defined $target_planet) {
-                $self->log('error','Could not find target planet "%s"',$self->target_planet);
-                die;
+                $self->abort('Could not find target planet "%s"',$self->target_planet);
             }
             return $target_planet;
         };
@@ -105,8 +104,7 @@ role {
             my ($self) = @_;
             my $home_planet = $self->my_body_status($self->home_planet);
             unless (defined $home_planet) {
-                $self->log('error','Could not find home planet "%s"',$self->home_planet);
-                die;
+                $self->abort('Could not find home planet "%s"',$self->home_planet);
             }
             return $home_planet;
         };

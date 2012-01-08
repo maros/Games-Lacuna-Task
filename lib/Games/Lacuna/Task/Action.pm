@@ -28,8 +28,7 @@ sub execute {
     
     try {
         local $SIG{TERM} = sub {
-            $self->log('warn','Aborted by user');
-            die('ABORT');
+            $self->abort('Aborted by user');
         };
         local $SIG{__WARN__} = sub {
             my $warning = $_[0];
