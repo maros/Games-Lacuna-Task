@@ -2,14 +2,10 @@ package Games::Lacuna::Task::Role::Client;
 
 use 5.010;
 use Moose::Role;
-with qw(Games::Lacuna::Task::Role::Captcha);
 
 use Games::Lacuna::Task::Client;
 
-use Try::Tiny;
-
 our $DEFAULT_DIRECTORY = Path::Class::Dir->new($ENV{HOME}.'/.lacuna');
-our %LOCAL_CACHE;
 
 has 'configdir' => (
     is              => 'rw',
@@ -25,6 +21,7 @@ has 'client' => (
     isa             => 'Games::Lacuna::Task::Client',
     traits          => ['NoGetopt','KiokuDB::DoNotSerialize','NoIntrospection'],
     lazy_build      => 1,
+    handles         => [qw(get_cache set_cache clear_cache request paged_request empire_name build_object storage_prepare storage_do get_environment set_environment)]
 );
 
 sub _build_client {
@@ -37,198 +34,6 @@ sub _build_client {
     );
     
     return $client;
-}
-
-sub empire_name {
-    my ($self) = @_;
-    
-    return $self->client->client->name;
-}
-
-sub request {
-    my ($self,%args) = @_;
-    
-    my $method = delete $args{method};
-    my $object = delete $args{object};
-    my $params = delete $args{params} || [];
-    
-    my $debug_params = join(',', map { ref($_) || $_ } @$params);
-    
-    $self->log('debug',"Run external request %s->%s(%s)",ref($object),$method,$debug_params);
-    
-    my $response;
-    my $retry = 1;
-    my $retry_count = 0;
-    
-    while ($retry) {
-        $retry = 0;
-        try {
-            $response = $object->$method(@$params);
-        } catch {
-            my $error = $_;
-            if (blessed($error)
-                && $error->isa('LacunaRPCException')) {
-                given ($error->code) {
-                    when(1006) {
-                        $self->log('debug','Session expired unexpectedly');
-                        $self->client->reset_client();
-                        $self->client->storage->delete('session');
-                        $self->client->login;
-                        $retry = 1;
-                    }
-                    when(1004) {
-                        $self->log('error','Password incorrect');
-                        $self->client->get_config_from_user();
-                        $self->client->reset_client;
-                        $retry = 1;
-                    }
-                    when (1016) {
-                        $self->log('warn','Need to solve captcha');
-                        my $solved = $self->get_captcha();
-                        if ($solved) {
-                            $retry = 1;
-                        } else {
-                            $error->rethrow;
-                        }
-                    }
-                    when(1010) { # too many requests
-                        if ($error =~ m/Slow\sdown!/) {
-                            if ($retry_count < 3) {
-                                $self->log('warn',$error);
-                                $self->log('warn','Too many requests (wait a while)');
-                                sleep 50;
-                                $retry = 1;
-                            } else {
-                                $self->log('error','Too many requests (abort)');
-                            }
-                        } else {
-                            $error->rethrow;
-                        }
-                    }
-                    default {
-                        $error->rethrow;
-                    }
-                }
-                $retry_count ++
-                    if $retry;
-            } else {
-                die($error);
-            }
-        };
-    }
-    
-    my $status = $response->{status} || $response;
-    if ($status->{empire}) {
-        $self->write_cache(
-            key     => 'empire',
-            value   => $status->{empire},
-            max_age => 60*60*24,
-        );
-    }
-    if ($status->{server}) {
-        $self->write_cache(
-            key     => 'server',
-            value   => $status->{server},
-            max_age => 60*60*24,
-        );
-    }
-    if ($status->{body}) {
-        $self->write_cache(
-            key     => 'body/'.$status->{body}{id},
-            value   => $status->{body},
-            max_age => 60*70,
-        );
-    }
-    if ($response->{buildings}) {
-        $self->write_cache(
-            key     => 'body/'.$status->{body}{id}.'/buildings',
-            value   => $response->{buildings},
-            max_age => 60*70,
-        );
-    }
-    
-    return $response;
-}
-
-sub paged_request {
-    my ($self,%params) = @_;
-    
-    $params{params} ||= [];
-    
-    my $total = delete $params{total};
-    my $data = delete $params{data};
-    my $page = 1;
-    my @result;
-    
-    PAGES:
-    while (1) {
-        push(@{$params{params}},$page);
-        my $response = $self->request(%params);
-        pop(@{$params{params}});
-        
-        foreach my $element (@{$response->{$data}}) {
-            push(@result,$element);
-        }
-        
-        if ($response->{$total} > (25 * $page)) {
-            $page ++;
-        } else {
-            $response->{$data} = \@result;
-            return $response;
-        }
-    }
-}
-
-sub lookup_cache {
-    my ($self,$key) = @_;
-    
-    my $storage = $self->client->storage;
-    my $cache = $storage->lookup($key);
-    return
-        unless defined $cache;
-    if (blessed $cache
-        && $cache->isa('Games::Lacuna::Task::Cache')) {
-        return
-            unless $cache->is_valid;
-        return $cache->value
-    } else {
-        return $cache;
-    }
-}
-
-sub write_cache {
-    my ($self,%params) = @_;
-    
-    $params{max_age} += time()
-        if $params{max_age};
-   
-    my $cache = Games::Lacuna::Task::Cache->new(
-        %params
-    );
-    
-    # Check local write cache
-    my $checksum = $cache->checksum();
-    my $key = $params{key};
-    if (defined $LOCAL_CACHE{$key}) {
-        my $local_cache = $LOCAL_CACHE{$key};
-        return $cache
-            if $local_cache eq $checksum;
-    }
-    
-    $LOCAL_CACHE{$key} = $checksum;
-    
-    my $storage = $self->client->storage;
-    $cache->store($storage);
-    
-    return $cache;
-}
-
-sub clear_cache {
-    my ($self,$key) = @_;
-    
-    delete $LOCAL_CACHE{$key};
-    my $storage = $self->client->storage;
-    $storage->delete($key);
 }
 
 no Moose::Role;
@@ -274,26 +79,3 @@ Fetches all response elements from a paged method
     data    => 'field storing the items',
  );
 
-=head2 lookup_cache
-
-Fetches the value with the given key from the cache.
-
- my $value = $self->lookup_cache($key);
-
-=head2 write_cache
-
-Writes a value to the cache.
-
- $self->write_cache(
-    key     => Cache key,
-    data    => Data,
-    max_age => Max cache age (optional),
- );
-
-=head2 clear_cache
-
-Removes a value from the cache
-
- $self->clear_cache($key);
-
-=cut
