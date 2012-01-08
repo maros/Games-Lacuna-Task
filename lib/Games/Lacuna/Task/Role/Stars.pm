@@ -12,6 +12,16 @@ use Text::CSV;
 
 our $MAX_STAR_CACHE_AGE = 60*60*24*31*3; # Three months
 
+after 'BUILD' => sub {
+    my ($self) = @_;
+    
+    my ($star_count) = $self->client->storage->selectrow_array('SELECT COUNT(1) FROM star');
+    
+    if ($star_count == 0) {
+        $self->fetch_all_stars();
+    }
+};
+
 sub fetch_all_stars {
     my ($self) = @_;
     
@@ -22,7 +32,7 @@ sub fetch_all_stars {
     # Fetch starmap from server
     my $starmap_uri = 'http://'.$1.'.lacunaexpanse.com.s3.amazonaws.com/stars.csv';
     
-    $self->log('info',"Fetching star map from %s. This might take a while.",$starmap_uri);
+    $self->log('info',"Fetching star map from %s. This will only happen once and might take a while.",$starmap_uri);
     my $content = get($starmap_uri);
     
     # Create temp table

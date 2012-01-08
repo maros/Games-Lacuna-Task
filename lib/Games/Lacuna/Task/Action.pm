@@ -16,6 +16,8 @@ has '+configdir' => (
     required        => 1,
 );
 
+sub BUILD {}
+
 sub execute {
     my ($self) = @_;
     
