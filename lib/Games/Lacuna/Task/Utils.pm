@@ -51,7 +51,8 @@ sub normalize_name {
 
 sub distance {
     my ($x1,$y1,$x2,$y2) = @_;
-    return sqrt( ($x1 - $x2)**2 + ($y1 - $y2)**2 );
+    
+    return int(sqrt( ($x1 - $x2)**2 + ($y1 - $y2)**2 ));
 }
 
 sub pretty_dump {
