@@ -35,7 +35,7 @@ has 'new_incoming' => (
 sub _build_known_incoming {
     my ($self) = @_;
     
-    my $incoming = $self->lookup_cache('report/known_incoming');
+    my $incoming = $self->get_cache('report/known_incoming');
     $incoming ||= [];
     
     return $incoming;
@@ -59,7 +59,7 @@ after 'run' => sub {
             $message
         );
         
-        $self->write_cache(
+        $self->set_cache(
             key     => 'report/known_incoming',
             value   => $self->known_incoming,
             max_age => (60*60*24*7), # Cache one week
@@ -71,7 +71,7 @@ sub process_planet {
     my ($self,$planet_stats) = @_;
     
     return
-        unless defined($planet_stats->{incoming_foreign_ships});
+        unless defined($planet_stats->{incoming_enemy_ships});
     
     # Get space port
     my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');

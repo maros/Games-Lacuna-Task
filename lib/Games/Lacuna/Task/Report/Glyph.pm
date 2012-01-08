@@ -23,7 +23,7 @@ sub report_glyph {
     }
     
     # Write glyph cache
-    $self->write_cache(
+    $self->set_cache(
         key     => 'glyphs',
         value   => $cache_glyphs,
         max_age => (60*60*24),

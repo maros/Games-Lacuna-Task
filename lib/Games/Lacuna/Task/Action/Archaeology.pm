@@ -17,7 +17,7 @@ sub all_glyphs {
     my ($self) = @_;
     
     # Fetch total glyph count from cache
-    my $all_glyphs = $self->lookup_cache('glyphs');
+    my $all_glyphs = $self->get_cache('glyphs');
     
     return $all_glyphs
         if defined $all_glyphs;
@@ -48,7 +48,7 @@ sub all_glyphs {
     }
     
     # Write total glyph count to cache
-    $self->write_cache(
+    $self->set_cache(
         key     => 'glyphs',
         value   => $all_glyphs,
         max_age => (60*60*24),

@@ -35,7 +35,7 @@ has 'new_bleeder' => (
 sub _build_known_bleeder {
     my ($self) = @_;
     
-    my $bleeder = $self->lookup_cache('report/known_bleeder');
+    my $bleeder = $self->get_cache('report/known_bleeder');
     $bleeder ||= [];
     
     return $bleeder;
@@ -52,14 +52,14 @@ after 'run' => sub {
             sprintf('%s: Found deployed bleeder level %i',$_->{planet},$_->{level})
         } @{$self->new_bleeder});
         
-        my $empire_name = $self->emire_name;
+        my $empire_name = $self->empire_name;
         
         $self->notify(
             "[$empire_name] Bleeders detected!",
             $message
         );
         
-        $self->write_cache(
+        $self->set_cache(
             key     => 'report/known_bleeder',
             value   => $self->known_bleeder,
             max_age => (60*60*24*7), # Cache one week

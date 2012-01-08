@@ -51,7 +51,7 @@ sub plans_stored {
     
     my $cache_key = 'body/'.$planet_id.'/plans';
     
-    my $plans = $self->lookup_cache($cache_key);
+    my $plans = $self->get_cache($cache_key);
     
     return $plans
         if defined $plans;
@@ -67,7 +67,7 @@ sub plans_stored {
     
     $plans = $response->{plans};
     
-    $self->write_cache(
+    $self->set_cache(
         key     => $cache_key,
         value   => $plans,
     );
@@ -93,7 +93,7 @@ sub _resource_stored {
     
     my $cache_key = 'body/'.$planet_id.'/storage/'.$resource;
     
-    my $stored = $self->lookup_cache($cache_key);
+    my $stored = $self->get_cache($cache_key);
     
     return $stored
         if defined $stored;
@@ -114,7 +114,7 @@ sub _resource_stored {
     
     $stored = $response->{lc($resource).'_stored'};
     
-    $self->write_cache(
+    $self->set_cache(
         key     => $cache_key,
         value   => $stored,
         max_age => 600,

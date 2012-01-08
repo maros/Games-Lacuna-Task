@@ -91,7 +91,7 @@ sub my_body_status {
     return 
         unless defined $body_id;
 
-    my $body_status = $self->lookup_cache('body/'.$body_id);
+    my $body_status = $self->get_cache('body/'.$body_id);
     
     return $body_status
         if defined $body_status;
@@ -161,7 +161,7 @@ sub buildings_body {
         unless $body_id;
 
     my $key = 'body/'.$body_id.'/buildings';
-    my $buildings = $self->lookup_cache($key) || $self->request(
+    my $buildings = $self->get_cache($key) || $self->request(
         object  => $self->build_object('Body', id => $body_id),
         method  => 'get_buildings',
     )->{buildings};
@@ -207,16 +207,14 @@ sub university_level {
 sub my_bodies {
     my $self = shift;
     
-    my $empire_status = $self->empire_status();
-    return keys %{$empire_status->{planets}};
+    my $planets = $self->get_environment('planets');
+    return keys %{$planets};
 }
 
 sub home_planet_id {
     my $self = shift;
     
-    my $empire_status = $self->empire_status();
-    
-    return $empire_status->{home_planet_id};
+    return $self->get_environment('home_planet_id')
 }
 
 sub delta_date {
@@ -303,7 +301,7 @@ sub my_body_id {
         if ref($body) eq 'HASH' && exists $body->{id};
 
     # Get my planets
-    my $planets = $self->empire_status->{planets};
+    my $planets = $self->get_environment('planets');
 
     # Exact match
     foreach my $id (keys %$planets) {

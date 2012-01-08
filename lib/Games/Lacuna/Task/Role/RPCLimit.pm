@@ -15,13 +15,16 @@ around 'run' => sub {
     my $orig = shift;
     my $self = shift;
     
-    my $empire_stats = $self->empire_status;
-    my $rpc_limit = int($Games::Lacuna::Task::Constants::RPC_LIMIT * 0.9);
+    my $rpc_limit_hard = $self->get_environment('rpc_limit');
+    my $rpc_limit_soft = int($rpc_limit_hard * 0.9);
+    my $rpc_count = $self->get_environment('rpc_count');
+    my $task_name = Games::Lacuna::Task::Utils::class_to_name($self);
     
-    if ($empire_stats->{rpc_count} > $rpc_limit
+    if ($rpc_count > $rpc_limit_soft
         && ! $self->force) {
-        my $task_name = Games::Lacuna::Task::Utils::class_to_name($self);
-        $self->log('warn',"Skipping action %s because RPC limit is almost reached (%i of %i)",$task_name,$empire_stats->{rpc_count},$Games::Lacuna::Task::Constants::RPC_LIMIT);
+        $self->log('warn',"Skipping action %s because RPC limit is almost reached (%i of %i)",$task_name,$rpc_count,$rpc_limit_hard);
+    } elsif ($rpc_count >= $rpc_limit_hard) {
+        $self->log('warn',"Skipping action %s because RPC limit is spent (%i)",$task_name,$rpc_limit_hard);
     } else {
         return $self->$orig(@_);
     }
