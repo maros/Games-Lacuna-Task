@@ -3,17 +3,24 @@ package Games::Lacuna::Task::Client;
 use 5.010;
 
 use Moose;
-with qw(Games::Lacuna::Task::Role::Logger);
+with qw(Games::Lacuna::Task::Role::Logger
+    Games::Lacuna::Task::Role::Captcha);
 
-use Games::Lacuna::Client;
-use KiokuDB;
-use Term::ReadKey;
+use Try::Tiny;
+use DBI;
+use Digest::MD5 qw(md5_hex);
 use IO::Interactive qw(is_interactive);
 use YAML::Any qw(LoadFile);
+use JSON qw();
+use Games::Lacuna::Client;
 use Games::Lacuna::Task::Utils qw(name_to_class);
 
+our %LOCAL_CACHE;
+our $JSON = JSON->new->pretty(0)->utf8(1)->indent(0);
 our $API_KEY = '6ca1d525-bd4d-4bbb-ae85-b925ed3ea7b7';
 our $URI = 'https://us1.lacunaexpanse.com/';
+our @DB_TABLES = qw(star body cache empire);
+our @CONFIG_FILES = qw(lacuna config default);
 
 has 'client' => (
     is              => 'rw',
@@ -32,13 +39,8 @@ has 'configdir' => (
 
 has 'storage' => (
     is              => 'ro',
-    isa             => 'KiokuDB',
+    isa             => 'DBI::db',
     lazy_build      => 1,
-);
-
-has 'storage_scope' => (
-    is              => 'rw',
-    isa             => 'KiokuDB::LiveObjects::Scope',
 );
 
 has 'config' => (
@@ -47,13 +49,20 @@ has 'config' => (
     lazy_build      => 1,
 );
 
+has 'environment' => (
+    is              => 'rw',
+    isa             => 'HashRef',
+    predicate       => 'has_environment',
+);
+
 sub _build_config {
     my ($self) = @_;
     
     # Get global config
     my $global_config = {};
     
-    foreach my $file (qw(lacuna config default)) {
+    # Search all possible files
+    foreach my $file (@CONFIG_FILES) {
         my $global_config_file = Path::Class::File->new($self->configdir,$file.'.yml');
         if (-e $global_config_file) {
             $self->log('debug',"Loading config from %s",$global_config_file->stringify);
@@ -62,17 +71,143 @@ sub _build_config {
         }
     }
     
+    my $connect_config = $global_config->{connect};
+    
+    # Aliases
+    $connect_config->{name} ||= delete $connect_config->{empire}
+        if defined $connect_config->{empire};
+    $connect_config->{uri} ||= delete $connect_config->{server}
+        if defined $connect_config->{server};
+    
+    # Defaults
+    $connect_config->{api_key} ||= $API_KEY;
+    $connect_config->{uri} ||= $URI;
+    
     return $global_config;
+}
+
+sub _build_client {
+    my ($self) = @_;
+    
+    my $connect_config = $self->config->{connect};
+    my $session = $self->get_cache('session') || {};
+
+    # Check session
+    if (defined $session 
+        && defined $session->{session_start}
+        && $session->{session_start} + $session->{session_timeout} < time()) {
+        $self->log('debug','Session %s has expired',$session->{session_id});
+        $session = {};
+    }
+    
+    my $client = Games::Lacuna::Client->new(
+        %{$connect_config},
+        %{$session},
+        session_persistent  => 1,
+    );
+
+    return $client;
+}
+
+sub _build_storage {
+    my ($self) = @_;
+    
+    my $database_ok = 1;
+    my $storage;
+    
+    # Get lacuna database
+    my $storage_file = Path::Class::File->new($self->configdir,'lacuna.db');
+    
+    # Touch database file if it does not exist
+    unless (-e $storage_file->stringify) {
+        $database_ok = 0;
+        
+        $self->log('info',"Initializing storage file %s",$storage_file->stringify);
+        my $storage_dir = $self->configdir->stringify;
+        unless (-e $storage_dir) {
+            mkdir($storage_dir)
+                or $self->abort('Could not create storage directory %s: %s',$storage_dir,$!);
+        }
+        $storage_file->touch
+            or $self->abort('Could not create storage file %s: %s',$storage_file->stringify,$!);
+    }
+    
+    # Connect database
+    {
+        no warnings 'once';
+        $storage = DBI->connect("dbi:SQLite:dbname=$storage_file","","")
+            or $self->abort('Could not connect to database: %s',$DBI::errstr);
+    }
+    
+    # Check database for required tables
+    if ($database_ok) {
+        my @tables;
+        my $sth = $storage->prepare('SELECT name FROM sqlite_master WHERE type=? ORDER BY name');
+        $sth->execute('table');
+        while (my $name = $sth->fetchrow_array) {
+            push @tables,$name;
+        }
+        $sth->finish();
+        
+        foreach my $table (@DB_TABLES) {
+            unless ($table ~~ \@tables) {
+                $database_ok = 0;
+                last;
+            }
+        }
+    }
+    
+    # Create missing tables
+    unless ($database_ok) {
+        sleep 1;
+        
+        $self->log('info',"Initializing storage tables in %s",$storage_file->stringify);
+        
+        my $data_fh = *DATA;
+        
+        my $sql = '';
+        while (my $line = <$data_fh>) {
+            $sql .= $line;
+            if ($sql =~ m/;/) {
+                $storage->do($sql)
+                    or $self->abort('Could not excecute sql %s: %s',$sql,$storage->errstr);
+                undef $sql;
+            }
+        }
+        close DATA;
+        
+    }
+    
+    # Create distance function
+    $storage->func( 'distance_func', 4, \&Games::Lacuna::Task::Utils::distance, "create_function" );
+    
+    return $storage;
+}
+
+sub get_environment {
+    my ($self,$key) = @_;
+    
+    # Get empire status to build environment
+    $self->request(
+        object      => $self->build_object('Empire'),
+        method      => 'get_status',
+    ) unless $self->has_environment;
+    
+    # Return environment
+    return $self->environment->{$key};
 }
 
 sub task_config {
     my ($self,$task_name) = @_;
     
+    # Convert name tp class
     my $task_class = name_to_class($task_name);
     my $config_task = $self->config->{$task_name} || $self->config->{lc($task_name)} || {};
     my $config_global = $self->config->{global} || {};
     
     my $config_final = {};
+    
+    # Set all global attributes from task config, global config or $self
     foreach my $attribute ($task_class->meta->get_all_attributes) {
         my $attribute_name = $attribute->name;
         if ($attribute_name eq 'client') {
@@ -90,133 +225,11 @@ sub task_config {
     return $config_final;
 }
 
-sub _build_storage {
-    my ($self) = @_;
-    
-    my $storage_file = Path::Class::File->new($self->configdir,'default.db');
-    unless (-e $storage_file->stringify) {
-        $self->log('info',"Initializing storage file %s",$storage_file->stringify);
-        my $storage_dir = $self->configdir->stringify;
-        unless (-e $storage_dir) {
-            mkdir($storage_dir)
-                or $self->log('error','Could not create storage directory %s: %s',$storage_dir,$!);
-        }
-        $storage_file->touch
-            or $self->log('error','Could not create storage file %s: %s',$storage_file->stringify,$!);
-    }
-    
-    my $storage = KiokuDB->connect(
-        'dbi:SQLite:dbname='.$storage_file->stringify,
-        create          => 1,
-        transactions    => 0,
-    );
-    
-    my $scope = $storage->new_scope;
-    $self->storage_scope($scope);
-    
-    return $storage;
-}
-
-sub _build_client {
-    my ($self) = @_;
-    
-    my $storage = $self->storage;
-
-    my $config = $self->config->{connect} || $storage->lookup('config') || $self->get_config_from_user();
-    my $session = $storage->lookup('session') || {};
-
-    # Check session
-    if (defined $session 
-        && defined $session->{session_start}
-        && $session->{session_start} + $session->{session_timeout} < time()) {
-        $self->log('debug','Session %s has expired',$session->{session_id});
-        $session = {};
-    }
-    
-    # Aliases
-    $config->{name} ||= delete $config->{empire}
-        if defined $config->{empire};
-    $config->{uri} ||= delete $config->{server}
-        if defined $config->{server};
-    
-    # Defaults
-    $config->{api_key} ||= $API_KEY;
-    $config->{uri} ||= $URI;
-
-    my $client = Games::Lacuna::Client->new(
-        %{$config},
-        %{$session},
-        session_persistent  => 1,
-    );
-
-    return $client;
-}
-
-sub get_config_from_user {
-    my ($self) = @_;
-    my ($password,$name,$server,$api);
-    
-    unless (is_interactive()) {
-        die('Could not initialize config since we are not running in interactive mode');
-    }
-
-    $self->log('info',"Initializing local database");
-    
-    while (! defined $server || $server !~ m/^https?:\/\//) {
-        say "Please enter the server url (leave empty for default: '$URI'):";
-        while ( not defined( $server = ReadLine(-1) ) ) {
-            # no key pressed yet
-        }
-        chomp($server);
-        $server ||= $URI;
-    }
-    
-    say "Please enter the api key (leave empty for default: '$API_KEY'):";
-    while ( not defined( $api = ReadLine(-1) ) ) {
-        # no key pressed yet
-    }
-    chomp($api);
-    $api ||= $API_KEY;
-    
-    while (! defined $name || $name =~ m/^\s*$/) {
-        say 'Please enter the empire name:';
-        while ( not defined( $name = ReadLine(-1) ) ) {
-            # no key pressed yet
-        }
-        chomp($name);
-    }
-    
-    while (! defined $password || $password =~ m/^\s*$/) {
-        ReadMode 2;
-        say 'Please enter the empire password:';
-        while ( not defined( $password = ReadLine(-1) ) ) {
-            # no key pressed yet
-        }
-        ReadMode 0;
-        chomp($password);
-    }
-    
-    my $config = {
-        password    => $password,
-        name        => $name,
-        api_key     => $api,
-        uri         => $server,
-    };
-    
-    my $storage = $self->storage;
-    $storage->delete('config');
-    $storage->store('config' => $config);
-    return $config;
-}
-
 sub login {
     my ($self) = @_;
     
-    my $config = $self->storage->lookup('config');
-    $self->client->name($config->{name});
-    $self->client->password($config->{password});
-    $self->client->api_key($config->{api_key});
-    $self->client->empire->login($config->{name}, $config->{password}, $config->{api_key});
+    my $connect_config = $self->config->{connect};
+    $self->client->empire->login($connect_config->{name}, $connect_config->{password}, $connect_config->{api_key});
     $self->_update_session;
 }
 
@@ -228,29 +241,357 @@ sub _update_session {
     return
         unless defined $client && $client->session_id;
 
-    my $session = $self->storage->lookup('session') || {};
+    my $session = $self->get_cache('session') || {};
     
     return $client
-        if defined $session->{session_id} && $session->{session_id} ne $client->session_id;
+        if defined $session 
+        && defined $session->{session_id} 
+        && $session->{session_id} eq $client->session_id;
 
-    $self->log('debug','New session %s',$session->{session_id});
+    $self->log('debug','New session %s',$client->session_id);
 
     $session->{session_id} = $client->session_id;
     $session->{session_start} = $client->session_start;
     $session->{session_timeout} = $client->session_timeout;
-    $session->{session_start} = $client->session_start;
     
-    $self->storage->delete('session');
-    $self->storage->store('session' => $session);
+    
+    $self->set_cache(
+        key         => 'session',
+        value       => $session,
+        valid_until => $session->{session_timeout} + $session->{session_start},
+    );
     
     return $client;
 }
 
-after 'client' => sub {
+after 'request' => sub {
     my ($self) = @_;
     return $self->_update_session();
 };
 
+sub get_cache {
+    my ($self,$key) = @_;
+    
+    return $LOCAL_CACHE{$key}->[0]
+        if defined $LOCAL_CACHE{$key};
+    
+    my ($value,$valid_until) = $self
+        ->storage
+        ->selectrow_array(
+            'SELECT value, valid_until FROM cache WHERE key = ?',
+            {},
+            $key
+        );
+    
+    return
+        unless defined $value
+        && $valid_until > time();
+    
+    return $JSON->decode($value);
+}
+
+sub set_cache {
+    my ($self,%params) = @_;
+    
+    $params{max_age} ||= 3600;
+
+    my $valid_until = $params{valid_until} || ($params{max_age} + time());
+    my $key = $params{key};
+    my $value = $JSON->encode($params{value});
+    my $checksum = md5_hex($value);
+    
+    return
+        if defined $LOCAL_CACHE{$key} 
+        && $LOCAL_CACHE{$key}->[1] eq $checksum;
+    
+    $LOCAL_CACHE{$key} = [ $params{value},$checksum ];
+    
+#    # Check local write cache
+#    my $checksum = $cache->checksum();
+#    if (defined $LOCAL_CACHE{$key}) {
+#        my $local_cache = $LOCAL_CACHE{$key};
+#        return $cache
+#            if $local_cache eq $checksum;
+#    }
+#    
+#    $LOCAL_CACHE{$key} = $checksum;
+    
+    $self->storage_do(
+        'INSERT OR REPLACE INTO cache (key,value,valid_until,checksum) VALUES (?,?,?,?)',
+        $key,
+        $value,
+        $valid_until,
+        $checksum,
+    );
+    
+    return;
+}
+
+sub clear_cache {
+    my ($self,$key) = @_;
+    
+    delete $LOCAL_CACHE{$key};
+    
+    $self->storage_do(
+        'DELETE FROM cache WHERE key = ?',
+        $key,
+    );
+}
+
+sub empire_name {
+    my ($self) = @_;
+    return $self->client->name;
+}
+
+sub request {
+    my ($self,%args) = @_;
+    
+    my $method = delete $args{method};
+    my $object = delete $args{object};
+    my $params = delete $args{params} || [];
+    
+    my $debug_params = join(',', map { ref($_) || $_ } @$params);
+    
+    $self->log('debug',"Run external request %s->%s(%s)",ref($object),$method,$debug_params);
+    
+    my $response;
+    my $retry = 1;
+    my $retry_count = 0;
+    
+    while ($retry) {
+        $retry = 0;
+        try {
+            $response = $object->$method(@$params);
+        } catch {
+            my $error = $_;
+            if (blessed($error)
+                && $error->isa('LacunaRPCException')) {
+                given ($error->code) {
+                    when(1006) {
+                        $self->log('debug','Session expired unexpectedly');
+                        $self->client->reset_client();
+                        $self->clear_cache('session');
+                        $self->login;
+                        $retry = 1;
+                    }
+                    when (1016) {
+                        $self->log('warn','Need to solve captcha');
+                        my $solved = $self->get_captcha();
+                        if ($solved) {
+                            $retry = 1;
+                        } else {
+                            $error->rethrow;
+                        }
+                    }
+                    when(1010) { # too many requests
+                        if ($error =~ m/Slow\sdown!/) {
+                            if ($retry_count < 3) {
+                                $self->log('warn',$error);
+                                $self->log('warn','Too many requests (wait a while)');
+                                sleep 50;
+                                $retry = 1;
+                            } else {
+                                $self->log('error','Too many requests (abort)');
+                            }
+                        } else {
+                            $error->rethrow;
+                        }
+                    }
+                    default {
+                        $error->rethrow;
+                    }
+                }
+                $retry_count ++
+                    if $retry;
+            } else {
+                $self->abort($error);
+            }
+        };
+    }
+    
+    
+    my $status = $response->{status} || $response;
+    
+    if ($status->{body}) {
+        $self->set_cache(
+            key     => 'body/'.$status->{body}{id},
+            value   => $status->{body},
+            max_age => 60*70, # One hour+
+        );
+    }
+    if ($response->{buildings}) {
+        $self->set_cache(
+            key     => 'body/'.$status->{body}{id}.'/buildings',
+            value   => $response->{buildings},
+            max_age => 60*70, # One hour+
+        );
+    }
+    
+    # Set environment
+    unless ($self->has_environment) {
+        $self->environment({
+            star_map_size   => $status->{server}{star_map_size},
+            rpc_limit       => $status->{server}{rpc_limit},
+            server_version  => $status->{server}{version},
+            #empire_name     => $response->{empire}{name},
+            empire_id       => $status->{empire}{id},
+            home_planet_id  => $status->{empire}{home_planet_id},
+        });
+    }
+    
+    my $environment = $self->environment;
+    
+    # Update environment
+    $environment->{rpc_count} = $status->{empire}{rpc_count};
+    $environment->{essentia} = $status->{empire}{essentia};
+    $environment->{planets} = $status->{empire}{planets};
+    $environment->{has_new_messages} = $status->{empire}{has_new_messages};
+    
+    return $response;
+}
+
+sub paged_request {
+    my ($self,%params) = @_;
+    
+    $params{params} ||= [];
+    
+    my $total = delete $params{total};
+    my $data = delete $params{data};
+    my $page = 1;
+    my @result;
+    
+    PAGES:
+    while (1) {
+        push(@{$params{params}},$page);
+        my $response = $self->request(%params);
+        pop(@{$params{params}});
+        
+        foreach my $element (@{$response->{$data}}) {
+            push(@result,$element);
+        }
+        
+        if ($response->{$total} > (25 * $page)) {
+            $page ++;
+        } else {
+            $response->{$data} = \@result;
+            return $response;
+        }
+    }
+}
+
+sub build_object {
+    my ($self,$class,@params) = @_;
+    
+    # Get class and id from status hash
+    if (ref $class eq 'HASH') {
+        push(@params,'id',$class->{id});
+        $class = $class->{url};
+    }
+    
+    # Get class from url
+    if ($class =~ m/^\//) {
+        $class = 'Buildings::'.Games::Lacuna::Client::Buildings::type_from_url($class);
+    }
+    
+    # Build class name
+    $class = 'Games::Lacuna::Client::'.ucfirst($class)
+        unless $class =~ m/^Games::Lacuna::Client::(.+)$/;
+    
+    return $class->new(
+        client  => $self->client,
+        @params
+    );
+}
+
+sub storage_do {
+    my ($self,$sql,@params) = @_;
+    
+    my $sql_log = $sql;
+    $sql_log =~ s/\n/ /g;
+    
+    return $self->storage->do($sql,{},@params)
+        or $self->abort('Could not run SQL command "%s": %s',$sql_log,$self->storage->errstr);
+}
+
+sub storage_prepare {
+    my ($self,$sql) = @_;
+    
+    my $sql_log = $sql;
+    $sql_log =~ s/\n/ /g;
+    
+    return $self->storage->prepare($sql)
+        or $self->abort('Could not prepare SQL command "%s": %s',$sql_log,$self->storage->errstr);
+}
+
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=head2 get_cache
+
+Fetches the value with the given key from the cache.
+
+ my $value = $self->get_cache($key);
+
+=head2 set_cache
+
+Writes a value to the cache.
+
+ $self->set_cache(
+    key     => Cache key,
+    data    => Data,
+    max_age => Max cache age (optional),
+ );
+
+=head2 clear_cache
+
+Removes a value from the cache
+
+ $self->clear_cache($key);
+
+=cut
+
+
+__DATA__
+CREATE TABLE IF NOT EXISTS star (
+  id INTEGER NOT NULL PRIMARY KEY,
+  x INTEGER NOT NULL,
+  y INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  zone TEXT NOT NULL,
+  last_checked INTEGER,
+  probed INTEGER 
+);
+
+CREATE TABLE IF NOT EXISTS body (
+  id INTEGER NOT NULL PRIMARY KEY,
+  star INTEGER NOT NULL,
+  x INTEGER NOT NULL,
+  y INTEGER NOT NULL,
+  orbit INTEGER NOT NULL,
+  size INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  normalized_name TEXT NOT NULL,
+  type TEXT NOT NULL,
+  water INTEGER,
+  ore TEXT,
+  empire INTEGER,
+  last_excavated INTEGER
+);
+
+CREATE INDEX IF NOT EXISTS body_star_index ON body(star);
+
+CREATE TABLE IF NOT EXISTS empire (
+  id INTEGER NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  normalized_name TEXT NOT NULL,
+  alignment TEXT NOT NULL,
+  is_isolationist TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS cache ( 
+  key TEXT NOT NULL PRIMARY KEY, 
+  value TEXT NOT NULL, 
+  valid_until INTEGER,
+  checksum TEXT NOT NULL
+);
