@@ -225,7 +225,7 @@ sub parse_mission {
                 });
             }
             default {
-                warn "Unknown mission item: '$_'";
+                $self->log("warn","Unknown mission item: %s",$_);
             }
         }
     }

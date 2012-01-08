@@ -265,7 +265,7 @@ sub process_planet {
                     }
                 }
                 when ('prisoner') {
-                    warn('Prisoner trade class not implemented');
+                    $self->log('warn','Prisoner trade class not implemented yet');
                 }
                 default {
                     $self->log('error','Invalid trade setting: Unknown offer class (%s)',$_);
@@ -339,7 +339,7 @@ sub _trade_serialize_response {
                     $quantity = 1;
                 }
                 default {
-                    warn('Unkown offer '.$_);
+                    $self->log('warn','Unkown offer: %s',$_);
                 }
             }
             $trade_serialize{$moniker} ||= 0;

@@ -175,7 +175,7 @@ sub _inflate_star {
         $star_data->{bodies} = \@bodies
     # Bodies missing 
     } else {
-        warn "FALLBACK ON BODY: SHOULD NOT HAPPEN";
+        $self->log('warn','Inconsitent cache state for star %i',$star_data->{id});
         $star_data = $self->_get_star_api($star_data->{id},$star_data->{x},$star_data->{y});
     }
     
@@ -552,8 +552,6 @@ sub search_stars_callback {
     $sql .= ' WHERE '.join(' AND ',@sql_where)
         if scalar @sql_where;
     $sql .= join(' ',@sql_extra);
-    
-    warn "RUN $sql : ".join(',',@sql_params);
     
     my $sth = $self->storage_prepare($sql);
     $sth->execute(@sql_params)
