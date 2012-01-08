@@ -25,10 +25,27 @@ sub _report_incoming_planet {
     my $planet_stats = $self->my_body_status($planet_id);
     
     return
-        unless defined($planet_stats->{incoming_foreign_ships});
+        unless defined($planet_stats->{incoming_enemy_ships});
+    
+    # Get space port
+    my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');
+    
+    return 
+        unless defined $spaceport;
+    
+    my $spaceport_object = $self->build_object($spaceport);
+    
+    # Get all incoming ships
+    my $ships_data = $self->paged_request(
+        object  => $spaceport_object,
+        method  => 'view_foreign_ships',
+        total   => 'number_of_ships',
+        data    => 'ships',
+    );
     
     my %incoming;
-    foreach my $element (@{$planet_stats->{incoming_foreign_ships}}) {
+    
+    foreach my $element (@{$ships_data->{ships}}) {
         my $type;
         if ($element->{is_own}) {
             $type = 'own';
@@ -37,38 +54,15 @@ sub _report_incoming_planet {
         } else {
             $type = 'hostile';
         }
-        next
-            if $type eq 'own';
+        my $from = 'unknown';
         $incoming{$element->{id}} = {
             type    => $type,
-            from    => '?',
-            ship    => '?',
+            from    => $from,
+            ship    => $element->{type_human},
             eta     => $self->parse_date($element->{date_arrives}),
         };
-    }
-    
-    # Get space port
-    my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');
-    
-    if ($spaceport) {
-        my $spaceport_object = $self->build_object($spaceport);
-        
-        # Get all incoming ships
-        my $ships_data = $self->paged_request(
-            object  => $spaceport_object,
-            method  => 'view_foreign_ships',
-            total   => 'number_of_ships',
-            data    => 'ships',
-        );
-        
-        my @incoming_ships;
-        
-        foreach my $element (@{$ships_data->{ships}}) {
-            my $from = 'unknown';
-            $incoming{$element->{id}}{ship} = $element->{type_human};
-            if (defined $element->{from}) {
-                $incoming{$element->{id}}{from} = ($element->{from}{empire}{name} // 'unknown').' '.($element->{from}{name} // 'unknown');
-            }
+        if (defined $element->{from}) {
+            $incoming{$element->{id}}{from} = ($element->{from}{empire}{name} // 'unknown').' '.($element->{from}{name} // 'unknown');
         }
     }
     
