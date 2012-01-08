@@ -100,7 +100,7 @@ sub process_planet {
     
     # Check incoming ships
     return
-        unless defined($planet_stats->{incoming_foreign_ships});
+        unless defined($planet_stats->{incoming_enemy_ships});
     
     # Get space port
     my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');
