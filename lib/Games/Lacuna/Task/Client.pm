@@ -532,31 +532,42 @@ sub storage_prepare {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+=encoding utf8
 
-=head2 get_cache
+=head1 NAME
 
-Fetches the value with the given key from the cache.
+Games::Lacuna::Task::Client - Client class
 
- my $value = $self->get_cache($key);
+=head1 DESCRIPTION
 
-=head2 set_cache
+Implements basic cacheing and the connection to the lacuna api.
 
-Writes a value to the cache.
+=head1 METHODS
 
- $self->set_cache(
-    key     => Cache key,
-    data    => Data,
-    max_age => Max cache age (optional),
+=head3 request
+
+Runs a request, caches the response and returns the response.
+
+ my $response =  $self->request(
+    object  => Games::Lacuna::Client::* object,
+    method  => Method name,
+    params  => [ Params ],
+ );
+ 
+=head3 paged_request
+
+Fetches all response elements from a paged method
+
+ my $response =  $self->paged_request(
+    object  => Games::Lacuna::Client::* object,
+    method  => Method name,
+    params  => [ Params ],
+    total   => 'field storing the total number of items',
+    data    => 'field storing the items',
  );
 
-=head2 clear_cache
-
-Removes a value from the cache
-
- $self->clear_cache($key);
 
 =cut
-
 
 __DATA__
 CREATE TABLE IF NOT EXISTS star (

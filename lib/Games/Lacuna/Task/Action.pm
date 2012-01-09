@@ -66,6 +66,8 @@ Games::Lacuna::Task::Action - Abstract action base class
 
 =head1 DESCRIPTION
 
-TODO
+All actions need to inherit from this class an implement a C<run> method
+or cosume a role that implements this method (such as 
+L<Games::Lacuna::Task::Role::PlanetRun>)
 
 =cut

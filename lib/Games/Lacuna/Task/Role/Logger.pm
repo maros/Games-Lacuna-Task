@@ -88,4 +88,10 @@ Print a log message. You can use the sprintf syntax.
 
  $self->log($loglevel,$message,@sprintf_params);
 
+=head2 abort
+
+Dies with a pretty error message
+
+ $self->abort($message,@sprintf_params);
+
 =cut

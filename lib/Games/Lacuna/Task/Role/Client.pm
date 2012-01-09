@@ -43,39 +43,17 @@ no Moose::Role;
 
 =head1 NAME
 
-Games::Lacuna::Role::Client - Basic methods to access the Lacuna API
+Games::Lacuna::Role::Client - Client glue code
 
-=head1 ACCESSORS
+=head1 METHODS
 
 =head2 configdir
 
 Path to the config directory.
 
-=head2 client
+=head2 configdir
 
-L<Games::Lacuna::Task::Client> object
+L<Games::Lacuna::Task::Client> object. Most public methods in this class
+are available via method delegation.
 
-=head1 METHODS
-
-=head2 request
-
-Runs a request, caches the response and returns the response.
-
- my $response =  $self->request(
-    object  => Games::Lacuna::Client::* object,
-    method  => Method name,
-    params  => [ Params ],
- );
- 
-=head2 paged_request
-
-Fetches all response elements from a paged method
-
- my $response =  $self->paged_request(
-    object  => Games::Lacuna::Client::* object,
-    method  => Method name,
-    params  => [ Params ],
-    total   => 'field storing the total number of items',
-    data    => 'field storing the items',
- );
-
+=cut

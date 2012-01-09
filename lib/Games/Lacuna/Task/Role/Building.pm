@@ -117,16 +117,28 @@ This role provides building-related helper methods.
 
 =head1 METHODS
 
-=head2 find_buildspot
+=head3 find_buildspot
 
  my $avaliable_buildspots = $self->find_buildspot($planet_id);
 
 Returns all available build spots as an Array Reference.
 
-=head2 upgrade_building
+=head3 upgrade_building
 
  my $upgrade_ok = $self->upgrade_building($planet_stats,$building_data);
 
 Tries to upgrade the given building while performing various checks.
+
+=head3 build_queue_size
+
+ my $count = $self->build_queue_size($planet_stats);
+
+Calculates the build queue size
+
+=head3 check_upgrade_building
+
+ my $is_upgradeable = $self->check_upgrade_building($planet_stats,$building_data);
+
+Checks if a building is upgradeable
 
 =cut
