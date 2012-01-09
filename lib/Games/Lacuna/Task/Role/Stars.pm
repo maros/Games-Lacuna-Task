@@ -183,18 +183,28 @@ sub _inflate_star {
 }
 
 sub _inflate_body {
-    my ($self,$body,$star_data) = @_;
+    my ($self,$body,$star) = @_;
     
     return
         unless defined $body;
     
-    $star_data ||= {
-        star_id     => $star_data->{id},
-        star_name   => $star_data->{name},
-        zone        => $star_data->{zone},
-    };
+    my $star_data;
     
-     my $body_data = {
+    if (defined $star) {
+        $star_data = {
+            star_id     => $star->{id},
+            star_name   => $star->{name},
+            zone        => $star->{zone},
+        };
+    } else {
+        $star_data = {
+            star_id     => $body->{star_id},
+            star_name   => $body->{star_name},
+            zone        => $body->{zone},
+        };
+    }
+    
+    my $body_data = {
         (map { $_ => $body->{$_} } qw(id x y orbit name type water size last_excavated)),
         ore         => $Games::Lacuna::Task::Client::JSON->decode($body->{ore}), 
         %{$star_data},
