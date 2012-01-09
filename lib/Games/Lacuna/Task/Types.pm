@@ -33,15 +33,4 @@ MooseX::Getopt::OptionTypeMap->add_option_type_to_map(
     'Lacuna::Task::Type::Coordinate' => '=s'
 );
 
-#subtype 'Lacuna::Task::Type::File'
-#    => as class_type('Path::Class::File')
-#    => where { -f $_ && -r _ }
-#    => message { "Could not find/read file '$_'" };
-#
-#subtype 'Lacuna::Task::Type::Dir'
-#    => as class_type('Path::Class::Dir')
-#    => where { -d $_ && -r _ }
-#    => message { "Could not find/read directory '$_'" };
-
-
 1;
