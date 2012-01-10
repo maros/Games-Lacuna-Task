@@ -41,10 +41,12 @@ sub run {
             my $configdir;
             my $loglevel;
             my $help;
+            my $debug;
             
             my $opt_parser = Getopt::Long::Parser->new( config => [ qw( no_auto_help pass_through ) ] );
             $opt_parser->getoptions( 
                 "configdir=s"   => \$configdir,
+                "debug"         => \$debug,
                 "loglevel=s"    => \$loglevel,
                 "help|usage|?"  => \$help,
             );
@@ -55,6 +57,9 @@ sub run {
             $self->configdir($configdir)
                 if defined $configdir && $configdir ne '';
             
+            $self->debug($debug)
+                if defined $debug;
+
             my $task_config = $self->client->task_config($task_name);
             
             if ($help) {

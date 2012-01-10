@@ -13,13 +13,13 @@ has 'configdir' => (
     coerce          => 1,
     documentation   => 'Path to the lacuna directory [Default '.$DEFAULT_DIRECTORY.']',
     default         => sub { return $DEFAULT_DIRECTORY },
-    traits          => ['KiokuDB::DoNotSerialize','NoIntrospection'],
+    traits          => ['NoIntrospection'],
 );
 
 has 'client' => (
     is              => 'ro',
     isa             => 'Games::Lacuna::Task::Client',
-    traits          => ['NoGetopt','KiokuDB::DoNotSerialize','NoIntrospection'],
+    traits          => ['NoGetopt','NoIntrospection'],
     lazy_build      => 1,
     handles         => [qw(get_cache set_cache clear_cache request paged_request empire_name build_object storage_prepare storage_do get_environment set_environment)]
 );
@@ -31,6 +31,7 @@ sub _build_client {
     my $client = Games::Lacuna::Task::Client->new(
         loglevel        => $self->loglevel,
         configdir       => $self->configdir,
+        debug           => $self->debug,
     );
     
     return $client;
