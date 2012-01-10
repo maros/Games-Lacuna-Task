@@ -41,5 +41,5 @@ use_ok( 'Games::Lacuna::Task::Utils' );
 
 {
     explain "Distance";
-    is(Games::Lacuna::Task::Utils::distance(0,0,100,100),141.42135623731,'Normalized name ok');
+    is(Games::Lacuna::Task::Utils::distance(0,0,100,100),141,'Normalized name ok');
 }

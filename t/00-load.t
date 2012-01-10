@@ -1,6 +1,6 @@
 #!*perl*
 
-use Test::More tests => 61;
+use Test::More tests => 60;
 
 BEGIN {
 	use_ok( 'Games::Lacuna::Task' );
@@ -56,7 +56,6 @@ use_ok( 'Games::Lacuna::Task::Role::Client' );
 use_ok( 'Games::Lacuna::Task::Role::CommonAttributes' );
 use_ok( 'Games::Lacuna::Task::Role::Helper' );
 use_ok( 'Games::Lacuna::Task::Role::Intelligence' );
-use_ok( 'Games::Lacuna::Task::Role::Introspect' );
 use_ok( 'Games::Lacuna::Task::Role::Logger' );
 use_ok( 'Games::Lacuna::Task::Role::Notify' );
 use_ok( 'Games::Lacuna::Task::Role::PlanetRun' );
