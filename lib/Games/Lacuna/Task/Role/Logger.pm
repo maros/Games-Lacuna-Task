@@ -66,7 +66,7 @@ sub log {
     
     if ($self->debug && $self->can('configdir')) {
         state $fh;
-        $fh ||= Path::Class::File->new($self->configdir,'debug.log')->open('w+');
+        $fh ||= Path::Class::File->new($self->configdir,'debug.log')->open('a');
         say $fh sprintf("%6s: %s",$level_name,$logmessage);
     }
 
