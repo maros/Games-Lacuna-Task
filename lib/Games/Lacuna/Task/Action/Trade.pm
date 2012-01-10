@@ -339,7 +339,7 @@ sub _trade_serialize_response {
                     $quantity = 1;
                 }
                 default {
-                    $self->log('warn','Unkown offer: %s',$_);
+                    warn("Unkown offer: $_");
                 }
             }
             $trade_serialize{$moniker} ||= 0;
