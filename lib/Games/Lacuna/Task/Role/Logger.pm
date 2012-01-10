@@ -13,9 +13,17 @@ our @COLORS = qw(white cyan magenta yellow red);
 has 'loglevel' => (
     is              => 'rw',
     isa             => Moose::Util::TypeConstraints::enum(\@LEVELS),
-    traits          => ['KiokuDB::DoNotSerialize','NoIntrospection'],
+    traits          => ['NoIntrospection'],
     default         => 'info',
     documentation   => 'Print all messages equal or above the given level [Default: info, Available: '.join(',',@LEVELS).']',
+);
+
+has 'debug' => (
+    is              => 'rw',
+    isa             => 'Bool',
+    traits          => ['NoIntrospection'],
+    default         => 0,
+    documentation   => 'Log all messages to debug.log',
 );
 
 sub abort {
@@ -42,11 +50,12 @@ sub log {
     my ( $self, @msgs ) = @_;
     
     my ($level_name,$logmessage) = $self->_format_message(@msgs);
-    
+   
     if (is_interactive()) {
-        binmode STDOUT, ":utf8";
         my ($level_pos) = grep { $LEVELS[$_] eq $level_name } 0 .. $#LEVELS;
-        my ($level_max) = grep { $LEVELS[$_] eq $self->loglevel } 0 .. $#LEVELS;
+        my ($level_max) = grep { $LEVELS[$_] eq $self->loglevel } 0 .. $#LEVELS;   
+ 
+        binmode STDOUT, ":utf8";
         if ($level_pos >= $level_max) {
             print color 'bold '.($COLORS[$level_pos] || 'white');
             printf "%6s: ",$level_name;
@@ -55,11 +64,11 @@ sub log {
         }
     }
     
-#    if ($self->can('debug') && $self->debug) {
-#        state $fh;
-#        $fh ||= Path::Class::File->new($self->configdir,'debug.log')->open('w+');
-#        say $fh sprintf("%6s: %s",$level_name,$logmessage);
-#    }
+    if ($self->debug && $self->can('configdir')) {
+        state $fh;
+        $fh ||= Path::Class::File->new($self->configdir,'debug.log')->open('w+');
+        say $fh sprintf("%6s: %s",$level_name,$logmessage);
+    }
 
     return ($level_name,$logmessage);
 }
