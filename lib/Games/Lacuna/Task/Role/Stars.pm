@@ -422,20 +422,7 @@ sub _get_area_api_by_xy {
     # Loop all stars in area
     my @return;
     foreach my $star_data (@{$star_info->{stars}}) {
-        # Set cache controll flags
-        $star_data->{last_checked} = time();
-        $star_data->{cache_ok} = 1;
-        
-        # Check if system is probed or not
-        if (defined $star_data->{bodies}
-            && scalar(@{$star_data->{bodies}}) > 0) {
-            $star_data->{probed} = 1;
-            $self->set_star_cache($star_data);
-        } else {
-            $star_data->{probed} = 0;
-            $self->storage_do('UPDATE star SET probed = 0, last_checked = ? WHERE id = ?',{},time,$star_data->{id});
-        }
-        
+        $self->set_star_cache($star_data);
         push(@return,$star_data);
     }
     
@@ -450,7 +437,9 @@ sub set_star_cache {
     return
         unless defined $star_id;
     
-    my $storage = $self->client->storage;
+    $star_data->{last_checked} ||= time();
+    $star_data->{cache_ok} //= 1;
+    $star_data->{probed} //= (defined $star_data->{bodies} && scalar @{$star_data->{bodies}} ? 1:0);
     
     # Update star cache
     $self->storage_do(
@@ -460,7 +449,7 @@ sub set_star_cache {
         $star_data->{name},
         $star_id
     );
-    
+
     return
         unless defined $star_data->{bodies};
     
