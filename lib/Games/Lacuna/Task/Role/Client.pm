@@ -13,13 +13,12 @@ has 'configdir' => (
     coerce          => 1,
     documentation   => 'Path to the lacuna directory [Default '.$DEFAULT_DIRECTORY.']',
     default         => sub { return $DEFAULT_DIRECTORY },
-    traits          => ['NoIntrospection'],
 );
 
 has 'client' => (
     is              => 'ro',
     isa             => 'Games::Lacuna::Task::Client',
-    traits          => ['NoGetopt','NoIntrospection'],
+    traits          => ['NoGetopt'],
     lazy_build      => 1,
     handles         => [qw(get_cache set_cache clear_cache request paged_request empire_name build_object storage_prepare storage_do get_environment set_environment)]
 );

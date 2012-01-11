@@ -19,7 +19,7 @@ has '_planet_re' => (
     isa             => 'RegexpRef',
     lazy_build      => 1,
     builder         => '_build_planet_re',
-    traits          => ['NoIntrospection','NoGetopt'],
+    traits          => ['NoGetopt'],
 );
 
 sub _build_planet_re {

@@ -1,6 +1,6 @@
 #!*perl*
 
-use Test::More tests => 60;
+use Test::More tests => 59;
 
 BEGIN {
 	use_ok( 'Games::Lacuna::Task' );
@@ -41,7 +41,6 @@ use_ok( 'Games::Lacuna::Task::ActionProto' );
 use_ok( 'Games::Lacuna::Task::Base' );
 use_ok( 'Games::Lacuna::Task::Client' );
 use_ok( 'Games::Lacuna::Task::Constants' );
-use_ok( 'Games::Lacuna::Task::Meta::Attribute::Trait::NoIntrospection' );
 use_ok( 'Games::Lacuna::Task::Meta::Class::Trait::NoAutomatic' );
 use_ok( 'Games::Lacuna::Task::Report::Battle' );
 use_ok( 'Games::Lacuna::Task::Report::Fleet' );

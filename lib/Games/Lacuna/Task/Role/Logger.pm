@@ -13,7 +13,6 @@ our @COLORS = qw(white cyan magenta yellow red);
 has 'loglevel' => (
     is              => 'rw',
     isa             => Moose::Util::TypeConstraints::enum(\@LEVELS),
-    traits          => ['NoIntrospection'],
     default         => 'info',
     documentation   => 'Print all messages equal or above the given level [Default: info, Available: '.join(',',@LEVELS).']',
 );
@@ -21,7 +20,6 @@ has 'loglevel' => (
 has 'debug' => (
     is              => 'rw',
     isa             => 'Bool',
-    traits          => ['NoIntrospection'],
     default         => 0,
     documentation   => 'Log all messages to debug.log',
 );

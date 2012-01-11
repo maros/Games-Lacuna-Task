@@ -15,7 +15,7 @@ has 'known_bleeder' => (
     is              => 'rw',
     isa             => 'ArrayRef',
     lazy_build      => 1,
-    traits          => ['Array','NoIntrospection','NoGetopt'],
+    traits          => ['Array','NoGetopt'],
     handles         => {
         add_known_bleeder  => 'push',
     }
@@ -25,7 +25,7 @@ has 'new_bleeder' => (
     is              => 'rw',
     isa             => 'ArrayRef',
     default         => sub { [] },
-    traits          => ['Array','NoIntrospection','NoGetopt'],
+    traits          => ['Array','NoGetopt'],
     handles         => {
         add_new_bleeder    => 'push',
         has_new_bleeder   => 'count',
