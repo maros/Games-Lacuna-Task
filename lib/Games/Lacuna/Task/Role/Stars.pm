@@ -18,13 +18,15 @@ after 'BUILD' => sub {
     my ($star_count) = $self->client->storage->selectrow_array('SELECT COUNT(1) FROM star');
     
     if ($star_count == 0) {
-        $self->fetch_all_stars();
+        $self->fetch_all_stars(0);
     }
 };
 
 sub fetch_all_stars {
-    my ($self) = @_;
+    my ($self,$check) = @_;
     
+    $check //= 1;
+
     my $server = $self->client->client->uri;
     return
         unless $server =~ /^https?:\/\/([^.]+)\./;
@@ -53,10 +55,13 @@ sub fetch_all_stars {
     my $count = 0;
     while( my $row = $csv->getline_hr( $fh ) ){
         $count++;
-        $sth_check->execute($row->{id});
-        my ($last_checked,$probed) = $sth_check->fetchrow_array();
-        $sth_check->finish();
-        
+        my ($last_checked,$probed);
+        if ($check) {
+            $sth_check->execute($row->{id});
+            ($last_checked,$probed) = $sth_check->fetchrow_array();
+            $sth_check->finish();
+        }
+
         $sth_temp->execute($row->{id});
         
         $sth_insert->execute(
