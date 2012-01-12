@@ -5,6 +5,7 @@ use warnings;
 
 use Unicode::Normalize qw(decompose);
 use Scalar::Util qw(blessed);
+use Time::Local qw(timelocal);
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(
@@ -14,10 +15,7 @@ our @EXPORT_OK = qw(
     distance 
     pretty_dump
     parse_ship_type
-    delta_date
-    delta_date_format
     parse_date
-    timestamp
 ); 
 
 sub class_to_name {
@@ -88,44 +86,6 @@ sub parse_ship_type {
     return $name;
 }
 
-sub timestamp {
-    return DateTime->now->set_time_zone('UTC');
-}
-
-sub delta_date {
-    my ($date) = @_;
-    
-    $date = parse_date($date)
-        unless blessed($date) && $date->isa('DateTime');
-    
-    my $timestamp = timestamp();
-    my $date_delta_ms = $timestamp->delta_ms( $date );
-    
-    return $date_delta_ms;
-}
-
-sub delta_date_format {
-    my ($date) = @_;
-    
-    my $date_delta_ms = delta_date($date);
-    
-    my $delta_days = int($date_delta_ms->delta_minutes / (24*60));
-    my $delta_days_rest = $date_delta_ms->delta_minutes % (24*60);
-    my $delta_hours = int($delta_days_rest / 60);
-    my $delta_hours_rest = $delta_days_rest % 60;
-    
-    my $return = sprintf('%02im:%02is',$delta_hours_rest,$date_delta_ms->seconds);
-    
-    if ($delta_hours) {
-        $return = sprintf('%02ih:%s',$delta_hours,$return);
-    }
-    if ($delta_days) {
-        $return = sprintf('%02id %s',$delta_days,$return);
-    }
-    
-    return $return;
-}
-
 sub parse_date {
     my ($date) = @_;
     
@@ -141,13 +101,11 @@ sub parse_date {
         (?<second>\d{2}) \s
         \+(?<timezoneoffset>\d{4})
         $/x) {
+        
         warn('Unexpected timezone offset '.$+{timezoneoffset})
             if $+{timezoneoffset} != 0;
         
-        return DateTime->new(
-            (map { $_ => $+{$_} } qw(year month day hour minute second)),
-            time_zone   => 'UTC',
-        );
+        return timelocal(map { $+{$_} } qw(second minute hour day month year));
     }
     
     return;
@@ -199,20 +157,8 @@ Removes diacritic marks and uppercases a string for better compareability
 
 Converts a human ship name into the ship type
 
-=head2 delta_date
-
- delta_date($date);
-
-Returns a DateTime::Duration object
-
-=head2 delta_date_format
-
- delta_date_format($date);
-
-Returns a human readable delta for the given date
-
 =head2 parse_date
 
-Returns a DateTime object for the given timestamp from the api response
+Returns a epoch timestamp for the given timestamp from the api response
 
 =cut

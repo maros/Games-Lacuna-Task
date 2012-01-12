@@ -9,7 +9,7 @@ with qw(Games::Lacuna::Task::Role::PlanetRun
     Games::Lacuna::Task::Role::Intelligence);
 
 use List::Util qw(min);
-use Games::Lacuna::Task::Utils qw(parse_date timestamp);
+use Games::Lacuna::Task::Utils qw(parse_date);
 
 sub description {
     return q[Manage counter intelligence activities];
@@ -18,7 +18,7 @@ sub description {
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
-    my $timestamp = timestamp('UTC');
+    my $timestamp = time();
     
     # Get intelligence ministry
     my ($intelligence_ministry) = $self->find_building($planet_stats->{id},'Intelligence');

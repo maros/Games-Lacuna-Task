@@ -9,7 +9,7 @@ with 'Games::Lacuna::Task::Role::Waste',
     'Games::Lacuna::Task::Role::PlanetRun';
 
 use List::Util qw(min);
-use Games::Lacuna::Task::Utils qw(parse_date timestamp);
+use Games::Lacuna::Task::Utils qw(parse_date);
 
 our @RESOURCES_RECYCLEABLE = qw(water ore energy);
 
@@ -20,7 +20,7 @@ sub description {
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
-    my $timestamp = timestamp();
+    my $timestamp = time();
     my %resources;
     my @recycling_buildings;
     

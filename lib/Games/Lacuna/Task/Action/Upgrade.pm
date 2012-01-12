@@ -9,7 +9,7 @@ with 'Games::Lacuna::Task::Role::Building',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['start_building_at'] };
 
 use List::Util qw(max);
-use Games::Lacuna::Task::Utils qw(parse_date timestamp);
+use Games::Lacuna::Task::Utils qw(parse_date);
 
 has 'upgrade_preference' => (
     isa     => 'ArrayRef[Str]',
@@ -40,7 +40,7 @@ sub process_planet {
     my @levels;
     my @buildings_end;
     my @buildings = $self->buildings_body($planet_stats->{id});
-    my $timestamp = timestamp();
+    my $timestamp = time();
     
     # Get build queue size
     foreach my $building_data (@buildings) {

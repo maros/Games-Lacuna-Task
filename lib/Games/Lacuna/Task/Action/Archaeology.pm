@@ -8,7 +8,7 @@ with qw(Games::Lacuna::Task::Role::PlanetRun);
 
 use List::Util qw(max sum);
 use Games::Lacuna::Client::Types qw(ore_types);
-use Games::Lacuna::Task::Utils qw(parse_date timestamp);
+use Games::Lacuna::Task::Utils qw(parse_date);
 
 
 sub description {
@@ -66,7 +66,7 @@ sub process_planet {
     
     my $total_glyphs = sum(values %{$all_glyphs});
     my $max_glyphs = max(values %{$all_glyphs});
-    my $timestamp = timestamp();
+    my $timestamp = time();
     
     # Get archaeology ministry
     my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology');

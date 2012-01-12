@@ -7,7 +7,6 @@ extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun);
 
 use List::Util qw(min shuffle);
-use Games::Lacuna::Task::Utils qw(timestamp);
 
 has 'rename_spies' => (
     isa             => 'Bool',
@@ -32,7 +31,7 @@ sub description {
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
-    my $timestamp = timestamp();
+    my $timestamp = time();
     
     # Get intelligence ministry
     my ($intelligence_ministry) = $self->find_building($planet_stats->{id},'Intelligence');

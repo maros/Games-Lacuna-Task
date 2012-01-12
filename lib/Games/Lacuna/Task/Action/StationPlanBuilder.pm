@@ -7,7 +7,7 @@ extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Storage',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['home_planet'] };
 
-use Games::Lacuna::Task::Utils qw(parse_date timestamp);
+use Games::Lacuna::Task::Utils qw(parse_date);
 
 has 'space_station' => (
     isa         => 'Str',
@@ -43,7 +43,7 @@ sub run {
     my ($self) = @_;
     
     my $planet_home = $self->home_planet_data();
-    my $timestamp = timestamp();
+    my $timestamp = time();
     
     # Get space station lab
     my $spacestaion_lab = $self->find_building($planet_home->{id},'SSLA');

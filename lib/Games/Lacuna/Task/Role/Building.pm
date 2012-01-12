@@ -4,7 +4,7 @@ package Games::Lacuna::Task::Role::Building;
 use 5.010;
 use Moose::Role;
 
-use Games::Lacuna::Task::Utils qw(parse_date timestamp);
+use Games::Lacuna::Task::Utils qw(parse_date);
 
 sub check_upgrade_building {
     my ($self,$planet_stats,$building_data) = @_;
@@ -82,7 +82,7 @@ sub build_queue_size {
     my ($self,$body) = @_;
     
     my @buildings = $self->buildings_body($body);
-    my $timestamp = timestamp();
+    my $timestamp = time();
     
     my $building_count = 0;
     

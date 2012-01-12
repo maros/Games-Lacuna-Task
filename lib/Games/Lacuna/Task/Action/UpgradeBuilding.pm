@@ -9,7 +9,7 @@ with 'Games::Lacuna::Task::Role::Building',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['start_building_at'] };
 
 use List::Util qw(max min);
-use Games::Lacuna::Task::Utils qw(parse_date timestamp);
+use Games::Lacuna::Task::Utils qw(parse_date);
 
 has 'upgrade_buildings' => (
     isa     => 'HashRef[ArrayRef[Str]]',
@@ -76,7 +76,7 @@ sub process_planet {
     my ($self,$planet_stats) = @_;
     
     my @buildings = $self->buildings_body($planet_stats->{id});
-    my $timestamp = timestamp();
+    my $timestamp = time();
     my $build_queue_size = $self->build_queue_size($planet_stats->{id});
     
     # Check if build queue is filled
@@ -152,7 +152,7 @@ sub find_upgrade_buildings {
     my $max_ressouce_level = $self->max_resource_building_level($planet_stats->{id});
     my $max_building_level = $self->university_level() + 1;
     my $max_building_type_level = {};
-    my $timestamp = timestamp();
+    my $timestamp = time();
     
     BUILDING:
     foreach my $building_data (sort { $b->{level} <=> $a->{level} } @buildings) {

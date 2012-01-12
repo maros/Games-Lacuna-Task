@@ -31,7 +31,6 @@ my $build = Module::Build->new(
 
         'Digest::MD5'                   => 0,
         'Unicode::Normalize'            => 0,
-        'DateTime'                      => 0,
         'Try::Tiny'                     => 0,
 
         'Email::Stuff'                  => 0,

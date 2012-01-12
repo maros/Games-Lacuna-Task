@@ -4,7 +4,7 @@ use 5.010;
 
 use Moose::Role;
 
-use Games::Lacuna::Task::Utils qw(parse_date timestamp);
+use Games::Lacuna::Task::Utils qw(parse_date);
 
 sub report_battle {
     my ($self) = @_;
@@ -27,7 +27,7 @@ sub _report_battle_body {
     
     my $planet_stats = $self->my_body_status($planet_id);
     
-    my $limit = timestamp()->subtract( hours => 24 );
+    my $limit = time() - (60 * 60 * 24); # 24 hours
     
     # Get mining ministry
     my ($spaceport) = $self->find_building($planet_stats->{id},'SpacePort');

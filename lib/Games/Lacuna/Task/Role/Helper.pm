@@ -10,7 +10,7 @@ use List::Util qw(max min);
 use Games::Lacuna::Task::Cache;
 use Games::Lacuna::Task::Constants;
 use Data::Dumper;
-use Games::Lacuna::Task::Utils qw(normalize_name parse_date timestamp);
+use Games::Lacuna::Task::Utils qw(normalize_name parse_date);
 
 sub my_planets {
     my $self = shift;
@@ -106,7 +106,7 @@ sub find_building {
           
         if (defined $building_data->{pending_build}
             && $building_data->{level} == 0) {
-            my $timestamp = timestamp();
+            my $timestamp = time();
             my $build_end = parse_date($building_data->{pending_build}{end});
             next 
                 if ($build_end > $timestamp);

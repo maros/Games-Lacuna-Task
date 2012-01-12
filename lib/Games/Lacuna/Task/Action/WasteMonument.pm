@@ -9,8 +9,6 @@ with 'Games::Lacuna::Task::Role::Building',
     'Games::Lacuna::Task::Role::PlanetRun',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage','start_building_at'] };
 
-use Games::Lacuna::Task::Utils qw(timestamp);
-
 our @WASTE_MONUMENTS = (
     'Junk Henge Sculpture',
     'Great Ball of Junk',
@@ -30,7 +28,7 @@ sub process_planet {
     return
         if $self->university_level < 21;
     
-    my $timestamp = timestamp();
+    my $timestamp = time();
     my $build_queue_size = $self->build_queue_size($planet_stats->{id});
     
     # Check if build queue is filled

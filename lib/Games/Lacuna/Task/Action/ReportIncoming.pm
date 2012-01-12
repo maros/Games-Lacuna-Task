@@ -7,7 +7,7 @@ extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Notify
     Games::Lacuna::Task::Role::PlanetRun);
 
-use Games::Lacuna::Task::Utils qw(parse_date delta_date);
+use Games::Lacuna::Task::Utils qw(parse_date);
 
 sub description {
     return q[This task reports incoming foreign ships];
@@ -111,7 +111,7 @@ sub process_planet {
         my $arrives = parse_date($ship->{date_arrives});
         
         my $incoming = {
-            arrives_delta   => delta_date($arrives),
+            arrives_delta   => ((time() - $arrives) / 60),
             arrives         => $arrives,
             planet          => $planet_stats->{name},
             ship            => $ship->{type},
@@ -119,7 +119,7 @@ sub process_planet {
             id              => $ship->{id},
         };
         
-        $self->log('warn','Incoming %s ship from %s arriving in %s detected on %s',$incoming->{ship},$incoming->{from_empire},$incoming->{arrives_delta} ,$planet_stats->{name});
+        $self->log('warn','Incoming %s ship from %s arriving in %s minutes detected on %s',$incoming->{ship},$incoming->{from_empire},$incoming->{arrives_delta} ,$planet_stats->{name});
         
         # Check if we already know this ship
         next

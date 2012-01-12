@@ -8,7 +8,7 @@ with qw(Games::Lacuna::Task::Role::Ships
     Games::Lacuna::Task::Role::PlanetRun);
 
 use List::Util qw(min);
-use Games::Lacuna::Task::Utils qw(parse_date delta_date);
+use Games::Lacuna::Task::Utils qw(parse_date);
 
 has 'min_defender_combat' => (
     isa             => 'Int',
@@ -139,7 +139,7 @@ sub process_planet {
         my $arrives = parse_date($ship->{date_arrives});
         
         next
-            if delta_date($arrives)->delta_minutes > 360; # six hours
+            if (time() - $arrives) > (60 * 60 * 6); # six hours
         
         $first_attacker_arrive ||= $arrives;
         $first_attacker_arrive = $arrives

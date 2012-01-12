@@ -9,8 +9,6 @@ with qw(Games::Lacuna::Task::Role::Stars
     Games::Lacuna::Task::Role::PlanetRun
     Games::Lacuna::Task::Role::RPCLimit);
 
-use Games::Lacuna::Task::Utils qw(timestamp);
-
 has 'excavator_count' => (
     isa             => 'Int',
     is              => 'rw',
@@ -34,9 +32,8 @@ sub description {
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
-    my $now = timestamp();
-    my $timestamp = $now->epoch();
-    my $max_age = $now->subtract( days => 31 )->epoch();
+    my $timestamp = time();
+    my $max_age = time() - ( 60 * 60 * 24 * 31 ); # 31 days
     
     # Get archaeology ministry
     my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology');

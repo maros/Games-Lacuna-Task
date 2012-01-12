@@ -6,7 +6,7 @@ use Moose::Role;
 with qw(Games::Lacuna::Task::Role::Intelligence
     Games::Lacuna::Task::Role::Stars);
 
-use Games::Lacuna::Task::Utils qw(parse_date timestamp);
+use Games::Lacuna::Task::Utils qw(parse_date);
 
 sub report_intelligence {
     my ($self) = @_;
@@ -26,7 +26,7 @@ sub report_intelligence {
 sub _report_intelligence_body {
     my ($self,$planet_id,$table) = @_;
     
-    my $timestamp = timestamp();
+    my $timestamp = time();
     my $planet_stats = $self->my_body_status($planet_id);
     
     # Get security & intelligence ministry
