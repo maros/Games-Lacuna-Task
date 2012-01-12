@@ -6,25 +6,21 @@ HOWTO for the Games::Lacuna::Task automation framework
 
 =head1 USERS
 
-After installing Games::Lacuna::Task you need to start either the 
-C<lacuna_run> or the C<lacuna_task> script. It will prompt you your empire 
-name, server and password and store them to in a sqlite database in the 
-C<database> directory (Defaults to ~/.lacuna)
-
-Optionally you can create a configuration file called config.yml in the same
-directory. The file should have the following format:
+After installing Games::Lacuna::Task you need to create a configuration file 
+called config.yml in the lacuna directory (Defaults to ~/.lacuna).
+The file should have the following format:
 
  ---
  connect: 
-    # Optional. If not present taken from database
-    name: "Empire name"
-    password: "Empire password"
-    api_key: "Api key"      # Optional
-    uri: "Server URL"       # Optional
+    name: "Empire name"         # Required
+    password: "Empire password" # Required
+    api_key: "Api key"          # Optional
+    uri: "Server URL"           # Optional
  global:
     # Which tasks should be run (if not provided via commandline options)
     task:
       - task1_name
+      - task2_name
     # Which tasks should be excluded (if not provided via commandline options)
     exclude:
       - task2_name
@@ -41,9 +37,21 @@ directory. The file should have the following format:
      - "some"
      - "value"
 
-Information about available tasks and their configuration options is available
-when running C<lacuna_task> with the C<--task_info> option, or via
-C<lacuna_run help --help> or C<lacuna_run COMMAND --help>
+To see which tasks are available type C<lacuna_run help>.
+
+To see options for a specific task type C<lacuna_run TASK --help>.
+
+Once you have a working setup you can start either the C<lacuna_run> or the 
+C<lacuna_task> script. Configure cron to run these tasks regularly. Eg.g
+
+    # Run default tasks every hour
+    0   *    *    *    *     lacuna_task
+    # Collect excavator booty once daily
+    10  8    *    *    *     lacuna_run collect_excavator_booty
+    # Daily empire report
+    20  8    *    *    *     lacuna_run empire_report
+    # Check mining platforms twice daily 
+    30  8,20 *    *    *     lacuna_run mining
 
 =head1 DEVELOPERS
 
@@ -61,8 +69,8 @@ that returns a short task description string.
 
 If your tasks requires configuration values you can specify moose accessors.
 Accessors should have a documentation string and meaningfull defaults. You
-can add the 'NoIntrospection' trait if you do not want to display an
-accessor in the task info.
+can add the 'NoGetopt' trait if you do not want to display an accessor in the 
+task info.
 
 Optionall you can set the 'NoAutomatic' class trait, indication that this task
 should not be run automatically/unatented but requires som sort of
@@ -118,6 +126,8 @@ Helper methods for handling buildings.
 
 Role providing common attributes used by multiple actions.
 
+=back
+
 Tasks can also be called/embedded/executed directly
 
  use Games::Lacuna::Task::Action::Archaeology;
@@ -132,13 +142,16 @@ Tasks can also be called/embedded/executed directly
 
 =head1 INSTALLING
 
-Before installing C<Game::Lacuna::Task> you need to install 
-<Game::Lacuna::Client> from https://github.com/tsee/Games-Lacuna-Client.
+Fetch from github.com
+
+ git://github.com/maros/Games-Lacuna-Task.git
+ cd Games-Lacuna-Task
 
 Then continue by typing
 
  perl Build.PL
  ./Build
+ ./Build test
  ./Build installdeps
  ./Build install
  ./Build clean
@@ -147,8 +160,9 @@ Alternatively you can install missing dependencies via cpanminus:
  
  # Install cpanmius (also available as packages for debian, fedora, ...)
  curl -L http://cpanmin.us | perl - App::cpanminus
- # Now install 'Moose' via cpanminus
- cpanm Moose
-
+ # Install dependencies via cpanminus
+ cpanm --installdeps .
+ # Install verything via cpanminus
+ cpanm .
 
 =cut

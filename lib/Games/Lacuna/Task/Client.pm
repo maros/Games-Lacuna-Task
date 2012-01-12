@@ -540,9 +540,61 @@ Games::Lacuna::Task::Client - Client class
 
 =head1 DESCRIPTION
 
-Implements basic cacheing and the connection to the lacuna api.
+Implements basic cacheing and the connection to the lacuna API.
+
+=head1 ACCESSORS
+
+=head2 client
+
+L<Games::Lacuna::Client> object
+
+=head2 configdir
+
+L<Games::Lacuna::Task> config directory
+
+=head3 configdir
+
+DBI connection to the cacheing database.
+
+=head3 config
+
+Current config hash as read from the config file in configdir
+
+=head3 environment
+
+Simple Stash for storing various temporary values.
 
 =head1 METHODS
+
+=head2 task_config 
+
+ my $config = $client->task_config($task_name);
+
+Calculates the config for a given task
+
+=head2 get_cache
+
+ my $value = $self->get_cache('key1');
+
+Fetches a value from the cache. Returns undef if cache is not available
+or if it has expired.
+
+=head2 clear_cache
+
+ $self->clear_cache('key1');
+
+Remove an entry from the cache.
+
+=head2 set_cache
+
+ $self->clear_cache(
+    max_age     => $valid_seconds,  # optional
+    valid_until => $timestamp,      # optional, either max_age or valid_until
+    key         => 'key1',          # required
+    value       => $some_data       # required
+ );
+
+Stores an arbitrary data structure (no objects) in a presistant cache
 
 =head3 request
 
@@ -566,6 +618,24 @@ Fetches all response elements from a paged method
     data    => 'field storing the items',
  );
 
+=head3 build_object
+
+ my $empire_object = $self->build_object('Empire');
+ my $spaceprt_building_object = $self->build_object('Spaceport');
+
+Builds an <Games::Lacuna::Client::*> object
+
+=head3 storage_do
+
+ $self->storage_do('UPDATE .... WHERE id = ?',$id);
+
+Runs a command in the cache database
+
+=head3 storage_prepare
+
+ my $sth = $self->storage_prepare('SELECT .... WHERE id = ?');
+
+Prepares a SQL-query for the cache database and retuns the statement handle.
 
 =cut
 
