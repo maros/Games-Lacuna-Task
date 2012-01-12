@@ -7,7 +7,8 @@ extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Storage',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['home_planet'] };
 
-use Games::Lacuna::Task::Utils qw(parse_date);
+use Games::Lacuna::Task::Utils qw(parse_date format_date);
+use List::Util qw(min max);
 
 has 'space_station' => (
     isa         => 'Str',
@@ -53,7 +54,7 @@ sub run {
     if (defined $spacestaion_lab->{work}) {
         my $work_end = parse_date($spacestaion_lab->{work}{end});
         if ($work_end > $timestamp) {
-            return $self->log('info','Space station lab is busy until %s %s',$work_end->ymd('.'),$work_end->hms(':'))
+            return $self->log('info','Space station lab is busy until %s',format_date($work_end))
         }
     }
 
@@ -82,6 +83,11 @@ sub run {
         object  => $spacestaion_lab_object,
         method  => 'view',
     );
+    
+    if (defined $spacestaion_lab_data->{building}{work}) {
+        my $work_end = parse_date($spacestaion_lab->{building}{work}{end});
+        return $self->log('info','Space station lab is busy until %s %s',format_date($work_end))
+    }
     
     # Get max level
     my $max_level = $spacestaion_lab_data->{building}{level};

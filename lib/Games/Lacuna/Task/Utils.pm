@@ -16,6 +16,7 @@ our @EXPORT_OK = qw(
     pretty_dump
     parse_ship_type
     parse_date
+    format_date
 ); 
 
 sub class_to_name {
@@ -111,6 +112,18 @@ sub parse_date {
     return;
 }
 
+sub format_date {
+    my ($date) = @_;
+    
+    return
+        unless defined $date && $date =~ m/^\d+$/;
+    
+    my ($sec,$min,$hour,$mday,$mon,$year) = localtime($date);
+    $year += 1900;
+    
+    return sprintf('%04i.%02i.%02i %02i:%02i',$year,$mon,$mday,$hour,$min);
+}
+
 1;
 
 =encoding utf8
@@ -160,5 +173,9 @@ Converts a human ship name into the ship type
 =head2 parse_date
 
 Returns a epoch timestamp for the given timestamp from the api response
+
+=head2 format_date
+
+Formats an epoch timestamp
 
 =cut

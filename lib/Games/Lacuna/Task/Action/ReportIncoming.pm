@@ -7,7 +7,7 @@ extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Notify
     Games::Lacuna::Task::Role::PlanetRun);
 
-use Games::Lacuna::Task::Utils qw(parse_date);
+use Games::Lacuna::Task::Utils qw(parse_date format_date);
 
 sub description {
     return q[This task reports incoming foreign ships];
@@ -51,7 +51,7 @@ after 'run' => sub {
         $self->add_known_incoming(map { $_->{id} } @{$self->new_incoming});
         
         my $message = join ("\n",map { 
-            sprintf('%s: %s from %s arrives at %s %s',$_->{planet},$_->{ship},$_->{from_empire},$_->{arrives}->ymd('.'),$_->{arrives}->hms(':'))
+            sprintf('%s: %s from %s arrives at %s',$_->{planet},$_->{ship},$_->{from_empire},format_date($_->{arrives}))
         } @{$self->new_incoming});
         
         my $empire_name = $self->empire_name;
