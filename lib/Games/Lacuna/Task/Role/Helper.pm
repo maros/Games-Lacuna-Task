@@ -269,7 +269,7 @@ Returns an array of your planet IDs
 
 =head2 my_stations
 
-Returns an array of your stations IDs
+Returns an array of alliance stations IDs
 
 =head2 my_body_status
 
@@ -289,18 +289,6 @@ so that eg. 'Hà Nôi' equals 'HA NOI'.
  my $body_buildings = $self->buildings_body($body_id OR $boSdy_name);
 
 Returns all buildings for a given planet.
-
-=head2 build_object
-
- my $glc_object = $self->build_object('/university', id => $building_id);
- OR
- my $glc_object = $self->build_object($building_status_response);
- OR
- my $glc_object = $self->build_object('Spaceport', id => $building_id);
- OR
- my $glc_object = $self->build_object('Map');
-
-Returns a L<Game::Lacuna::Client::*> object
 
 =head2 can_afford
 
@@ -326,3 +314,16 @@ Returns the empire' planet ids
 
 Returns your empire' university level
 
+=head2 send_message
+
+ $self->send_message($subject, $message);
+
+Send yourself a notification via the in-game messaging system.
+
+=head2 max_resource_building_level
+
+ my $level = $self->max_resource_building_level($body_id);
+
+Returns the max possible ressource building level for the given planet.
+
+=head2 can_afford

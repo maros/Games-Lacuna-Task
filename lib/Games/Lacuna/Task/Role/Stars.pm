@@ -668,6 +668,7 @@ Fetches body data from the local cache for the given body id
  $body_data = $self->get_body_by_name($body_name);
 
 Fetches body data from the local cache for the given body name
+Ignores case and accents so that eg. 'Hà Nôi' equals 'HA NOI'.
 
 =head2 get_body_by_xy
 

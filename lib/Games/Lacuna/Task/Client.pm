@@ -620,8 +620,13 @@ Fetches all response elements from a paged method
 
 =head3 build_object
 
- my $empire_object = $self->build_object('Empire');
- my $spaceprt_building_object = $self->build_object('Spaceport');
+ my $glc_object = $self->build_object('/university', id => $building_id);
+ OR
+ my $glc_object = $self->build_object($building_status_response);
+ OR
+ my $glc_object = $self->build_object('Spaceport', id => $building_id);
+ OR
+ my $glc_object = $self->build_object('Map');
 
 Builds an <Games::Lacuna::Client::*> object
 

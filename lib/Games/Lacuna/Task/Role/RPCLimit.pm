@@ -39,4 +39,11 @@ no Moose::Role;
 
 Games::Lacuna::Role::RPCLimit - Skip tasks if 90% RPC limit is reached
 
+=head1 SYNOPSIS
+
+    package Games::Lacuna::Task::Action::MyTask;
+    use Moose;
+    extends qw(Games::Lacuna::Task::Action);
+    with qw(Games::Lacuna::Task::Role::RPCLimit);
+
 =cut

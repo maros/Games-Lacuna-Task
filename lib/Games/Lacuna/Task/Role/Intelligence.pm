@@ -40,5 +40,6 @@ This role provides intelligence-related helper methods.
 
 =head1 METHODS
 
+=head2 assigned_to_type
 
 =cut

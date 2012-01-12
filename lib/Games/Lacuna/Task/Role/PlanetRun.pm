@@ -2,6 +2,7 @@ package Games::Lacuna::Task::Role::PlanetRun;
 
 use 5.010;
 use Moose::Role;
+requires qw(process_planet);
 
 has 'exclude_planet' => (
     is              => 'rw',
@@ -69,5 +70,17 @@ no Moose::Role;
 =head1 NAME
 
 Games::Lacuna::Role::PlanetRun - Helper role for all planet-centric actions
+
+=head1 SYNOPSIS
+
+    package Games::Lacuna::Task::Action::MyTask;
+    use Moose;
+    extends qw(Games::Lacuna::Task::Action);
+    with qw(Games::Lacuna::Task::Role::RPCLimit);
+    
+    sub process_planet {
+        my ($self,$planet_stats) = @_;
+        ...
+    }
 
 =cut
