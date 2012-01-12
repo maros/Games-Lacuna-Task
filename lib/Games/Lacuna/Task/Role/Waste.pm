@@ -89,3 +89,36 @@ sub convert_waste {
 
 no Moose::Role;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Role::Waste - Waste helper methods
+
+=head1 SYNOPSIS
+
+    package Games::Lacuna::Task::Action::MyTask;
+    use Moose;
+    extends qw(Games::Lacuna::Task::Action);
+    with qw(Games::Lacuna::Task::Role::Waste);
+
+=head1 DESCRIPTION
+
+This role provides helper method to work with waste diposal
+
+=head METHODS
+
+=head2 disposeable_waste
+
+ my $quantity = $self->disposeable_waste($planet_stats);
+
+Returns the amout of waste that is available for disposal
+
+=head2 convert_waste
+
+ $self->convert_waste($planet_stats,$quantity);
+
+Produces the requested amout of waste by dumping resources from storage
+
+=cut

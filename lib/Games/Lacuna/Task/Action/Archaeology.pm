@@ -10,7 +10,6 @@ use List::Util qw(max sum);
 use Games::Lacuna::Client::Types qw(ore_types);
 use Games::Lacuna::Task::Utils qw(parse_date);
 
-
 sub description {
     return q[This task automates the search for glyphs via Archaeology Ministry];
 }

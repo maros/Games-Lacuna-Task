@@ -385,4 +385,16 @@ will be renamed to add the prefix.
 
 =back
 
+=head2 trade_ships
+
+ my $trade_ship_id = $self->trade_ships($body_id,$cargo);
+
+Returns a ship that can transport the required quantity of cargo
+
+=head2 push_ships
+
+ $self->push_ships($from_body_id,$to_body_id,\@ships);
+
+Pushes the selected ships from one body to another
+
 =cut

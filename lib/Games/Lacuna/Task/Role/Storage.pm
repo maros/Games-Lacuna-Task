@@ -149,7 +149,7 @@ This role provides helper method to query storage buildings.
 =head2 resource_type
 
  my $type = $self->resource_type('magnetite');
- # $type now is 'ore'
+ # $type is 'ore'
 
 Returns the type of the requested resource
 

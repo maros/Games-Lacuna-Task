@@ -638,63 +638,84 @@ This role provides astronomy-related helper methods.
 
 Fetches star data from the API or local cache for the given star id
 
-=head2 get_star_api
+=head2 get_star_by_name
 
- $star_data = $self->get_star_api($star_id);
+ $star_data = $self->get_star_by_name($star_name);
 
-Fetches star data from the API for the given star id
+Fetches star data from the API or local cache for the given star name
 
-=head2 get_star_cache
+=head2 get_star_by_xy
 
- $star_data = $self->get_star_cache($star_id);
+ $star_data = $self->get_star_by_name($x,$y);
 
-Fetches star data from the local cache for the given star id
+Fetches star data from the API or local cache for the given star coordinates
 
-=head2 is_probed_star
+=head2 fetch_all_stars
 
- my $bool = $self->is_probed_star($star_id);
+ $self->fetch_all_stars();
 
-Check if a star is probed or not
+Populates the star cache. Usually takes several minutes to complete and thus
+should not be called regularly.
 
-=head2 stars_by_distance
+=head2 get_body_by_id
 
- my @stars = $self->stars_by_distance($x,$y,$callback)
+ $body_data = $self->get_body_by_id($body_id);
 
-Returns a list of stars ordered by distance to the given point. Optionally
-$callback can be added to filter the star list.
+Fetches body data from the local cache for the given body id
 
-=head2 find_star_by_xy
+=head2 get_body_by_name
 
- my $star_id = $self->find_star_by_xy($x,$y)
+ $body_data = $self->get_body_by_name($body_name);
 
-Returns a star id for the given coordinates
+Fetches body data from the local cache for the given body name
 
-=head2 find_star_by_name
+=head2 get_body_by_xy
 
- my $star_id = $self->find_star_by_name($name)
+ $body_data = $self->get_body_by_name($x,$y);
 
-Returns a star id for the given name
+Fetches body data from the local cache for the given body coordinates
 
-=head2 find_body_by_id
+=head2 set_body_excavated
 
- my $body_data = $self->find_body_by_id($body_id)
+ $self->set_body_excavated($body_id,$timestamp);
 
-Returns body data for the given id
+Mark body as excavated
 
-=head2 find_body_by_name
+=head2 set_star_cache
 
- my $body_data = $self->find_body_by_name($body_name)
+ $self->set_star_cache($api_star_data);
 
-Returns body data for the given name
+Create star cache for given api response data
 
-=head2 find_body_by_xy
+=head2 search_stars_callback
 
- my $body_data = $self->find_body_by_name($x,$y)
+ $self->search_stars_callback(
+    sub {
+        my $star_data = shift;
+        ...
+    },
+    %search_params
+ );
 
-Returns body data for the given coordinates
+Searches all stars acording to the given search parameters and executes the 
+callback for every matching star.
 
-=head2 stars
+Valid search options are
 
-List of all stars on the current game server
+=over
+
+=item * probed (0 = unprobed, 1 = probed)
+
+=item * max_distance
+
+=item * min_distance
+
+=item * distance (1 = ascending, 0 = descending)
+
+=iten * zone
+
+=item * x,y (refernce coordinates for distance calculations)
+
+=back
 
 =cut

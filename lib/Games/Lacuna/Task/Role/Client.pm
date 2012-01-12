@@ -51,7 +51,7 @@ Games::Lacuna::Role::Client - Client glue code
 
 Path to the config directory.
 
-=head2 configdir
+=head2 client
 
 L<Games::Lacuna::Task::Client> object. Most public methods in this class
 are available via method delegation.
