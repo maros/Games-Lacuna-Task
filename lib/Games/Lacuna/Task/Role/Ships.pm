@@ -225,6 +225,7 @@ sub ships {
             if $shipyard->{level} <= $shipyard_queue_size;
             
         $available_shipyards{$shipyard_id} = {
+            id                  => $shipyard_id,
             object              => $shipyard_object,
             level               => $shipyard->{level},
             seconds_remaining   => ($shipyard_queue_data->{building}{work}{seconds_remaining} // 0),
@@ -232,13 +233,17 @@ sub ships {
         };
     }
     
-    # Check global build queue size
-    return @avaliable_ships
-        if $total_queue_size >= $total_max_queue_size;
-    
     # Check if shipyards are available
     return @avaliable_ships
         unless scalar keys %available_shipyards;
+    
+    # Check max build queue size
+    $max_build_quantity = min($total_max_queue_size-$total_queue_size,$max_build_quantity);
+    
+    # Check if we still can build ships
+    return @avaliable_ships
+        if $max_build_quantity <= 0;
+    
     
     # Repeat until we have enough ships
     BUILD_QUEUE:
@@ -252,28 +257,36 @@ sub ships {
         last BUILD_QUEUE
             unless defined $shipyard;
         
+        # Get build quantity
+        my $build_per_shipyard = int($max_build_quantity / scalar (keys %available_shipyards) / 2) || 1;
+        my $build_quantity = min($shipyard->{available},$max_build_quantity,$build_per_shipyard);
+        
         eval {
             # Build ship
             my $ship_building = $self->request(
                 object  => $shipyard->{object},
                 method  => 'build_ship',
-                params  => [$type],
+                params  => [$type,$build_quantity],
             );
             
             $shipyard->{seconds_remaining} = $ship_building->{building}{work}{seconds_remaining};
             
-            $self->log('notice',"Building %s on %s at shipyard level %i",$type,$planet_stats->{name},$shipyard->{level});
+            $self->log('notice',"Building %i %s(s) on %s at shipyard level %i",$build_quantity,$type,$planet_stats->{name},$shipyard->{level});
             
             # Remove shipyard slot
-            $shipyard->{available} --;
+            $shipyard->{available} -= $build_quantity;
+            
+            # Remove from available shipyards
+            delete $available_shipyards{$shipyard->{id}}
+                if $shipyard->{available} <= 0;
         };
         if ($@) {
             $self->log('warn','Could not build %s: %s',$type,$@);
             last BUILD_QUEUE;
         }
         
-        $new_building ++;
-        $total_ships ++;
+        $new_building += $build_quantity;
+        $total_ships += $build_quantity;
     }
     
     # Rename new ships
