@@ -537,7 +537,7 @@ sub search_stars_callback {
     }
     # Only probed/unprobed or unknown
     if (defined $params{probed}) {
-        push(@sql_where,'(star.last_checked > ? OR star.probed = ? OR star.probed IS NULL)');
+        push(@sql_where,'(star.last_checked < ? OR star.probed = ? OR star.probed IS NULL)');
         push(@sql_params,(time - $MAX_STAR_CACHE_AGE),$params{probed});
     }
     # Zone
