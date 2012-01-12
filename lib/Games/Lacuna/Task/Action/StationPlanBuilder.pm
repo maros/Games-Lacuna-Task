@@ -90,7 +90,10 @@ sub run {
     }
     
     # Get max level
-    my $max_level = $spacestaion_lab_data->{building}{level};
+    my $max_level = min(
+        $spacestaion_lab_data->{building}{level},
+        max(map { keys %{$_} } values %{$total_plans}) + 1
+    );
     
     PLAN_LEVEL:
     foreach my $level (1..$max_level) {
