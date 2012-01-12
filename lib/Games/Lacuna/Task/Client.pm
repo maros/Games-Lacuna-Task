@@ -197,7 +197,7 @@ sub get_stash {
     $self->request(
         object      => $self->build_object('Empire'),
         method      => 'get_status',
-    ) unless $self->hash_stash;
+    ) unless $self->has_stash;
     
     # Return stash
     return $self->stash->{$key};
