@@ -20,7 +20,7 @@ has 'client' => (
     isa             => 'Games::Lacuna::Task::Client',
     traits          => ['NoGetopt'],
     lazy_build      => 1,
-    handles         => [qw(get_cache set_cache clear_cache request paged_request empire_name build_object storage_prepare storage_do get_environment set_environment)]
+    handles         => [qw(get_cache set_cache clear_cache request paged_request empire_name build_object storage_prepare storage_do get_stash has_stash stash)]
 );
 
 sub _build_client {

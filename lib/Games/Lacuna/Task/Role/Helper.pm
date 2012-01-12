@@ -171,14 +171,14 @@ sub university_level {
 sub my_bodies {
     my $self = shift;
     
-    my $planets = $self->get_environment('planets');
+    my $planets = $self->get_stash('planets');
     return keys %{$planets};
 }
 
 sub home_planet_id {
     my $self = shift;
     
-    return $self->get_environment('home_planet_id')
+    return $self->get_stash('home_planet_id')
 }
 
 sub my_body_id {
@@ -194,7 +194,7 @@ sub my_body_id {
         if ref($body) eq 'HASH' && exists $body->{id};
 
     # Get my planets
-    my $planets = $self->get_environment('planets');
+    my $planets = $self->get_stash('planets');
 
     # Exact match
     foreach my $id (keys %$planets) {

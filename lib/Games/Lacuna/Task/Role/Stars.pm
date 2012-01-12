@@ -401,7 +401,7 @@ sub get_star {
 sub _get_area_api_by_xy {
     my ($self,$min_x,$min_y,$max_x,$max_y) = @_;
     
-    my $bounds = $self->get_environment('star_map_size');
+    my $bounds = $self->get_stash('star_map_size');
     return
         if $bounds->{x}[0] >= $max_x || $bounds->{x}[1] <= $min_x;
     return

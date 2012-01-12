@@ -35,7 +35,7 @@ sub report_inbox {
     my ($self) = @_;
     
     my $inbox_object = $self->build_object('Inbox');
-    my $has_new_messages = $self->get_environment('has_new_messages');
+    my $has_new_messages = $self->get_stash('has_new_messages');
     
     my $page = int($has_new_messages / 25 ) + ( $has_new_messages % 25 ? 1:0);
     $page //= 1;

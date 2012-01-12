@@ -49,10 +49,10 @@ has 'config' => (
     lazy_build      => 1,
 );
 
-has 'environment' => (
+has 'stash' => (
     is              => 'rw',
     isa             => 'HashRef',
-    predicate       => 'has_environment',
+    predicate       => 'has_stash',
 );
 
 sub _build_config {
@@ -190,17 +190,17 @@ sub _build_storage {
     return $storage;
 }
 
-sub get_environment {
+sub get_stash {
     my ($self,$key) = @_;
     
-    # Get empire status to build environment
+    # Get empire status to build stash
     $self->request(
         object      => $self->build_object('Empire'),
         method      => 'get_status',
-    ) unless $self->has_environment;
+    ) unless $self->hash_stash;
     
-    # Return environment
-    return $self->environment->{$key};
+    # Return stash
+    return $self->stash->{$key};
 }
 
 sub task_config {
@@ -433,9 +433,9 @@ sub request {
         );
     }
     
-    # Set environment
-    unless ($self->has_environment) {
-        $self->environment({
+    # Set stash
+    unless ($self->has_stash) {
+        $self->stash({
             star_map_size   => $status->{server}{star_map_size},
             rpc_limit       => $status->{server}{rpc_limit},
             server_version  => $status->{server}{version},
@@ -445,13 +445,13 @@ sub request {
         });
     }
     
-    my $environment = $self->environment;
+    my $stash = $self->stash;
     
-    # Update environment
-    $environment->{rpc_count} = $status->{empire}{rpc_count};
-    $environment->{essentia} = $status->{empire}{essentia};
-    $environment->{planets} = $status->{empire}{planets};
-    $environment->{has_new_messages} = $status->{empire}{has_new_messages};
+    # Update stash
+    $stash->{rpc_count} = $status->{empire}{rpc_count};
+    $stash->{essentia} = $status->{empire}{essentia};
+    $stash->{planets} = $status->{empire}{planets};
+    $stash->{has_new_messages} = $status->{empire}{has_new_messages};
     
     return $response;
 }
@@ -560,7 +560,7 @@ DBI connection to the cacheing database.
 
 Current config hash as read from the config file in configdir
 
-=head3 environment
+=head3 stash
 
 Simple Stash for storing various temporary values.
 

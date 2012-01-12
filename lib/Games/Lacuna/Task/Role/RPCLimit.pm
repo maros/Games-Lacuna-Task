@@ -15,9 +15,9 @@ around 'run' => sub {
     my $orig = shift;
     my $self = shift;
     
-    my $rpc_limit_hard = $self->get_environment('rpc_limit');
+    my $rpc_limit_hard = $self->get_stash('rpc_limit');
     my $rpc_limit_soft = int($rpc_limit_hard * 0.9);
-    my $rpc_count = $self->get_environment('rpc_count');
+    my $rpc_count = $self->get_stash('rpc_count');
     my $task_name = Games::Lacuna::Task::Utils::class_to_name($self);
     
     if ($rpc_count > $rpc_limit_soft
