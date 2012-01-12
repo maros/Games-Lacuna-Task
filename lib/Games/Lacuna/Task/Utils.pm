@@ -5,7 +5,7 @@ use warnings;
 
 use Unicode::Normalize qw(decompose);
 use Scalar::Util qw(blessed);
-use Time::Local qw(timelocal);
+use Time::Local qw(timegm);
 
 use base qw(Exporter);
 our @EXPORT_OK = qw(
@@ -105,8 +105,11 @@ sub parse_date {
         
         warn('Unexpected timezone offset '.$+{timezoneoffset})
             if $+{timezoneoffset} != 0;
+            
+        my @params = map { $+{$_} } qw(second minute hour day month year);
+        $params[4]--; #month index
         
-        return timelocal(map { $+{$_} } qw(second minute hour day month year));
+        return timegm(@params);
     }
     
     return;
@@ -118,8 +121,9 @@ sub format_date {
     return
         unless defined $date && $date =~ m/^\d+$/;
     
-    my ($sec,$min,$hour,$mday,$mon,$year) = localtime($date);
+    my ($sec,$min,$hour,$mday,$mon,$year) = gmtime($date);
     $year += 1900;
+    $mon++;
     
     return sprintf('%04i.%02i.%02i %02i:%02i',$year,$mon,$mday,$hour,$min);
 }

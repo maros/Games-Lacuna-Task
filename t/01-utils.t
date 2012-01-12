@@ -1,6 +1,6 @@
 #!*perl*
 
-use Test::More tests => 16;
+use Test::More tests => 18;
 use utf8;
 
 use_ok( 'Games::Lacuna::Task::Utils' );
@@ -41,5 +41,11 @@ use_ok( 'Games::Lacuna::Task::Utils' );
 
 {
     explain "Distance";
-    is(Games::Lacuna::Task::Utils::distance(0,0,100,100),141,'Normalized name ok');
+    is(Games::Lacuna::Task::Utils::distance(0,0,100,100),141,'Distance ok');
+}
+
+{
+    explain "Date";
+    is(Games::Lacuna::Task::Utils::parse_date('12 01 2012 16:03:40 +0000'),1326384220,'Date parse ok');
+    is(Games::Lacuna::Task::Utils::format_date(1326384220),'2012.01.12 16:03','Date format ok');
 }
