@@ -100,9 +100,6 @@ sub check_for_destroyed_probes {
             unless $message->{from_id} == $message->{to_id};
         given($message->{subject}) {
             when (['Probe Destroyed','Lost Contact With Probe']) {
-                # TODO check last run so that we do not process old messages
-                #$self->parse_date($message->{date});
-                
                 # Get message
                 my $message_data = $self->request(
                     object  => $inbox_object,

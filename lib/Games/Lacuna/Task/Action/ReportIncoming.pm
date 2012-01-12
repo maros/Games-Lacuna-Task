@@ -7,6 +7,8 @@ extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Notify
     Games::Lacuna::Task::Role::PlanetRun);
 
+use Games::Lacuna::Task::Utils qw(parse_date delta_date);
+
 sub description {
     return q[This task reports incoming foreign ships];
 }
@@ -106,10 +108,10 @@ sub process_planet {
         next
             if ($ship->{type} ~~ [qw(hulk cargo_ship galleon barge freighter)]);
         
-        my $arrives = $self->parse_date($ship->{date_arrives});
+        my $arrives = parse_date($ship->{date_arrives});
         
         my $incoming = {
-            arrives_delta   => $self->delta_date($arrives),
+            arrives_delta   => delta_date($arrives),
             arrives         => $arrives,
             planet          => $planet_stats->{name},
             ship            => $ship->{type},

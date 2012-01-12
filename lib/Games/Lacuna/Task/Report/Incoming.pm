@@ -4,6 +4,8 @@ use 5.010;
 
 use Moose::Role;
 
+use Games::Lacuna::Task::Utils qw(parse_date);
+
 sub report_incoming {
     my ($self) = @_;
     
@@ -59,7 +61,7 @@ sub _report_incoming_planet {
             type    => $type,
             from    => $from,
             ship    => $element->{type_human},
-            eta     => $self->parse_date($element->{date_arrives}),
+            eta     => parse_date($element->{date_arrives}),
         };
         if (defined $element->{from}) {
             $incoming{$element->{id}}{from} = ($element->{from}{empire}{name} // 'unknown').' '.($element->{from}{name} // 'unknown');

@@ -2,12 +2,14 @@ package Games::Lacuna::Task::Action::Archaeology;
 
 use 5.010;
 
-use List::Util qw(max sum);
-use Games::Lacuna::Client::Types qw(ore_types);
-
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun);
+
+use List::Util qw(max sum);
+use Games::Lacuna::Client::Types qw(ore_types);
+use Games::Lacuna::Task::Utils qw(parse_date timestamp);
+
 
 sub description {
     return q[This task automates the search for glyphs via Archaeology Ministry];
@@ -64,7 +66,7 @@ sub process_planet {
     
     my $total_glyphs = sum(values %{$all_glyphs});
     my $max_glyphs = max(values %{$all_glyphs});
-    my $timestamp = DateTime->now->set_time_zone('UTC');
+    my $timestamp = timestamp();
     
     # Get archaeology ministry
     my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology');
@@ -74,7 +76,7 @@ sub process_planet {
     
     # Check archaeology is busy
     if (defined $archaeology_ministry->{work}) {
-        my $work_end = $self->parse_date($archaeology_ministry->{work}{end});
+        my $work_end = parse_date($archaeology_ministry->{work}{end});
         if ($work_end > $timestamp) {
             return;
         }

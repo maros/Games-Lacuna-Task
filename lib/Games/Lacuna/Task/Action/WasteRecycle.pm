@@ -2,12 +2,14 @@ package Games::Lacuna::Task::Action::WasteRecycle;
 
 use 5.010;
 
-use List::Util qw(min);
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Waste',
     'Games::Lacuna::Task::Role::PlanetRun';
+
+use List::Util qw(min);
+use Games::Lacuna::Task::Utils qw(parse_date timestamp);
 
 our @RESOURCES_RECYCLEABLE = qw(water ore energy);
 
@@ -18,7 +20,7 @@ sub description {
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
-    my $timestamp = DateTime->now->set_time_zone('UTC');
+    my $timestamp = timestamp();
     my %resources;
     my @recycling_buildings;
     
@@ -80,7 +82,7 @@ sub process_planet {
         
         # Check recycling is busy
         if (defined $recycling_building->{work}) {
-            my $work_end = $self->parse_date($recycling_building->{work}{end});
+            my $work_end = parse_date($recycling_building->{work}{end});
             if ($work_end > $timestamp) {
                 next;
             }

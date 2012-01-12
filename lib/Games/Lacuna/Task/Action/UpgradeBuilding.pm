@@ -2,13 +2,14 @@ package Games::Lacuna::Task::Action::UpgradeBuilding;
 
 use 5.010;
 
-use List::Util qw(max min);
-
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Building',
     'Games::Lacuna::Task::Role::PlanetRun',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['start_building_at'] };
+
+use List::Util qw(max min);
+use Games::Lacuna::Task::Utils qw(parse_date timestamp);
 
 has 'upgrade_buildings' => (
     isa     => 'HashRef[ArrayRef[Str]]',
@@ -75,7 +76,7 @@ sub process_planet {
     my ($self,$planet_stats) = @_;
     
     my @buildings = $self->buildings_body($planet_stats->{id});
-    my $timestamp = DateTime->now->set_time_zone('UTC');
+    my $timestamp = timestamp();
     my $build_queue_size = $self->build_queue_size($planet_stats->{id});
     
     # Check if build queue is filled
@@ -151,7 +152,7 @@ sub find_upgrade_buildings {
     my $max_ressouce_level = $self->max_resource_building_level($planet_stats->{id});
     my $max_building_level = $self->university_level() + 1;
     my $max_building_type_level = {};
-    my $timestamp = DateTime->now->set_time_zone('UTC');
+    my $timestamp = timestamp();
     
     BUILDING:
     foreach my $building_data (sort { $b->{level} <=> $a->{level} } @buildings) {
@@ -185,7 +186,7 @@ sub find_upgrade_buildings {
             && $building_level >= $max_building_type_level->{$building_class};
         
         if (defined $building_data->{pending_build}) {
-            my $date_end = $self->parse_date($building_data->{pending_build}{end});
+            my $date_end = parse_date($building_data->{pending_build}{end});
             next BUILDING
                 if $timestamp < $date_end;
         }

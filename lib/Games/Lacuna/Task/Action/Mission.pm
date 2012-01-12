@@ -8,6 +8,7 @@ with qw(Games::Lacuna::Task::Role::PlanetRun
     Games::Lacuna::Task::Role::Storage);
 
 use Games::Lacuna::Client::Types qw(ore_types food_types);
+use Games::Lacuna::Task::Utils qw(timestamp);
 
 sub description {
     return q[Automatically accept missions];
@@ -23,7 +24,7 @@ has 'missions' => (
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
-    my $timestamp = DateTime->now->set_time_zone('UTC');
+    my $timestamp = timestamp();
     
     # Get mission command
     my $missioncommand = $self->find_building($planet_stats->{id},'MissionCommand');

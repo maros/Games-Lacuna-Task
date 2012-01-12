@@ -2,11 +2,11 @@ package Games::Lacuna::Task::Action::Vrbansk;
 
 use 5.010;
 
-use Games::Lacuna::Client::Types qw(ore_types);
-
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun);
+
+use Games::Lacuna::Client::Types qw(ore_types);
 
 our @RECIPIES = (
     [qw(goethite halite gypsum trona)],

@@ -14,7 +14,6 @@ has 'spy_count' => (
     documentation=> q[Number of spies to be fetched],
 );
 
-
 sub description {
     return q[Fetch spies from other planets];
 }

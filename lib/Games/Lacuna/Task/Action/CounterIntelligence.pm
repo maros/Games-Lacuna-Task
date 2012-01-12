@@ -2,13 +2,14 @@ package Games::Lacuna::Task::Action::CounterIntelligence;
 
 use 5.010;
 
-use List::Util qw(min);
-
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun
     Games::Lacuna::Task::Role::Stars
     Games::Lacuna::Task::Role::Intelligence);
+
+use List::Util qw(min);
+use Games::Lacuna::Task::Utils qw(parse_date timestamp);
 
 sub description {
     return q[Manage counter intelligence activities];
@@ -17,7 +18,7 @@ sub description {
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
-    my $timestamp = DateTime->now->set_time_zone('UTC');
+    my $timestamp = timestamp('UTC');
     
     # Get intelligence ministry
     my ($intelligence_ministry) = $self->find_building($planet_stats->{id},'Intelligence');
@@ -46,7 +47,7 @@ sub process_planet {
         if ($foreign_spy_data->{spy_count} > 0) {
             $self->log('warn',"There are %i foreign spies on %s",$foreign_spy_data->{spy_count},$planet_stats->{name});
             foreach my $spy (@{$foreign_spy_data->{spies}}) {
-                my $next_mission = $self->parse_date($spy->{next_mission});
+                my $next_mission = parse_date($spy->{next_mission});
                 if ($next_mission > $timestamp) {
                     $self->log('warn',"%s (%i) on %s is active and vulnerable to a security sweep",$spy->{name},$spy->{level},$planet_stats->{name});
                     push(@foreign_spies_active,$spy->{level})

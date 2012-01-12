@@ -10,8 +10,7 @@ use List::Util qw(max min);
 use Games::Lacuna::Task::Cache;
 use Games::Lacuna::Task::Constants;
 use Data::Dumper;
-use DateTime;
-use Games::Lacuna::Task::Utils qw(normalize_name);
+use Games::Lacuna::Task::Utils qw(normalize_name parse_date timestamp);
 
 sub my_planets {
     my $self = shift;
@@ -107,8 +106,8 @@ sub find_building {
           
         if (defined $building_data->{pending_build}
             && $building_data->{level} == 0) {
-            my $timestamp = DateTime->now->set_time_zone('UTC');
-            my $build_end = $self->parse_date($building_data->{pending_build}{end});
+            my $timestamp = timestamp();
+            my $build_end = parse_date($building_data->{pending_build}{end});
             next 
                 if ($build_end > $timestamp);
         }
@@ -181,77 +180,6 @@ sub home_planet_id {
     my $self = shift;
     
     return $self->get_environment('home_planet_id')
-}
-
-sub delta_date {
-    my ($self,$date) = @_;
-    
-    $date = $self->parse_date($date)
-        unless blessed($date) && $date->isa('DateTime');
-    
-    my $timestamp = DateTime->now->set_time_zone('UTC');
-    my $date_delta_ms = $timestamp->delta_ms( $date );
-    
-    return $date_delta_ms;
-}
-
-sub delta_date_format {
-    my ($self,$date) = @_;
-    
-    my $date_delta_ms = $self->delta_date($date);
-    
-    my $delta_days = int($date_delta_ms->delta_minutes / (24*60));
-    my $delta_days_rest = $date_delta_ms->delta_minutes % (24*60);
-    my $delta_hours = int($delta_days_rest / 60);
-    my $delta_hours_rest = $delta_days_rest % 60;
-    
-    my $return = sprintf('%02im:%02is',$delta_hours_rest,$date_delta_ms->seconds);
-    
-    if ($delta_hours) {
-        $return = sprintf('%02ih:%s',$delta_hours,$return);
-    }
-    if ($delta_days) {
-        $return = sprintf('%02id %s',$delta_days,$return);
-    }
-    
-    return $return;
-    
-    
-#    return DateTime::Duration->new(
-#        years       => 0,
-#        months      => 0,
-#        weeks       => 0,
-#        days        => $delta_days,
-#        hours       => $delta_hours,
-#        minutes     => $delta_hours_rest,
-#        seconds     => $date_delta_ms->seconds,
-#    );
-}
-
-sub parse_date {
-    my ($self,$date) = @_;
-    
-    return
-        unless defined $date;
-    
-    if ($date =~ m/^
-        (?<day>\d{2}) \s
-        (?<month>\d{2}) \s
-        (?<year>20\d{2}) \s
-        (?<hour>\d{2}) :
-        (?<minute>\d{2}) :
-        (?<second>\d{2}) \s
-        \+(?<timezoneoffset>\d{4})
-        $/x) {
-        $self->log('warn','Unexpected timezone offset %04i',$+{timezoneoffset})
-            if $+{timezoneoffset} != 0;
-        return DateTime->new(
-            (map { $_ => $+{$_} } qw(year month day hour minute second)),
-            time_zone   => 'UTC',
-        );
-    }
-    
-    return;
 }
 
 sub my_body_id {
@@ -399,14 +327,3 @@ Returns the empire' planet ids
 
 Returns your empire' university level
 
-=head2 delta_date
-
- $self->delta_date_format($date);
-
-Returns a human readable delta for the given date
-
-=head2 parse_date
-
-Returns a DateTime object for the given date
-
-=cut

@@ -5,7 +5,7 @@ use 5.010;
 use Module::Pluggable 
     search_path => ['Games::Lacuna::Task::Report'],
     sub_name => 'all_reports';
-    
+
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Notify',all_reports();

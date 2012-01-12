@@ -4,6 +4,8 @@ use 5.010;
 
 use Moose::Role;
 
+use Games::Lacuna::Task::Utils qw(parse_date timestamp);
+
 sub report_battle {
     my ($self) = @_;
     
@@ -25,7 +27,7 @@ sub _report_battle_body {
     
     my $planet_stats = $self->my_body_status($planet_id);
     
-    my $timestamp = DateTime->now->set_time_zone('UTC')->subtract( hours => 24 );
+    my $limit = timestamp()->subtract( hours => 24 );
     
     # Get mining ministry
     my ($spaceport) = $self->find_building($planet_stats->{id},'SpacePort');
@@ -43,9 +45,9 @@ sub _report_battle_body {
     );
     
     foreach my $battle (@{$battle_data->{battle_log}}) {
-        my $date = $self->parse_date($battle->{date});
+        my $date = parse_date($battle->{date});
         next
-            if $date < $timestamp;
+            if $date < $limit;
         $table->add_row({
             planet          => $planet_stats->{name},
             system          => $battle->{defending_body},

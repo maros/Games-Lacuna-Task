@@ -2,13 +2,14 @@ package Games::Lacuna::Task::Action::Upgrade;
 
 use 5.010;
 
-use List::Util qw(max);
-
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Building',
     'Games::Lacuna::Task::Role::PlanetRun',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['start_building_at'] };
+
+use List::Util qw(max);
+use Games::Lacuna::Task::Utils qw(parse_date timestamp);
 
 has 'upgrade_preference' => (
     isa     => 'ArrayRef[Str]',
@@ -39,14 +40,14 @@ sub process_planet {
     my @levels;
     my @buildings_end;
     my @buildings = $self->buildings_body($planet_stats->{id});
-    my $timestamp = DateTime->now->set_time_zone('UTC');
+    my $timestamp = timestamp();
     
     # Get build queue size
     foreach my $building_data (@buildings) {
         next
             if $building_data->{name} eq 'Supply Pod';
         if (defined $building_data->{pending_build}) {
-            my $date_end = $self->parse_date($building_data->{pending_build}{end});
+            my $date_end = parse_date($building_data->{pending_build}{end});
             $building_count ++
                 if $timestamp < $date_end;
         }

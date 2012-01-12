@@ -2,13 +2,13 @@ package Games::Lacuna::Task::Action::WasteProduction;
 
 use 5.010;
 
-use List::Util qw(min);
-
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Waste',
     'Games::Lacuna::Task::Role::PlanetRun',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['plan_for_hours'] };
+
+use List::Util qw(min);
 
 sub description {
     return q[This task maintains minimum waste levels for waste recycling buildings];

@@ -6,6 +6,8 @@ use Moose::Role;
 with qw(Games::Lacuna::Task::Role::Intelligence
     Games::Lacuna::Task::Role::Stars);
 
+use Games::Lacuna::Task::Utils qw(parse_date timestamp);
+
 sub report_intelligence {
     my ($self) = @_;
     
@@ -24,7 +26,7 @@ sub report_intelligence {
 sub _report_intelligence_body {
     my ($self,$planet_id,$table) = @_;
     
-    my $timestamp = DateTime->now->set_time_zone('UTC');
+    my $timestamp = timestamp();
     my $planet_stats = $self->my_body_status($planet_id);
     
     # Get security & intelligence ministry
@@ -51,7 +53,7 @@ sub _report_intelligence_body {
     if ($foreign_spy_data->{spy_count} > 0) {
         @foreign_spies = @{$foreign_spy_data->{spies}};
         foreach my $spy (@{$foreign_spy_data->{spies}}) {
-            my $next_mission = $self->parse_date($spy->{next_mission});
+            my $next_mission = parse_date($spy->{next_mission});
             if ($next_mission > $timestamp) {
                 push(@foreign_spies_active,$spy)
             }

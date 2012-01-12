@@ -1,11 +1,12 @@
 package Games::Lacuna::Task::Action::StarCache;
 
 use 5.010;
-use List::Util qw(max min);
 
 use Moose -traits => 'NoAutomatic';
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Stars);
+
+use List::Util qw(max min);
 
 sub description {
     return q[This task builds a star cache and can help to reduce the number of api calls made by various tasks];

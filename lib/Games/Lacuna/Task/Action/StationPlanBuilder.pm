@@ -3,10 +3,11 @@ package Games::Lacuna::Task::Action::StationPlanBuilder;
 use 5.010;
 
 use Moose;
-# -traits => 'NoAutomatic';
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Storage',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['home_planet'] };
+
+use Games::Lacuna::Task::Utils qw(parse_date timestamp);
 
 has 'space_station' => (
     isa         => 'Str',
@@ -42,7 +43,7 @@ sub run {
     my ($self) = @_;
     
     my $planet_home = $self->home_planet_data();
-    my $timestamp = DateTime->now->set_time_zone('UTC');
+    my $timestamp = timestamp();
     
     # Get space station lab
     my $spacestaion_lab = $self->find_building($planet_home->{id},'SSLA');
@@ -50,7 +51,7 @@ sub run {
         unless $spacestaion_lab;
 
     if (defined $spacestaion_lab->{work}) {
-        my $work_end = $self->parse_date($spacestaion_lab->{work}{end});
+        my $work_end = parse_date($spacestaion_lab->{work}{end});
         if ($work_end > $timestamp) {
             return $self->log('info','Space station lab is busy until %s %s',$work_end->ymd('.'),$work_end->hms(':'))
         }

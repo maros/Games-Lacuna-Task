@@ -2,12 +2,13 @@ package Games::Lacuna::Task::Action::Defence;
 
 use 5.010;
 
-use List::Util qw(min);
-
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Ships
     Games::Lacuna::Task::Role::PlanetRun);
+
+use List::Util qw(min);
+use Games::Lacuna::Task::Utils qw(parse_date delta_date);
 
 has 'min_defender_combat' => (
     isa             => 'Int',
@@ -135,10 +136,10 @@ sub process_planet {
         next
             if ($ship->{type} ~~ [qw(dory galleon hulk cargo_ship barge freighter smuggler_ship)]);
         
-        my $arrives = $self->parse_date($ship->{date_arrives});
+        my $arrives = parse_date($ship->{date_arrives});
         
         next
-            if $self->delta_date($arrives)->delta_minutes > 360; # six hours
+            if delta_date($arrives)->delta_minutes > 360; # six hours
         
         $first_attacker_arrive ||= $arrives;
         $first_attacker_arrive = $arrives
@@ -264,14 +265,14 @@ sub get_local_defending_ships {
                     && $ship->{to}{id} == $body_id;
                 
                 # Check arrival time
-                my $arrives = $self->parse_date($ship->{date_arrives});
+                my $arrives = parse_date($ship->{date_arrives});
                 next LOCAL_SHIPS
                     if $arrives > $first_attacker_arrive;
             }
             when('Building') {
                 warn $ship;
                 # Check arrival time
-                my $arrives = $self->parse_date($ship->{date_arrives});
+                my $arrives = parse_date($ship->{date_arrives});
                 next LOCAL_SHIPS
                     if $arrives > $first_attacker_arrive;
             }
@@ -307,7 +308,7 @@ sub get_saws {
             
             # Check SAW availability
             if (defined $saw->{work}) {
-                my $available = $self->parse_date($saw->{work}{end});
+                my $available = parse_date($saw->{work}{end});
                 next SAWS
                     if $available > $first_attacker_arrive;
             }
@@ -404,7 +405,7 @@ sub recall_defender {
     RECALL_SHIPS:
     foreach my $ship (@{$ships_data->{ships}}) {
         # Check if ship arrives on time 
-        my $arrive = $self->parse_date($ship->{ship}{date_arrives});
+        my $arrive = parse_date($ship->{ship}{date_arrives});
         next RECALL_SHIPS
             if $arrive > $first_attacker_arrive;
         $count++;
