@@ -7,7 +7,6 @@ use Moose::Role;
 
 use List::Util qw(max min);
 
-use Games::Lacuna::Task::Cache;
 use Games::Lacuna::Task::Constants;
 use Data::Dumper;
 use Games::Lacuna::Task::Utils qw(normalize_name parse_date);

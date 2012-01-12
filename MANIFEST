@@ -36,10 +36,8 @@ lib/Games/Lacuna/Task/Action/WasteProduction.pm
 lib/Games/Lacuna/Task/Action/WasteRecycle.pm
 lib/Games/Lacuna/Task/ActionProto.pm
 lib/Games/Lacuna/Task/Base.pm
-lib/Games/Lacuna/Task/Cache.pm
 lib/Games/Lacuna/Task/Client.pm
 lib/Games/Lacuna/Task/Constants.pm
-lib/Games/Lacuna/Task/Meta/Attribute/Trait/NoIntrospection.pm
 lib/Games/Lacuna/Task/Meta/Class/Trait/NoAutomatic.pm
 lib/Games/Lacuna/Task/Report/Battle.pm
 lib/Games/Lacuna/Task/Report/Fleet.pm
