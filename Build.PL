@@ -9,7 +9,7 @@ my $build = Module::Build->new(
     requires    => {
         'perl'                          => '5.10.1',
 
-        'Moose'                         => '0',
+        'Moose'                         => '2.0000',
 
         'Games::Lacuna::Client'         => '0.002',
 
@@ -24,7 +24,7 @@ my $build = Module::Build->new(
         'YAML::Any'                     => 0,
         'LWP'                           => 0,
         'Text::CSV'                     => 0,
-        'JSON'                          => 0,
+        'JSON'                          => '2.00',
         
         'Term::ANSIColor'               => 0,
         'IO::Interactive'               => 0,
