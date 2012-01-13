@@ -60,6 +60,7 @@ lib/Games/Lacuna/Task/Role/Ships.pm
 lib/Games/Lacuna/Task/Role/Stars.pm
 lib/Games/Lacuna/Task/Role/Storage.pm
 lib/Games/Lacuna/Task/Role/Waste.pm
+lib/Games/Lacuna/Task/Setup.pm
 lib/Games/Lacuna/Task/Table.pm
 lib/Games/Lacuna/Task/Types.pm
 lib/Games/Lacuna/Task/Utils.pm

@@ -6,6 +6,10 @@ my $build = Module::Build->new(
     module_name => 'Games::Lacuna::Task',
     license     => 'perl',
     dist_author => 'Maroš Kollár <maros@cpan.org>',
+    #all_from    => 'lib/Games/Lacuna/Task.pm',
+    configure_requires => { 
+        'Module::Build'                 => 0.38,
+    },
     requires    => {
         'perl'                          => '5.10.1',
 
@@ -13,7 +17,7 @@ my $build = Module::Build->new(
 
         'Module::Pluggable'             => 0,
 
-        'Games::Lacuna::Client'         => '0.002',
+        'Games::Lacuna::Client'         => 0,
 
         'DBI'                           => 0,
         'DBD::SQLite'                   => 0,

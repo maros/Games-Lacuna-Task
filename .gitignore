@@ -10,7 +10,8 @@ pm_to_blib
 MANIFEST.bak
 Makefile.old
 cover_db/
-Ganes-Lacuna-Task-*.tar.gz
+Games-Lacuna-Task-*.tar.gz
+Games-Lacuna-Task-*/
 .DS_Store
 MANIFEST.bak
 .includepath
