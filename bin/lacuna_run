@@ -37,7 +37,7 @@ Accepted: debug,info,notice,warn,error
 
 =head3 debug
 
-Enable debug mode
+Log all messages to debug.log
 
 =head3 -? --usage --help  
 

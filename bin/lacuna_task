@@ -18,14 +18,9 @@ lacuna_task - Run multiple tasks in the Lacuna MMPOG
 =head1 USAGE
 
  lacuna_task --task task1 --task name2 ... [options]
- lacuna_task --task_info
  lacuna_task --help
 
 =head2 OPTIONS
-
-=head3 task_info
-
-Displays information about the selected tasks.
 
 =head3 task
 
@@ -55,7 +50,7 @@ Accepted: debug,info,notice,warn,error
 
 =head3 debug
 
-Enable debug mode
+Log all messages to debug.log
 
 =head3 -? --usage --help  
 
