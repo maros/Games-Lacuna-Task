@@ -5,7 +5,7 @@ use Moose::Role;
 
 use Games::Lacuna::Task::Utils qw(pretty_dump);
 use IO::Interactive qw(is_interactive);
-use Term::ANSIColor;
+use Term::ANSIColor qw(color);
 
 our @LEVELS = qw(debug info notice warn error);
 our @COLORS = qw(white cyan magenta yellow red);

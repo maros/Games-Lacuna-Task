@@ -71,6 +71,19 @@ sub _build_config {
         }
     }
     
+    unless (scalar keys %{$global_config}) {
+        $self->abort('Config missing. Please create a config file in %s',$self->configdir)
+            unless is_interactive();
+        
+        $self->log('info',"Could not find config. Initializing new config");
+        require Games::Lacuna::Task::Setup;
+        my $setup = Games::Lacuna::Task::Setup->new(
+            configfile  => Path::Class::File->new($self->configdir,$CONFIG_FILES[0].'.yml')
+            
+        );
+        $global_config = $setup->run;
+    }
+    
     my $connect_config = $global_config->{connect};
     
     # Aliases
