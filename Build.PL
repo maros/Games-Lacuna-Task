@@ -11,6 +11,8 @@ my $build = Module::Build->new(
 
         'Moose'                         => '2.0000',
 
+        'Module::Pluggable'             => 0,
+
         'Games::Lacuna::Client'         => '0.002',
 
         'DBI'                           => 0,
