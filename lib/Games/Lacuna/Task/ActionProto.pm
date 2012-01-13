@@ -76,10 +76,10 @@ sub run {
                         %{ $pa->cli_params },       # params from CLI
                     );
                     
-                    $self->log('notice',("=" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH));
+                    $self->log('notice',("=" x ($Games::Lacuna::Task::Constants::SCREEN_WIDTH - 8)));
                     $self->log('notice',"Running task %s for empire %s",$task_name,$self->empire_name);
                     $object->execute;
-                    $self->log('notice',("=" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH));
+                    $self->log('notice',("=" x ($Games::Lacuna::Task::Constants::SCREEN_WIDTH - 8)));
                 };
                 if (my $error = $@) {
                     $error =~ s/\n.+//s;

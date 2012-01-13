@@ -39,7 +39,7 @@ sub run {
     
     $self->saycolor("bold cyan","Enter your e-mail address (required for e-mail notifications)");
     my $email = $self->readline("E-Mail:",qr/.+\@.+/);
-    sayline();
+    $self->sayline();
     
     $self->saycolor("bold cyan","Which tasks do you want to run regularly (e.g. every hour)");
     say "Do not select task that you want to run less frequently (e.g. only once a day)\n";
@@ -67,7 +67,7 @@ sub run {
         }
     }
     
-    sayline();
+    $self->sayline();
     $self->saycolor("bold cyan","The following task parameters require some kind of manual setup");
     say "Please refer to the task documentation for details\n";
     
@@ -85,7 +85,7 @@ sub run {
         }
     }
     
-    sayline();
+    $self->sayline();
     $self->saycolor("bold cyan","Config written to ".$self->configfile->stringify);
     say "You might want to customize the initial config file";
     
@@ -100,7 +100,7 @@ sub run {
         },
     };
     
-    say "-" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH;
+    $self->sayline();
     $self->saycolor("bold cyan","Please add the following line to your crontab:");
     say "0 * * * *    lacuna_task\n";
     $self->saycolor("bold cyan","Optionally you can add other task that should be run less frequently e.g.");
@@ -108,7 +108,7 @@ sub run {
     
     DumpFile($self->configfile,$config);
     
-    sayline("=");
+    $self->sayline("=");
     
     return $config;
 }

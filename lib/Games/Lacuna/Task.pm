@@ -42,7 +42,7 @@ sub run {
     
     my $empire_name = $self->empire_name;
     
-    $self->log('notice',("=" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH));
+    $self->log('notice',("=" x ($Games::Lacuna::Task::Constants::SCREEN_WIDTH - 8)));
     $self->log('notice',"Running tasks for empire %s",$empire_name);
     
     my $global_config = $client->config->{global};
