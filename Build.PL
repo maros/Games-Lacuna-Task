@@ -1,16 +1,19 @@
 #!/usr/bin/env perl
 
 use Module::Build;
+use utf8;
 
 my $build = Module::Build->new(
-    module_name => 'Games::Lacuna::Task',
-    license     => 'perl',
-    dist_author => 'Maroš Kollár <maros@cpan.org>',
-    #all_from    => 'lib/Games/Lacuna/Task.pm',
-    configure_requires => { 
+    module_name         => 'Games::Lacuna::Task',
+    license             => 'perl',
+    dist_author         => 'Maroš Kollár <maros@cpan.org>',
+    all_from            => 'lib/Games/Lacuna/Task.pm',
+    dist_abstract       => 'Automation framework for the Lacuna Expanse MMPOG',
+    configure_requires  => { 
         'Module::Build'                 => 0.38,
     },
-    requires    => {
+    
+    requires            => {
         'perl'                          => '5.10.1',
 
         'Moose'                         => '2.0000',
@@ -41,6 +44,17 @@ my $build = Module::Build->new(
 
         'Email::Stuff'                  => 0,
         'Text::Table'                   => 0,
+    },
+    
+    build_requires          => {
+        'Test::More'                    => 0,
+    },
+    
+    meta_merge              => {
+        resources                       => {
+            bugtracker =>  'https://github.com/maros/Games-Lacuna-Task/issues',
+            repository =>  'git://github.com/maros/Games-Lacuna-Task.git',
+        }
     },
 );
 $build->create_build_script;

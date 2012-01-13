@@ -69,3 +69,4 @@ META.yml
 t/00-load.t
 t/01-utils.t
 TODO
+META.json

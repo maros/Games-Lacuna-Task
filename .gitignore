@@ -4,6 +4,7 @@ Makefile
 inc
 Makefile
 META.yml
+META.json
 pm_to_blib
 .project
 .settings
