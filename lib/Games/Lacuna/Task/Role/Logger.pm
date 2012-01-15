@@ -3,7 +3,7 @@ package Games::Lacuna::Task::Role::Logger;
 use 5.010;
 use Moose::Role;
 
-use Games::Lacuna::Task::Utils qw(pretty_dump);
+use Games::Lacuna::Task::Utils qw(pretty_dump format_date);
 use IO::Interactive qw(is_interactive);
 use Term::ANSIColor qw(color);
 
@@ -65,7 +65,7 @@ sub log {
     if ($self->debug && $self->can('configdir')) {
         state $fh;
         $fh ||= Path::Class::File->new($self->configdir,'debug.log')->open('a',':encoding(UTF-8)');
-        say $fh sprintf("%6s: %s",$level_name,$logmessage);
+        say $fh sprintf("%s\t%s\t%s",format_date(time),$level_name,$logmessage);
     }
 
     return ($level_name,$logmessage);
