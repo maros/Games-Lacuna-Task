@@ -258,7 +258,7 @@ sub ships {
             unless defined $shipyard;
         
         # Get build quantity
-        my $build_per_shipyard = int($max_build_quantity / scalar (keys %available_shipyards) / 2) || 1;
+        my $build_per_shipyard = int(($max_build_quantity - $new_building) / scalar (keys %available_shipyards) / 2) || 1;
         my $build_quantity = min($shipyard->{available},$max_build_quantity,$build_per_shipyard);
         
         eval {
