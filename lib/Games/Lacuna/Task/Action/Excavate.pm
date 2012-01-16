@@ -76,10 +76,6 @@ sub process_planet {
             foreach my $body (@{$star_data->{bodies}}) {
                 my $body_id = $body->{id};
                 
-                # Only excavate habitable planets and gas giants
-                next BODIES
-                    unless $body->{type} eq 'habitable planet' || $body->{type} eq 'gas giant';
-                
                 # Do not excavate body that has been excavated in past 30 days
                 next BODIES
                     if defined $body->{last_excavated}
