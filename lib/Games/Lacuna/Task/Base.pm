@@ -37,7 +37,6 @@ sub BUILD {
     my $lockcounter = 0;
     my $lockfile = $self->lockfile;
     
-    warn "RUN BUILD...";
     # Check for lockfile
     while (-e $lockfile) {
         my ($pid) = $lockfile->slurp(chomp => 1);
