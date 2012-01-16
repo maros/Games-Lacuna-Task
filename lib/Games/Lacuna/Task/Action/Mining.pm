@@ -160,7 +160,7 @@ sub closest_asteroids {
         sub {
             my ($star_data) = @_;
             
-            foreach my $body (@{$star_data->{star}{bodies}}) {
+            foreach my $body (@{$star_data->{bodies}}) {
                 next 
                     unless $body->{type} eq 'asteroid';
                 $body->{ore_total} = sum(values %{$body->{ore}});
