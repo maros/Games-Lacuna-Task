@@ -1,4 +1,4 @@
-package Games::Lacuna::Task::Action::StarCache;
+package Games::Lacuna::Task::Action::StarCacheBuild;
 
 use 5.010;
 
