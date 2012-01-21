@@ -89,7 +89,9 @@ sub fetch_all_stars {
 }
 
 sub _get_body_cache_for_star {
-    my ($self,$star_id,$star_data) = @_;
+    my ($self,$star_data) = @_;
+    
+    my $star_id = $star_data->{id}; 
     
     return
         unless defined $star_id;
@@ -170,12 +172,12 @@ sub _inflate_star {
     # Get cache status
     $star_data->{cache_ok} = ($star_cache->{last_checked} > (time() - $Game::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE)) ? 1:0;
     
-    # We have no bodies and cache seems to be valid
+    # We have no bodies
     return $star_data
-        if $star_data->{cache_ok} == 1 && $star_data->{is_known} == 0;
+        if defined $star_data->{is_known} && $star_data->{is_known} == 0;
     
     # Get Bodies from cache
-    my @bodies = $self->_get_body_cache_for_star($star_data->{id},$star_data);
+    my @bodies = $self->_get_body_cache_for_star($star_data);
     
     # Bodies ok
     if (scalar @bodies) {
@@ -302,20 +304,24 @@ sub get_body_by_xy {
         && $x =~ m/^-?\d+$/
         && $y =~ m/^-?\d+$/;
     
-    $self->_get_body_cache('body.x = ? AND body.y = ?',$x,$y);
+    return $self->_get_body_cache('body.x = ? AND body.y = ?',$x,$y);
     
-    my ($star_data) = $self->list_stars(
-        x       => $x,
-        y       => $y,
-        limit   => 1,
-        distance=> 1,
-    );
-    
-    foreach my $body_data (@{$star_data->{bodies}}) {
-        return $body_data
-            if $body_data->{x} == $x
-            && $body_data->{y} == $y;
-    }
+#    my ($star_data) = $self->list_stars(
+#        x       => $x,
+#        y       => $y,
+#        limit   => 1,
+#        distance=> 1,
+#    );
+#    
+#    return
+#        unless defined $star_data
+#        && defined $star_data->{bodies};
+#    
+#    foreach my $body_data (@{$star_data->{bodies}}) {
+#        return $body_data
+#            if $body_data->{x} == $x
+#            && $body_data->{y} == $y;
+#    }
     
     return;
 }
@@ -362,12 +368,29 @@ sub _get_star_api {
     my $star_list = $self->_get_area_api_by_xy($min_x,$min_y,$max_x,$max_y);
     
     # Find star in list
+    my $star_data;
     foreach my $element (@{$star_list}) {
-        return $element
-            if $element->{id} == $star_id;
+        if ($element->{id} == $star_id) {
+            $star_data = $element;
+            last;
+        }
     }
     
-    return;
+    # Get bodies from cache, even if system is not probed
+    if (! defined $star_data->{bodies}
+        && $star_data->{is_known} == 1) {
+        
+        my @bodies = $self->_get_body_cache_for_star($star_data);
+        if (scalar @bodies) {
+            $star_data->{bodies} = \@bodies;
+        } else {
+            $self->log('warn','Inconsitent cache state for star %i',$star_data->{id});
+            $self->storage_do('UPDATE star SET is_known = ?, is_probed = 0 WHERE id = ?',0,0,$star_data->{id});
+        }
+    }
+    
+    
+    return $star_data;
 }
 
 
@@ -440,9 +463,11 @@ sub set_star_cache {
     return
         unless defined $star_id;
     
+    delete $star_data->{bodies}
+        if (defined $star_data->{bodies} && scalar @{$star_data->{bodies}} == 0);
     $star_data->{last_checked} ||= time();
     $star_data->{cache_ok} //= 1;
-    $star_data->{is_probed} //= (defined $star_data->{bodies} && scalar @{$star_data->{bodies}} ? 1:0);
+    $star_data->{is_probed} //= (defined $star_data->{bodies} ? 1:0);
     $star_data->{is_known} //= 1
         if $star_data->{is_probed};
     
@@ -453,8 +478,8 @@ sub set_star_cache {
     # Update star cache
     $self->storage_do(
         'UPDATE star SET is_probed = ?, is_known = ?, last_checked = ?, name = ? WHERE id = ?',
-        $star_data->{is_known},
         $star_data->{is_probed},
+        $star_data->{is_known},
         $star_data->{last_checked},
         $star_data->{name},
         $star_id
