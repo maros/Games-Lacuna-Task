@@ -173,10 +173,10 @@ sub closest_asteroids {
             
             return 1;
         },
-        x       => $x,
-        y       => $y,
-        probed  => 1,
-        distance=> 1,
+        x           => $x,
+        y           => $y,
+        is_known    => 1,
+        distance    => 1,
     );
 
     return @asteroids;

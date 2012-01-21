@@ -153,7 +153,7 @@ sub run {
         x           => $planet_stats->{x},
         y           => $planet_stats->{y},
         max_distance=> $self->max_distance,
-        probed      => 1,
+        is_probed   => 1,
         distance    => 1,
     );
     

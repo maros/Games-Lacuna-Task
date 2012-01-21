@@ -45,7 +45,7 @@ sub process_planet {
     foreach my $star_data (@{$observatory_data->{stars}}) {
         # Update cache
         $star_data->{last_checked}  = time();
-        $star_data->{probed}        = 1;
+        $star_data->{is_probed}     = 1;
         $self->set_star_cache($star_data);
         
         my $star_id = $star_data->{id};

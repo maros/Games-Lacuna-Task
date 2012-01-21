@@ -665,7 +665,8 @@ CREATE TABLE IF NOT EXISTS star (
   name TEXT NOT NULL,
   zone TEXT NOT NULL,
   last_checked INTEGER,
-  probed INTEGER 
+  is_probed INTEGER,
+  is_known INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS body (

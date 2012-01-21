@@ -177,10 +177,10 @@ sub closest_unprobed_stars {
             
             return 1;
         },
-        x       => $x,
-        y       => $y,
-        probed  => 0,
-        distance=> 1,
+        x           => $x,
+        y           => $y,
+        is_probed   => 0,
+        distance    => 1,
     );
 
     return @unprobed_stars;

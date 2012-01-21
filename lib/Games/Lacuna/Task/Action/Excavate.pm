@@ -127,7 +127,7 @@ sub process_planet {
         },
         x           => $planet_stats->{x},
         y           => $planet_stats->{y},
-        probed      => 1,
+        is_known    => 1,
         distance    => 1,
         min_distance=> $self->min_distance,
     );

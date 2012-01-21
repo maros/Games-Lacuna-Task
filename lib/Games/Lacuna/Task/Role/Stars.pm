@@ -41,8 +41,8 @@ sub fetch_all_stars {
     $self->storage_do('CREATE TEMPORARY TABLE temporary_star (id INTEGER NOT NULL)');
     
     # Prepare sql statements
-    my $sth_check  = $self->storage_prepare('SELECT last_checked, probed FROM star WHERE id = ?');
-    my $sth_insert = $self->storage_prepare('INSERT INTO star (id,x,y,name,zone,last_checked,probed) VALUES (?,?,?,?,?,?,?)');
+    my $sth_check  = $self->storage_prepare('SELECT last_checked, is_probed, is_known FROM star WHERE id = ?');
+    my $sth_insert = $self->storage_prepare('INSERT INTO star (id,x,y,name,zone,last_checked,is_probed,is_known) VALUES (?,?,?,?,?,?,?,?)');
     my $sth_temp   = $self->storage_prepare('INSERT INTO temporary_star (id) VALUES (?)');
     
     # Parse star map
@@ -55,10 +55,10 @@ sub fetch_all_stars {
     my $count = 0;
     while( my $row = $csv->getline_hr( $fh ) ){
         $count++;
-        my ($last_checked,$probed);
+        my ($last_checked,$is_probed,$is_known);
         if ($check) {
             $sth_check->execute($row->{id});
-            ($last_checked,$probed) = $sth_check->fetchrow_array();
+            ($last_checked,$is_probed,$is_known) = $sth_check->fetchrow_array();
             $sth_check->finish();
         }
 
@@ -71,7 +71,8 @@ sub fetch_all_stars {
             $row->{name},
             $row->{zone},
             $last_checked,
-            $probed,
+            $is_probed,
+            $is_known
         );
         
         $self->log('debug',"Importing %i stars",$count)
@@ -139,7 +140,8 @@ sub _get_star_cache {
             star.name,
             star.zone,
             star.last_checked,
-            star.probed
+            star.is_probed,
+            star.is_known
         FROM star
         WHERE '.$query,
         {},
@@ -157,7 +159,7 @@ sub _inflate_star {
     
     # Build star data
     my $star_data = {
-        (map { $_ => $star_cache->{$_} } qw(id x y zone name probed last_checked)),
+        (map { $_ => $star_cache->{$_} } qw(id x y zone name is_probed is_known last_checked)),
         cache_ok    => 0,
     };
     
@@ -170,7 +172,7 @@ sub _inflate_star {
     
     # We have no bodies and cache seems to be valid
     return $star_data
-        if $star_data->{cache_ok} == 1 && $star_data->{probed} == 0;
+        if $star_data->{cache_ok} == 1 && $star_data->{is_known} == 0;
     
     # Get Bodies from cache
     my @bodies = $self->_get_body_cache_for_star($star_data->{id},$star_data);
@@ -250,7 +252,8 @@ sub _get_body_cache {
             star.name AS star_name,
             star.zone AS zone,
             star.last_checked,
-            star.probed,
+            star.is_probed,
+            star.is_known,
             empire.id AS empire_id,
             empire.name AS empire_name,
             empire.alignment AS empire_alignment,
@@ -439,12 +442,19 @@ sub set_star_cache {
     
     $star_data->{last_checked} ||= time();
     $star_data->{cache_ok} //= 1;
-    $star_data->{probed} //= (defined $star_data->{bodies} && scalar @{$star_data->{bodies}} ? 1:0);
+    $star_data->{is_probed} //= (defined $star_data->{bodies} && scalar @{$star_data->{bodies}} ? 1:0);
+    $star_data->{is_known} //= 1
+        if $star_data->{is_probed};
+    
+    unless (defined $star_data->{is_known}) {
+        ($star_data->{is_known}) = $self->client->storage->selectrow_array('SELECT COUNT(1) FROM body WHERE star = ?',{},$star_id);
+    }
     
     # Update star cache
     $self->storage_do(
-        'UPDATE star SET probed = ?, last_checked = ?, name = ? WHERE id = ?',
-        $star_data->{probed},
+        'UPDATE star SET is_probed = ?, is_known = ?, last_checked = ?, name = ? WHERE id = ?',
+        $star_data->{is_known},
+        $star_data->{is_probed},
         $star_data->{last_checked},
         $star_data->{name},
         $star_id
@@ -516,7 +526,7 @@ sub search_stars_callback {
     my @sql_where;
     my @sql_params;
     my @sql_extra;
-    my @sql_fields = qw(star.id star.x star.y star.name star.zone star.last_checked star.probed);
+    my @sql_fields = qw(star.id star.x star.y star.name star.zone star.last_checked star.is_probed star.is_known);
     
     # Order by distance
     if (defined $params{distance}
@@ -536,9 +546,13 @@ sub search_stars_callback {
         push(@sql_extra," ORDER BY distance ".($params{distance} ? 'ASC':'DESC'));
     }
     # Only probed/unprobed or unknown
-    if (defined $params{probed}) {
-        push(@sql_where,'(star.last_checked < ? OR star.probed = ? OR star.probed IS NULL)');
-        push(@sql_params,(time - $Game::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE),$params{probed});
+    if (defined $params{is_probed}) {
+        push(@sql_where,'(star.last_checked < ? OR star.is_probed = ? OR star.is_probed IS NULL)');
+        push(@sql_params,(time - $Game::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE),$params{is_probed});
+    }
+    # Only known/unknown 
+    if (defined $params{is_known}) {
+        push(@sql_where,'(star.is_known = ? OR star.is_known IS NULL)');
     }
     # Zone
     if (defined $params{zone}) {
@@ -581,7 +595,11 @@ sub search_stars_callback {
         
         # Check definitve probed status
         next
-            if (defined $params{probed} && $star_data->{probed} != $params{probed});
+            if (defined $params{is_probed} && $star_data->{is_probed} != $params{is_probed});
+        
+        # Check definitve known status
+        next
+            if (defined $params{is_known} && $star_data->{is_known} != $params{is_known});
         
         # Set distance
         $star_data->{distance} = $star_cache->{distance}
