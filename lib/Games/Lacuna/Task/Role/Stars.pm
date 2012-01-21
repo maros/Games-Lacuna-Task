@@ -10,7 +10,7 @@ use Games::Lacuna::Task::Utils qw(normalize_name distance);
 use LWP::Simple;
 use Text::CSV;
 
-our $MAX_STAR_CACHE_AGE = 60*60*24*31*3; # Three months
+
 
 after 'BUILD' => sub {
     my ($self) = @_;
@@ -166,7 +166,7 @@ sub _inflate_star {
         unless defined $star_cache->{last_checked};
     
     # Get cache status
-    $star_data->{cache_ok} = ($star_cache->{last_checked} > (time() - $MAX_STAR_CACHE_AGE)) ? 1:0;
+    $star_data->{cache_ok} = ($star_cache->{last_checked} > (time() - $Game::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE)) ? 1:0;
     
     # We have no bodies and cache seems to be valid
     return $star_data
@@ -538,7 +538,7 @@ sub search_stars_callback {
     # Only probed/unprobed or unknown
     if (defined $params{probed}) {
         push(@sql_where,'(star.last_checked < ? OR star.probed = ? OR star.probed IS NULL)');
-        push(@sql_params,(time - $MAX_STAR_CACHE_AGE),$params{probed});
+        push(@sql_params,(time - $Game::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE),$params{probed});
     }
     # Zone
     if (defined $params{zone}) {
@@ -573,7 +573,7 @@ sub search_stars_callback {
         # Inflate star data
         my $star_data;
         if (defined $star_cache->{last_checked} 
-            && $star_cache->{last_checked} > (time - $MAX_STAR_CACHE_AGE)) {
+            && $star_cache->{last_checked} > (time - $Game::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE)) {
             $star_data = $self->_inflate_star($star_cache);
         } else {
             $star_data = $self->_get_star_api($star_cache->{id},$star_cache->{x},$star_cache->{y});
