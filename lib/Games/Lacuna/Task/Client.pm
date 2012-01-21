@@ -154,7 +154,7 @@ sub _build_storage {
     # Connect database
     {
         no warnings 'once';
-        $storage = DBI->connect("dbi:SQLite:dbname=$storage_file","","")
+        $storage = DBI->connect("dbi:SQLite:dbname=$storage_file","","",{ sqlite_unicode => 1 })
             or $self->abort('Could not connect to database: %s',$DBI::errstr);
     }
     
