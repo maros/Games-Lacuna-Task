@@ -11,9 +11,9 @@ use Games::Lacuna::Task::Table;
 
 has 'empire' => (
     is              => 'rw',
-    isa             => 'Str',
+    isa             => 'ArrayRef[Str]',
     required        => 1,
-    documentation   => q[Empire name you are looking for],
+    documentation   => 'Empire name you are looking for [Multiple]',
 );
 
 sub description {
@@ -23,7 +23,8 @@ sub description {
 sub run {
     my ($self) = @_;
     
-    my $planet_stats = $self->my_body_status($self->home_planet_id);
+    #my $planet_stats = $self->my_body_status($self->home_planet_id);
+    my $planet_stats = { x => 100, y => 200 };
     
     my $sth_empire = $self->storage_prepare('SELECT 
             id,
@@ -32,14 +33,20 @@ sub run {
         WHERE name = ?
         OR normalized_name = ?');
     
-    $sth_empire->execute($self->empire,normalize_name($self->empire));
-    
     my %empires;
-    while (my ($id,$name) = $sth_empire->fetchrow_array) {
-        $empires{$id} = $name;
+    
+    foreach my $empire (@{$self->empire}) {
+        $sth_empire->execute($empire,normalize_name($empire));
+        while (my ($id,$name) = $sth_empire->fetchrow_array) {
+            $empires{$id} = $name;
+        }
     }
     
-    my $empire_query = join(',',('?' x scalar keys %empires));
+    $self->abort('Could nor find empires %s',join(', ',@{$self->empire}))
+        unless scalar keys %empires;
+    
+    my $empire_query = join(',',(('?') x scalar keys %empires));
+    
     my $sth_body = $self->storage_prepare('SELECT 
           body.id,
           body.x,
