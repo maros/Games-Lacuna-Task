@@ -1,6 +1,6 @@
 #!*perl*
+use Test::More tests => 65;
 
-use Test::More tests => 59;
 
 BEGIN {
 	use_ok( 'Games::Lacuna::Task' );
@@ -16,7 +16,9 @@ use_ok( 'Games::Lacuna::Task::Action::BuildVrbansk' );
 use_ok( 'Games::Lacuna::Task::Action::CollectExcavatorBooty' );
 use_ok( 'Games::Lacuna::Task::Action::CounterIntelligence' );
 use_ok( 'Games::Lacuna::Task::Action::Defence' );
+use_ok( 'Games::Lacuna::Task::Action::EmpireFind' );
 use_ok( 'Games::Lacuna::Task::Action::EmpireReport' );
+use_ok( 'Games::Lacuna::Task::Action::EvaluateColony' );
 use_ok( 'Games::Lacuna::Task::Action::Excavate' );
 use_ok( 'Games::Lacuna::Task::Action::FetchSpy' );
 use_ok( 'Games::Lacuna::Task::Action::Mining' );
@@ -25,8 +27,10 @@ use_ok( 'Games::Lacuna::Task::Action::OptimizeProbes' );
 use_ok( 'Games::Lacuna::Task::Action::Repair' );
 use_ok( 'Games::Lacuna::Task::Action::ReportIncoming' );
 use_ok( 'Games::Lacuna::Task::Action::SendSpy' );
+use_ok( 'Games::Lacuna::Task::Action::ShipDispatch' );
 use_ok( 'Games::Lacuna::Task::Action::Spy' );
-use_ok( 'Games::Lacuna::Task::Action::StarCache' );
+use_ok( 'Games::Lacuna::Task::Action::StarCacheBuild' );
+use_ok( 'Games::Lacuna::Task::Action::StarCacheExport' );
 use_ok( 'Games::Lacuna::Task::Action::StationPlanBuilder' );
 use_ok( 'Games::Lacuna::Task::Action::Trade' );
 use_ok( 'Games::Lacuna::Task::Action::Upgrade' );
@@ -63,6 +67,8 @@ use_ok( 'Games::Lacuna::Task::Role::Ships' );
 use_ok( 'Games::Lacuna::Task::Role::Stars' );
 use_ok( 'Games::Lacuna::Task::Role::Storage' );
 use_ok( 'Games::Lacuna::Task::Role::Waste' );
+use_ok( 'Games::Lacuna::Task::Setup' );
 use_ok( 'Games::Lacuna::Task::Table' );
 use_ok( 'Games::Lacuna::Task::Types' );
+use_ok( 'Games::Lacuna::Task::Upgrade' );
 use_ok( 'Games::Lacuna::Task::Utils' );
