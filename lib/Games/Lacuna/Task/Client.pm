@@ -14,12 +14,13 @@ use YAML::Any qw(LoadFile);
 use JSON qw();
 use Games::Lacuna::Client;
 use Games::Lacuna::Task::Utils qw(name_to_class);
+use Games::Lacuna::Task::Upgrade;
 
 our %LOCAL_CACHE;
 our $JSON = JSON->new->pretty(0)->utf8(1)->indent(0);
 our $API_KEY = '6ca1d525-bd4d-4bbb-ae85-b925ed3ea7b7';
 our $URI = 'https://us1.lacunaexpanse.com/';
-our @DB_TABLES = qw(star body cache empire);
+our @DB_TABLES = qw(star body cache empire meta);
 our @CONFIG_FILES = qw(lacuna config default);
 
 has 'client' => (
@@ -79,7 +80,6 @@ sub _build_config {
         require Games::Lacuna::Task::Setup;
         my $setup = Games::Lacuna::Task::Setup->new(
             configfile  => Path::Class::File->new($self->configdir,$CONFIG_FILES[0].'.yml')
-            
         );
         $global_config = $setup->run;
     }
@@ -196,6 +196,14 @@ sub _build_storage {
         close DATA;
         
     }
+    
+    # Upgrade storage
+    my $upgrade = Games::Lacuna::Task::Upgrade->new(
+        storage         => $storage,
+        loglevel        => $self->loglevel,
+        debug           => $self->debug,
+    );
+    $upgrade->run;
     
     # Create distance function
     $storage->func( 'distance_func', 4, \&Games::Lacuna::Task::Utils::distance, "create_function" );
@@ -700,4 +708,10 @@ CREATE TABLE IF NOT EXISTS cache (
   value TEXT NOT NULL, 
   valid_until INTEGER,
   checksum TEXT NOT NULL
+);
+
+
+CREATE TABLE IF NOT EXISTS meta ( 
+  key TEXT NOT NULL PRIMARY KEY, 
+  value TEXT NOT NULL
 );
