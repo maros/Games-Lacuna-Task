@@ -170,7 +170,7 @@ sub _inflate_star {
         unless defined $star_cache->{last_checked};
     
     # Get cache status
-    $star_data->{cache_ok} = ($star_cache->{last_checked} > (time() - $Game::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE)) ? 1:0;
+    $star_data->{cache_ok} = ($star_cache->{last_checked} > (time() - $Games::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE)) ? 1:0;
     
     # We have no bodies
     return $star_data
@@ -573,11 +573,12 @@ sub search_stars_callback {
     # Only probed/unprobed or unknown
     if (defined $params{is_probed}) {
         push(@sql_where,'(star.last_checked < ? OR star.is_probed = ? OR star.is_probed IS NULL)');
-        push(@sql_params,(time - $Game::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE),$params{is_probed});
+        push(@sql_params,(time - $Games::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE),$params{is_probed});
     }
     # Only known/unknown 
     if (defined $params{is_known}) {
         push(@sql_where,'(star.is_known = ? OR star.is_known IS NULL)');
+        push(@sql_params,$params{is_known});
     }
     # Zone
     if (defined $params{zone}) {
@@ -612,7 +613,7 @@ sub search_stars_callback {
         # Inflate star data
         my $star_data;
         if (defined $star_cache->{last_checked} 
-            && $star_cache->{last_checked} > (time - $Game::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE)) {
+            && $star_cache->{last_checked} > (time - $Games::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE)) {
             $star_data = $self->_inflate_star($star_cache);
         } else {
             $star_data = $self->_get_star_api($star_cache->{id},$star_cache->{x},$star_cache->{y});
