@@ -748,7 +748,9 @@ Valid search options are
 
 =over
 
-=item * probed (0 = unprobed, 1 = probed)
+=item * is_probed (0 = unprobed, 1 = probed)
+
+=item * is_known (0 = body data not available, 1 = body data available)
 
 =item * max_distance
 

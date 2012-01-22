@@ -56,7 +56,7 @@ role {
             is      => 'rw',
             isa     => 'Str',
             required=> 1,
-            documentation => 'Target planet',
+            documentation => 'Target planet (Name, ID or Coordinates)',
         );
         
         has 'target_planet_data' => (
@@ -125,5 +125,34 @@ Games::Lacuna::Role::CommonAttributes - Attributes utilized by multiple actions
  use Moose;
  extends qw(Games::Lacuna::Task::Action);
  with 'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage'] };
+
+=head1 DESCRIPTION
+
+The following accessors and helper methods are available on request
+
+=head2 home_planet
+
+Own planet. Planet stast can be accessed via the C<home_planet_data> method.
+
+=head2 target_planet
+
+Foreign planet. Planet stast can be accessed via the C<target_planet_data> 
+method.
+
+=head2 dispose_percentage
+
+Dispose waste if waste storage is n-% full
+
+=head2 start_building_at
+
+Upgrade buildings if there are less than N buildings in the build queue
+
+=head2 plan_for_hours
+
+Plan N hours ahead
+
+=head2 keep_waste_hours
+
+Keep enough waste for N hours',
 
 =cut

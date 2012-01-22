@@ -145,6 +145,8 @@ the Lacuna Expanse MMPOG. It provides
 
 =item * many useful helper methods and roles
 
+=item * implements several common tasks
+
 =back
 
 =head CONFIGURATION
@@ -190,6 +192,24 @@ the WasteDispose task)
 
 Username, password, empire name, api key and server url must be stored under
 the connect key in the config file.
+
+=head1 AUTHOR
+
+    Maroš Kollár
+    CPAN ID: MAROS
+    maros [at] k-1.com
+    
+    L<http://www.revdev.at>
+
+=head1 COPYRIGHT
+
+Games-Lacuna-Task is Copyright (c) 2012 Maroš Kollár 
+- L<http://www.k-1.com>
+
+=head1 LICENCE
+
+This library is free software, you can redistribute it and/or modify
+it under the same terms as Perl itself.
 
 =cut
 
