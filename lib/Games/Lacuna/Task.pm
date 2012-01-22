@@ -5,7 +5,7 @@ package Games::Lacuna::Task;
 use 5.010;
 
 our $AUTHORITY = 'cpan:MAROS';
-our $VERSION = "2.00";
+our $VERSION = "2.01";
 
 use Moose;
 extends qw(Games::Lacuna::Task::Base);
