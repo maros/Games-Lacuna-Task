@@ -373,18 +373,69 @@ sub empire_name {
 
 sub request {
     my ($self,%args) = @_;
+
+    $args{exception} ||= {};
+
+    # Session expired
+    $args{exception}{1006} ||= {};
+    $args{exception}{1006}{_ALL_} ||= sub {
+        $self->log('debug','Session expired unexpectedly');
+        $self->client->reset_client();
+        $self->clear_cache('session');
+        $self->login;
+        return 1;
+    };
     
-    my $method = delete $args{method};
-    my $object = delete $args{object};
-    my $params = delete $args{params} || [];
+    # Captcha
+    $args{exception}{1016} ||= {};
+    $args{exception}{1016}{_ALL_} ||= sub {
+        my ($error,$error_count) = @_;
+        $self->log('warn','Need to solve captcha');
+        my $solved = $self->get_captcha();
+        if ($solved) {
+            return 1;
+        } else {
+            $error->rethrow;
+        }    
+    };
+
+    # Too many request
+    $args{exception}{1010} ||= {};
+    $args{exception}{1010}{'Slow down!'} ||= sub {
+        my ($error,$error_count) = @_;
+        if ($error =~ m/Slow\sdown!/) {
+            if ($error_count < 3) {
+                $self->log('warn',$error);
+                $self->log('warn','Too many requests (wait a while)');
+                sleep 50;
+                return 1;
+            } else {
+                $self->log('error','Too many requests (abort)');
+                return 0;
+            }
+        } else {
+            $error->rethrow;
+        }
+    };
+
+    $self->_raw_request(%args);
+}
+
+sub _raw_request {
+    my ($self,%args) = @_;
     
+    my $method      = delete $args{method};
+    my $object      = delete $args{object};
+    my $params      = delete $args{params} || [];
+    my $exceptions  = delete $args{exception} || {};
+
     my $debug_params = join(',', map { ref($_) || $_ } @$params);
     
     $self->log('debug',"Run external request %s->%s(%s)",ref($object),$method,$debug_params);
     
     my $response;
     my $retry = 1;
-    my $retry_count = 0;
+    my $error_count = 0;
     
     while ($retry) {
         $retry = 0;
@@ -394,42 +445,27 @@ sub request {
             my $error = $_;
             if (blessed($error)
                 && $error->isa('LacunaRPCException')) {
-                given ($error->code) {
-                    when(1006) {
-                        $self->log('debug','Session expired unexpectedly');
-                        $self->client->reset_client();
-                        $self->clear_cache('session');
-                        $self->login;
-                        $retry = 1;
-                    }
-                    when (1016) {
-                        $self->log('warn','Need to solve captcha');
-                        my $solved = $self->get_captcha();
-                        if ($solved) {
-                            $retry = 1;
-                        } else {
-                            $error->rethrow;
+                if (defined $exceptions->{$error->{code}}) {
+                    my $exception_code = $exceptions->{$error->{code}};
+                    my $exception_sub;
+                    foreach my $message (keys %{$exception_code}) {
+                        if ($error->message =~ m/$message/) {
+                            $exception_sub = $exception_code->{$message};
+                            last;
                         }
                     }
-                    when(1010) { # too many requests
-                        if ($error =~ m/Slow\sdown!/) {
-                            if ($retry_count < 3) {
-                                $self->log('warn',$error);
-                                $self->log('warn','Too many requests (wait a while)');
-                                sleep 50;
-                                $retry = 1;
-                            } else {
-                                $self->log('error','Too many requests (abort)');
-                            }
-                        } else {
-                            $error->rethrow;
-                        }
+                    $exception_sub ||= $exception_code->{'_ALL_'}
+                        if defined $exception_code->{'_ALL_'};
+
+                    if (defined $exception_sub) {
+                        $retry = ($exception_sub->($error,$error_count) ? 1:0);
+                    } else {
+                        $self->abort($error);
                     }
-                    default {
-                        $error->rethrow;
-                    }
+                } else {
+                    $self->abort($error);
                 }
-                $retry_count ++
+                $error_count ++
                     if $retry;
             } else {
                 $self->abort($error);
@@ -437,6 +473,8 @@ sub request {
         };
     }
     
+    return
+        unless defined $response;
     
     my $status = $response->{status} || $response;
     
