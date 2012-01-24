@@ -574,6 +574,12 @@ sub storage_do {
     
     my $sql_log = $sql;
     $sql_log =~ s/\n/ /g;
+
+    foreach my $element (@params) {
+        if (ref $element) {
+            $element = $JSON->encode($element);
+        }
+    }
     
     return $self->storage->do($sql,{},@params)
         or $self->abort('Could not run SQL command "%s": %s',$sql_log,$self->storage->errstr);
