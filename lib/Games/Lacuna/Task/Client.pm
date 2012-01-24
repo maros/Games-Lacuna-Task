@@ -745,7 +745,13 @@ CREATE TABLE IF NOT EXISTS empire (
   name TEXT NOT NULL,
   normalized_name TEXT NOT NULL,
   alignment TEXT NOT NULL,
-  is_isolationist TEXT NOT NULL
+  is_isolationist TEXT NOT NULL,
+  alliance INTEGER,
+  colony_count INTEGER,
+  level INTEGER,
+  date_founded INTEGER,
+  affinity TEXT,
+  last_checked INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS cache ( 

@@ -5,7 +5,7 @@ use 5.010;
 use Moose;
 with qw(Games::Lacuna::Task::Role::Logger);
 
-our $VERSION = "2.01";
+our $VERSION = "2.02";
 
 has 'storage' => (
     is              => 'ro',
@@ -68,6 +68,16 @@ sub run {
         push(@sql,'DROP TABLE star_old');
         
         push(@sql,'DELETE FROM cache');
+    }
+
+    if ($self->current_version() < 2.02) {
+        $self->log('debug','Upgrade for 2.01->2.02');
+        push(@sql,'ALTER TABLE empire ADD COLUMN alliance INTEGER');
+        push(@sql,'ALTER TABLE empire ADD COLUMN colony_count INTEGER');
+        push(@sql,'ALTER TABLE empire ADD COLUMN level INTEGER');
+        push(@sql,'ALTER TABLE empire ADD COLUMN date_founded INTEGER');
+        push(@sql,'ALTER TABLE empire ADD COLUMN affinity TEXT');
+        push(@sql,'ALTER TABLE empire ADD COLUMN last_checked INTEGER');
     }
     
     if (scalar @sql) {
