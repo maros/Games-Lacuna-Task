@@ -195,6 +195,7 @@ sub _build_storage {
         }
         close DATA;
         
+        $storage->do('INSERT INTO meta (key,value) VALUES (?,?)',{},'database_version',$Games::Lacuna::Task::Upgrade::VERSION);
     }
     
     # Upgrade storage
