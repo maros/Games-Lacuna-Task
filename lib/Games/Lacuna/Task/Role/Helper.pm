@@ -230,6 +230,30 @@ sub can_afford {
     return 1;
 }
 
+sub my_affinity {
+    my ($self) = @_;
+    
+    my $affinity = $self->client->get_cache('affinity');
+    
+    return $affinity
+        if defined $affinity;
+    
+    my $response = $self->request(
+        object  => $self->build_object('Empire'),
+        method  => 'view_species_stats',
+    );
+    
+    $affinity = $response->{species};
+    
+    $self->client->set_cache(
+        key     => 'affinity',
+        value   => $affinity,
+        max_age => (60 * 60 * 24)
+    );
+    
+    return $affinity;
+}
+
 sub send_message {
     my ($self, $subject, $message) = @_;
             
