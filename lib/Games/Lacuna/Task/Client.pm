@@ -374,49 +374,54 @@ sub empire_name {
 sub request {
     my ($self,%args) = @_;
 
-    $args{exception} ||= {};
+    $args{catch} ||= [];
 
-    # Session expired
-    $args{exception}{1006} ||= {};
-    $args{exception}{1006}{_ALL_} ||= sub {
-        $self->log('debug','Session expired unexpectedly');
-        $self->client->reset_client();
-        $self->clear_cache('session');
-        $self->login;
-        return 1;
-    };
-    
-    # Captcha
-    $args{exception}{1016} ||= {};
-    $args{exception}{1016}{_ALL_} ||= sub {
-        my ($error,$error_count) = @_;
-        $self->log('warn','Need to solve captcha');
-        my $solved = $self->get_captcha();
-        if ($solved) {
-            return 1;
-        } else {
-            $error->rethrow;
-        }    
-    };
-
-    # Too many request
-    $args{exception}{1010} ||= {};
-    $args{exception}{1010}{'Slow down!'} ||= sub {
-        my ($error,$error_count) = @_;
-        if ($error =~ m/Slow\sdown!/) {
-            if ($error_count < 3) {
-                $self->log('warn',$error);
-                $self->log('warn','Too many requests (wait a while)');
-                sleep 50;
+    push (
+        @{$args{catch}},
+        [
+            1006,
+            sub {
+                $self->log('debug','Session expired unexpectedly');
+                $self->client->reset_client();
+                $self->clear_cache('session');
+                $self->login;
                 return 1;
-            } else {
-                $self->log('error','Too many requests (abort)');
-                return 0;
             }
-        } else {
-            $error->rethrow;
-        }
-    };
+        ],
+        [
+            1016,
+            sub {
+                my ($error,$error_count) = @_;
+                $self->log('warn','Need to solve captcha');
+                my $solved = $self->get_captcha();
+                if ($solved) {
+                    return 1;
+                } else {
+                    $error->rethrow;
+                }    
+            },
+        ],
+        [
+            1010,
+            qr/^Slow down/,
+            sub {
+                my ($error,$error_count) = @_;
+                if ($error =~ m/Slow\sdown!/) {
+                    if ($error_count < 3) {
+                        $self->log('warn',$error);
+                        $self->log('warn','Too many requests (wait a while)');
+                        sleep 50;
+                        return 1;
+                    } else {
+                        $self->log('error','Too many requests (abort)');
+                        return 0;
+                    }
+                } else {
+                    $error->rethrow;
+                }
+            },
+        ]
+    );
 
     $self->_raw_request(%args);
 }
@@ -427,7 +432,7 @@ sub _raw_request {
     my $method      = delete $args{method};
     my $object      = delete $args{object};
     my $params      = delete $args{params} || [];
-    my $exceptions  = delete $args{exception} || {};
+    my $catch       = delete $args{catch} || [];
 
     my $debug_params = join(',', map { ref($_) || $_ } @$params);
     
@@ -439,34 +444,41 @@ sub _raw_request {
     
     while ($retry) {
         $retry = 0;
+        my $handled = 0;
         try {
             $response = $object->$method(@$params);
         } catch {
             my $error = $_;
             if (blessed($error)
                 && $error->isa('LacunaRPCException')) {
-                if (defined $exceptions->{$error->{code}}) {
-                    my $exception_code = $exceptions->{$error->{code}};
-                    my $exception_sub;
-                    foreach my $message (keys %{$exception_code}) {
-                        if ($error->message =~ m/$message/) {
-                            $exception_sub = $exception_code->{$message};
-                            last;
-                        }
-                    }
-                    $exception_sub ||= $exception_code->{'_ALL_'}
-                        if defined $exception_code->{'_ALL_'};
-
-                    if (defined $exception_sub) {
-                        $retry = ($exception_sub->($error,$error_count) ? 1:0);
+                
+                foreach my $element (@{$catch}) {
+                    next
+                        unless $error->code == $element->[0];
+                    
+                    my $catch_sub;
+                    if (ref $element->[1] eq 'CODE') {
+                        $catch_sub = $element->[1];
+                    } elsif (ref $element->[1] eq 'Regexp') {
+                        next
+                            unless $error->text =~ $element->[1];
+                        $catch_sub = $element->[2];
                     } else {
-                        $self->abort($error);
+                        next
+                            unless $error->text eq $element->[1];
+                        $catch_sub = $element->[2];
                     }
-                } else {
+                    
+                    $handled = 1;
+                    $retry = ($catch_sub->($error,$error_count) ? 1:0);
+                    last;
+                }
+                
+                unless ($handled) {
                     $self->abort($error);
                 }
-                $error_count ++
-                    if $retry;
+                
+                $error_count ++;
             } else {
                 $self->abort($error);
             }
