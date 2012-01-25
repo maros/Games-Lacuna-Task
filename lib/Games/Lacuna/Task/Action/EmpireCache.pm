@@ -1,4 +1,4 @@
-package Games::Lacuna::Task::Action::EmpireInfo;
+package Games::Lacuna::Task::Action::EmpireCache;
 
 use 5.010;
 
@@ -11,7 +11,7 @@ use Games::Lacuna::Task::Utils qw(normalize_name parse_date);
 our $MAX_EMPIRE_CACHE_TIME = 60 * 60 * 24 * 31 * 3;
 
 sub description {
-    return q[Gather all available empire data];
+    return q[Fill empire info cache];
 }
 
 sub run {
