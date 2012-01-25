@@ -6,7 +6,7 @@ use Moose -traits => 'NoAutomatic';
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Stars);
 
-use Games::Lacuna::Task::Utils qw(normalize_name);
+use Games::Lacuna::Task::Utils qw(normalize_name format_date);
 use Games::Lacuna::Task::Table;
 
 has 'empire' => (
@@ -17,14 +17,11 @@ has 'empire' => (
 );
 
 sub description {
-    return q[Find all bodies owned by a given empire];
+    return q[Get all available data for a given empire];
 }
 
 sub run {
     my ($self) = @_;
-    
-    #my $planet_stats = $self->my_body_status($self->home_planet_id);
-    my $planet_stats = { x => 100, y => 200 };
     
     my (@query_parts,@query_params);
     foreach my $empire (@{$self->empire}) {
@@ -36,20 +33,91 @@ sub run {
     
     my $sth_empire = $self->storage_prepare('SELECT 
             id,
-            name 
+            name,
+            alignment,
+            is_isolationist,
+            alliance,
+            colony_count,
+            level,
+            date_founded,
+            affinity,
+            last_checked
         FROM empire 
         WHERE '.join(' OR ',@query_parts));
     
-    my %empires;
+    my $found = 0;
     $sth_empire->execute(@query_params);
-    while (my ($id,$name) = $sth_empire->fetchrow_array) {
-        $empires{$id} = $name;
+    while (my $empire = $sth_empire->fetchrow_hashref) {
+        $empire->{affinity} = $Games::Lacuna::Task::Client::JSON->decode($empire->{affinity}); 
+        $self->empire_info($empire);
+        $found++;
+    }
+}
+
+sub empire_info {
+    my ($self,$empire) = @_;
+    
+    say "-" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH;
+    say "Empire ".$empire->{name};
+    say "-" x $Games::Lacuna::Task::Constants::SCREEN_WIDTH;
+    unless (defined $empire->{colony_count}) {
+        say "No empire information available";
+        say "Please run 'lacuna_run empire_cache' first";
+    } else {
+        say "Alliance:        ".($empire->{alliance} ? 'Yes':'No');
+        if ($empire->{alliance}) {
+            my ($alliance_size,$alliance_avg_level,$alliance_max_level) = $self->client->storage->selectrow_array('SELECT 
+                COUNT(1),AVG(level),MAX(level) 
+                FROM empire 
+                WHERE alliance = ?',{},$empire->{alliance});
+            say "Alliance size:   $alliance_size";
+            say "Alliance level:  $alliance_avg_level(avg) / $alliance_max_level(max)";
+        }
+        say "Alignment:       ".$empire->{alignment};
+        say "Is isolationist: ".($empire->{is_isolationist} ? 'Yes':'No');
+        say "Colony count:    ".$empire->{colony_count};
+        say "Level:           ".$empire->{level};
+        say "Date founded:    ".format_date($empire->{date_founded});
+    }
+    say "";
+    $self->empire_affinity($empire);
+    $self->empire_body($empire);
+    
+}
+
+sub empire_affinity {
+    my ($self,$empire) = @_;
+    
+    return
+        unless defined $empire->{affinity};
+    
+    my $my_affinity = $self->my_affinity;
+    
+    my $table = Games::Lacuna::Task::Table->new({
+        headline    => 'Affinity report',
+        columns     => ['Affinity','Level','My Level','Delta'],
+    });
+    
+    while (my ($affinity,$level) = each %{$empire->{affinity}}) {
+        next
+            if $affinity eq 'name' || $affinity eq 'description';
+        my $label = $affinity;
+        $label =~ s/_affinity$//;
+        $table->add_row({
+            affinity    => $label,
+            level       => $level,
+            my_level    => $my_affinity->{$affinity},
+            delta       => $level - $my_affinity->{$affinity},
+        });
     }
     
-    $self->abort('Could not find empires %s',join(', ',@{$self->empire}))
-        unless scalar keys %empires;
+    say $table->render_text;
+}
+
+sub empire_body {
+    my ($self,$empire) = @_;
     
-    my $empire_query = join(',',(('?') x scalar keys %empires));
+    my $planet_stats = $self->my_body_status($self->home_planet_id);
     
     my $sth_body = $self->storage_prepare('SELECT 
           body.id,
@@ -64,19 +132,19 @@ sub run {
           distance_func(body.x,body.y,?,?) AS distance
         FROM body
         INNER JOIN star ON (body.star = star.id)
-        WHERE empire IN ('.$empire_query.')
+        WHERE empire = ?
         ORDER BY distance ASC');
     
-    $sth_body->execute($planet_stats->{x},$planet_stats->{y},keys %empires);
+    $sth_body->execute($planet_stats->{x},$planet_stats->{y},$empire->{id});
     
     my $table = Games::Lacuna::Task::Table->new({
-        columns     => ['Name','X','Y','Type','Orbit','Size','Star','Empire','Distance'],
+        headline    => 'Body report',
+        columns     => ['Name','X','Y','Type','Orbit','Size','Star','Distance'],
     });
     
     while (my $body = $sth_body->fetchrow_hashref) {
         $table->add_row({
             (map { ($_ => $body->{$_}) } qw(name x y orbit type orbit size star distance)),
-            empire  => $empires{$body->{empire}},
         });
     }
     
