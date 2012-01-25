@@ -26,23 +26,27 @@ sub run {
     #my $planet_stats = $self->my_body_status($self->home_planet_id);
     my $planet_stats = { x => 100, y => 200 };
     
+    my (@query_parts,@query_params);
+    foreach my $empire (@{$self->empire}) {
+        push(@query_parts,'name = ?');
+        push(@query_parts,'normalized_name = ?');
+        push(@query_params,$empire);
+        push(@query_params,normalize_name($empire));
+    }
+    
     my $sth_empire = $self->storage_prepare('SELECT 
             id,
             name 
         FROM empire 
-        WHERE name = ?
-        OR normalized_name = ?');
+        WHERE '.join(' OR ',@query_parts));
     
     my %empires;
-    
-    foreach my $empire (@{$self->empire}) {
-        $sth_empire->execute($empire,normalize_name($empire));
-        while (my ($id,$name) = $sth_empire->fetchrow_array) {
-            $empires{$id} = $name;
-        }
+    $sth_empire->execute(@query_params);
+    while (my ($id,$name) = $sth_empire->fetchrow_array) {
+        $empires{$id} = $name;
     }
     
-    $self->abort('Could nor find empires %s',join(', ',@{$self->empire}))
+    $self->abort('Could not find empires %s',join(', ',@{$self->empire}))
         unless scalar keys %empires;
     
     my $empire_query = join(',',(('?') x scalar keys %empires));
