@@ -23,8 +23,6 @@ has 'min_distance' => (
     default         => 400,
 );
 
-use Try::Tiny;
-
 sub description {
     return q[This task automates building and dispatching of excavators];
 }
@@ -84,36 +82,25 @@ sub process_planet {
                 my $excavator = pop(@avaliable_excavators);
                 
                 if (defined $excavator) {
-                    try {
-                        $self->log('notice',"Sending excavator from %s to %s",$planet_stats->{name},$body->{name});
-                        
-                        # Send excavator to body
-                        my $response = $self->request(
-                            object  => $spaceport_object,
-                            method  => 'send_ship',
-                            params  => [ $excavator,{ "body_id" => $body_id } ],
-                        );
-                        
-                        $self->set_body_excavated($body_id,$timestamp);
-                    } catch {
-                        my $error = $_;
-                        if (blessed($error)
-                            && $error->isa('LacunaRPCException')) {
-                            given ($error->code) {
-                                # Already excavated
-                                when (1010) {
-                                    $self->set_body_excavated($body_id,$timestamp);
-                                    $self->log('debug',"Could not send excavator to %s since it was excavated in the last 30 days",$body->{name});
-                                }
-                                default {
-                                    $error->rethrow();
-                                }
+                    $self->log('notice',"Sending excavator from %s to %s (distance %i)",$planet_stats->{name},$body->{name},$star_data->{distance});
+                    
+                    # Send excavator to body
+                    my $response = $self->request(
+                        object  => $spaceport_object,
+                        method  => 'send_ship',
+                        params  => [ $excavator,{ "body_id" => $body_id } ],
+                        catch   => [
+                            1010,
+                            qr/Could not send excavator/,
+                            sub {
+                                $self->log('debug',"Could not send excavator to %s since it was excavated in the last 30 days",$body->{name});
+                                push(@avaliable_excavators,$excavator);
                             }
-                            push(@avaliable_excavators,$excavator);
-                        } else {
-                            $self->abort($error);
-                        }
-                    };
+                        ],
+                    );
+                    
+                    # Set body exacavated
+                    $self->set_body_excavated($body_id,$timestamp) 
                 }
                 
                 return 0

@@ -88,14 +88,16 @@ sub query_empire_stats {
             object      => $empire_object,
             method      => 'view_public_profile',
             params      => [ $id ],
-            exception   => {
-                1002        => {
-                    'The empire you wish to view does not exist.'   => sub {
+            catch       => [
+                [
+                    '1002',
+                    'The empire you wish to view does not exist.',
+                    sub {
                         $self->remove_empire($id,$name);
                         return 0;
                     },
-                }
-            },
+                ],
+            ],
         );
         
         next
