@@ -65,16 +65,24 @@ sub process_planet {
     my @unprobed_stars = $self->closest_unprobed_stars($planet_stats->{x},$planet_stats->{y},scalar(@avaliable_probes));
     
     # Send available probes to stars
+    STARS:
     foreach my $star (@unprobed_stars) {
         my $probe = pop(@avaliable_probes);
         if (defined $probe) {
-            
             # Send probe to star
             my $response = $self->request(
                 object  => $spaceport_object,
                 method  => 'send_ship',
                 params  => [ $probe,{ "star_id" => $star } ],
+                catch   => [
+                    [1009,sub {
+                        return;
+                    }]
+                ]
             );
+            
+            last STARS
+                unless defined $response;
             
             $self->log('notice',"Sending probe from from %s to %s",$planet_stats->{name},$response->{ship}{to}{name});
         }
@@ -98,37 +106,33 @@ sub check_for_destroyed_probes {
     foreach my $message (@{$inbox_data->{messages}}) {
         next
             unless $message->{from_id} == $message->{to_id};
-        given($message->{subject}) {
-            when (['Probe Destroyed','Lost Contact With Probe']) {
-                # Get message
-                my $message_data = $self->request(
-                    object  => $inbox_object,
-                    method  => 'read_message',
-                    params  => [$message->{id}],
-                );
-                
-                # Parse star id,x,y
-                next
-                    unless $message_data->{message}{body} =~ m/{Starmap\s(?<x>-*\d+)\s(?<y>-*\d+)\s(?<star_name>[^}]+)}/;
-                
-                my $star_name = $+{star_name};
-                my $star_data = $self->get_star_by_xy($+{x},$+{y});
-                
-                next
-                    unless $star_data;
-                next
-                    unless $message_data->{message}{body} =~ m/{Empire\s(?<empire_id>\d+)\s(?<empire_name>[^}]+)}/;
-                
-                $self->log('warn','A probe in the %s system was destroyed by %s',$star_name,$+{empire_name});
-                
-                # Fetch star data from api and check if solar system is probed
-                $self->_get_star_api($star_data->{id},$star_data->{x},$star_data->{y});
-                
-                push(@archive_messages,$message->{id});
-            }
-#            when ('Probe Detected!') {
-#                push(@archive_messages,$message->{id});
-#            }
+        
+        if ($message->{subject} ~~ ['Probe Destroyed','Lost Contact With Probe']) {
+            # Get message
+            my $message_data = $self->request(
+                object  => $inbox_object,
+                method  => 'read_message',
+                params  => [$message->{id}],
+            );
+            
+            # Parse star id,x,y
+            next
+                unless $message_data->{message}{body} =~ m/\{Starmap\s(?<x>-*\d+)\s(?<y>-*\d+)\s(?<star_name>[^}]+)\}/;
+            
+            my $star_name = $+{star_name};
+            my $star_data = $self->get_star_by_xy($+{x},$+{y});
+            
+            next
+                unless $star_data;
+            next
+                unless $message_data->{message}{body} =~ m/{Empire\s(?<empire_id>\d+)\s(?<empire_name>[^}]+)}/;
+            
+            $self->log('warn','A probe in the %s system was destroyed by %s',$star_name,$+{empire_name});
+            
+            # Fetch star data from api and check if solar system is still probed
+            $self->_get_star_api($star_data->{id},$star_data->{x},$star_data->{y});
+            
+            push(@archive_messages,$message->{id});
         }
     }
     
@@ -159,6 +163,12 @@ sub closest_unprobed_stars {
         sub {
             my ($star_data) = @_;
             
+            # Fetch star data from api and check if solar system is still unprobed
+            $star_data = $self->_get_star_api($star_data->{id},$star_data->{x},$star_data->{y});
+            
+            next
+                if $star_data->{is_probed};
+            
             # Get incoming probe info
             my $star_incomming = $self->request(
                 object  => $self->build_object('Map'),
@@ -166,12 +176,13 @@ sub closest_unprobed_stars {
                 method  => 'check_star_for_incoming_probe',
             );
             
-            next
-                if ($star_incomming->{incoming_probe} > 0);
+            return 1
+                if (defined $star_incomming->{incoming_probe}
+                && $star_incomming->{incoming_probe} ne '0');
             
             # Add to todo list
             push(@unprobed_stars,$star_data->{id});
-        
+            
             return 0
                 if scalar(@unprobed_stars) >= $limit;
             
