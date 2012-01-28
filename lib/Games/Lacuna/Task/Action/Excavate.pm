@@ -96,6 +96,7 @@ sub process_planet {
                                 sub {
                                     $self->log('debug',"Could not send excavator to %s since it was excavated in the last 30 days",$body->{name});
                                     push(@avaliable_excavators,$excavator);
+                                    return 0;
                                 }
                             ]
                         ],
