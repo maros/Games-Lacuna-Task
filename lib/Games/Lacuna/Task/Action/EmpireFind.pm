@@ -47,11 +47,16 @@ sub run {
     
     my $found = 0;
     $sth_empire->execute(@query_params);
+    
     while (my $empire = $sth_empire->fetchrow_hashref) {
-        $empire->{affinity} = $Games::Lacuna::Task::Client::JSON->decode($empire->{affinity}); 
+        $empire->{affinity} = $Games::Lacuna::Task::Client::JSON->decode($empire->{affinity})
+            if defined $empire->{affinity};
         $self->empire_info($empire);
         $found++;
     }
+    
+    $self->abort('No empires found')
+        unless $found;
 }
 
 sub empire_info {
