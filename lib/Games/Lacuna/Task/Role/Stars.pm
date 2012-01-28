@@ -574,6 +574,9 @@ sub search_stars_callback {
     if (defined $params{is_probed}) {
         push(@sql_where,'(star.last_checked < ? OR star.is_probed = ? OR star.is_probed IS NULL)');
         push(@sql_params,(time - $Games::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE),$params{is_probed});
+    } elsif (exists $params{is_probed}) {
+        push(@sql_where,'(star.last_checked < ? OR star.is_probed IS NULL)');
+        push(@sql_params,(time - $Games::Lacuna::Task::Constants::MAX_STAR_CACHE_AGE));
     }
     # Only known/unknown 
     if (defined $params{is_known}) {
