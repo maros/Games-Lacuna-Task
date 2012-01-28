@@ -92,7 +92,7 @@ sub process_planet {
                         catch   => [
                             [
                                 1010,
-                                qr/Could not send excavator/,
+                                qr/You have already sent an Excavator there/,
                                 sub {
                                     $self->log('debug',"Could not send excavator to %s since it was excavated in the last 30 days",$body->{name});
                                     push(@avaliable_excavators,$excavator);
