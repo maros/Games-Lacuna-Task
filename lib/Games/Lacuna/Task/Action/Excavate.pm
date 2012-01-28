@@ -90,12 +90,14 @@ sub process_planet {
                         method  => 'send_ship',
                         params  => [ $excavator,{ "body_id" => $body_id } ],
                         catch   => [
-                            1010,
-                            qr/Could not send excavator/,
-                            sub {
-                                $self->log('debug',"Could not send excavator to %s since it was excavated in the last 30 days",$body->{name});
-                                push(@avaliable_excavators,$excavator);
-                            }
+                            [
+                                1010,
+                                qr/Could not send excavator/,
+                                sub {
+                                    $self->log('debug',"Could not send excavator to %s since it was excavated in the last 30 days",$body->{name});
+                                    push(@avaliable_excavators,$excavator);
+                                }
+                            ]
                         ],
                     );
                     
