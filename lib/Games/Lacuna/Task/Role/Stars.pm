@@ -488,6 +488,14 @@ sub set_star_cache {
     return
         unless defined $star_data->{bodies};
     
+    $self->_set_star_cache_bodies($star_data);
+}
+
+sub _set_star_cache_bodies {
+    my ($self,$star_data) = @_;
+    
+    my $star_id = $star_data->{id};
+    
     # Get excavate status
     my %last_excavated;
     my $sth_excavate = $self->storage_prepare('SELECT id,last_excavated FROM body WHERE star = ? AND last_excavated IS NOT NULL');
@@ -517,6 +525,10 @@ sub set_star_cache {
         
         $body_data->{last_excavated} = $last_excavated{$body_data->{id}};
         
+        my $ore = $body_data->{ore};
+        $ore = $Games::Lacuna::Task::Client::JSON->encode($ore)
+            if ref $ore eq 'HASH';
+        
         $sth_insert->execute(
             $body_data->{id},
             $star_id,
@@ -528,7 +540,7 @@ sub set_star_cache {
             normalize_name($body_data->{name}),
             $body_data->{type},
             $body_data->{water},
-            $Games::Lacuna::Task::Client::JSON->encode($body_data->{ore}),
+            $ore,
             $empire->{id},
             $body_data->{last_excavated},
         );
