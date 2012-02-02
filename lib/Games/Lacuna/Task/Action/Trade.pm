@@ -13,7 +13,7 @@ has 'trades' => (
     is              => 'rw',
     isa             => 'HashRef',
     required        => 1,
-    documentation   => 'Automatic trades per planet',
+    documentation   => 'Automatic trades per planet [Required in config]',
 );
 
 =pod

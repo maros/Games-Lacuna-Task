@@ -12,14 +12,16 @@ with qw(Games::Lacuna::Task::Role::Stars
 has 'excavator_count' => (
     isa             => 'Int',
     is              => 'rw',
-    documentation   => 'Number of excavators that should be dispatched simulaneously',
+    required        => 1,
+    documentation   => 'Number of excavators that should be dispatched simulaneously [Default: -4]',
     default         => -4,
 );
 
 has 'min_distance' => (
     isa             => 'Int',
     is              => 'rw',
-    documentation   => 'Min solar system distance',
+    required        => 1,
+    documentation   => 'Min solar system distance [Default: 400]',
     default         => 400,
 );
 
@@ -98,7 +100,7 @@ sub process_planet {
                                     push(@avaliable_excavators,$excavator);
                                     return 0;
                                 }
-                            ]
+                            ],
                         ],
                     );
                     

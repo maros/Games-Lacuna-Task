@@ -53,7 +53,7 @@ has 'extra_build_level' => (
     is              => 'rw',
     isa             => 'Int',
     required        => 1,
-    documentation   => 'Ignore plans with extra build level above this value',
+    documentation   => 'Ignore plans with extra build level above this value [Default: 2]',
     default         => 2,
 );
 
@@ -61,8 +61,8 @@ has 'min_items' => (
     is              => 'rw',
     isa             => 'Int',
     required        => 1,
-    documentation   => 'Only send ship if we have n-items to be sent',
-    default         => 0,
+    documentation   => 'Only send ship if we have n-items to be sent [Default: 1]',
+    default         => 1,
 );
 
 

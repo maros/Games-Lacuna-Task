@@ -24,7 +24,7 @@ has 'count' => (
     is          => 'ro',
     isa         => 'Int',
     default     => 1000,
-    documentation=> q[Number of queries to be used for caching],
+    documentation=> 'Number of queries to be used for caching [Default: 1000]',
 );
 
 sub _build_coordinate {

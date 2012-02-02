@@ -21,7 +21,7 @@ has 'plans' => (
     is              => 'rw',
     isa             => 'HashRef',
     required        => 1,
-    documentation   => 'Plans to be built',
+    documentation   => 'Plans to be built [Required in config]',
     default         => sub {
         return {
             ArtMuseum           => { name => 'Art Museum', level => -3,  },

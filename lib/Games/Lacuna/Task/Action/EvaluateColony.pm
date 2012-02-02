@@ -18,42 +18,42 @@ has 'max_distance' => (
     isa             => 'Int',
     default         => 75,
     required        => 1,
-    documentation   => q[Maximum distance from home planet],
+    documentation   => 'Maximum distance from home planet [Default: 75]',
 );
 
 has 'min_orbit' => (
     is              => 'rw',
     isa             => 'Int',
     lazy_build      => 1,
-    documentation   => q[Min orbit. Defaults to your species min orbit],
+    documentation   => 'Min orbit. Defaults to your species min orbit',
 );
 
 has 'max_orbit' => (
     is              => 'rw',
     isa             => 'Int',
     lazy_build      => 1,
-    documentation   => q[Max orbit. Defaults to your species max orbit],
+    documentation   => 'Max orbit. Defaults to your species max orbit',
 );
 
 has 'min_size' => (
     is              => 'rw',
     isa             => 'Int',
     default         => 55,
-    documentation   => q[Min habitable planet size],
+    documentation   => 'Min habitable planet size [Default: 55]',
 );
 
 has 'min_gas_giant_size' => (
     is              => 'rw',
     isa             => 'Int',
     default         => 105,
-    documentation   => q[Min gas giant size],
+    documentation   => 'Min gas giant size [Default: 105]',
 );
 
 has 'gas_giant' => (
     is              => 'rw',
     isa             => 'Bool',
     default         => 0,
-    documentation   => q[Consider gas giants],
+    documentation   => 'Consider gas giants [Flag, Default: false]',
 );
 
 sub _build_min_orbit {

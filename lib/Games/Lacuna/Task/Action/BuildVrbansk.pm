@@ -14,7 +14,7 @@ has 'count' => (
     is          => 'ro',
     required    => 1,
     default     => 1,
-    documentation=> q[Number of halls to be build],
+    documentation=> "Number of halls to be build [Default: 1]",
 );
 
 sub description {
@@ -69,6 +69,10 @@ sub run {
             object  => $new_vrbansk_object,
             method  => 'build',
             params  => [ $planet_home->{id}, $buildable_spot->[0],$buildable_spot->[1]],
+#            catch   => [
+#                1009): There's no room left in the build queue
+#PC Error (1009): That space is already occupied.
+#            ],
         );
     }
     

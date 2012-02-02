@@ -12,14 +12,14 @@ has 'rename_spies' => (
     isa             => 'Bool',
     is              => 'rw',
     default         => 1,
-    documentation   => 'Rename spies if they carry the default name',
+    documentation   => 'Rename spies if they carry the default name [Default: true]',
 );
 
 has 'max_training' => (
     isa             => 'Int',
     is              => 'rw',
     default         => 10,
-    documentation   => 'Max number of spies in training',
+    documentation   => 'Max number of spies in training [Default: 10]',
 );
 
 our @SPY_SKILLS = qw(intel theft politics mayhem);

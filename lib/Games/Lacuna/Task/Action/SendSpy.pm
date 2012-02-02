@@ -19,7 +19,7 @@ has 'spy_count' => (
     is          => 'ro',
     required    => 1,
     default     => 1,
-    documentation=> q[Number of spies to be sent],
+    documentation=> 'Number of spies to be sent [Default: 1]',
 );
 
 has 'best_spy' => (
@@ -27,7 +27,7 @@ has 'best_spy' => (
     is          => 'ro',
     required    => 1,
     default     => 1,
-    documentation=> q[Send best available spy],
+    documentation=> 'Send best available spy [Default: true]',
 );
 
 sub description {

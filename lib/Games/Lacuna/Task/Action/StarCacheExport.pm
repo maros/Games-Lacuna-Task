@@ -10,7 +10,7 @@ has 'database' => (
     isa             => 'Path::Class::File',
     required        => 1,
     coerce          => 1,
-    documentation   => q[Exported database file],
+    documentation   => 'Exported database file [Required]',
 );
 
 sub description {

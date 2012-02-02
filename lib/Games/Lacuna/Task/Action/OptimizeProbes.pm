@@ -15,7 +15,7 @@ has 'optimize_alliance' => (
     is              => 'rw',
     isa             => 'Bool',
     default         => 0,
-    documentation   => q[Remove probes from solar systems with ally presence]
+    documentation   => 'Remove probes from solar systems with ally presence [Default: false]'
 );
 
 

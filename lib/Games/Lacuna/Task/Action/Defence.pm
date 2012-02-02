@@ -15,7 +15,7 @@ has 'min_defender_combat' => (
     is              => 'rw',
     required        => 1,
     default         => 10000,
-    documentation   => q[Only defenders above or equal to this combat level will be considered],
+    documentation   => 'Only defenders above or equal to this combat level will be considered [Default: 10000]',
 );
 
 has '_planet_attack' => (

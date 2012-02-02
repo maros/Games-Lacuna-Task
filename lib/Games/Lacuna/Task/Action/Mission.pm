@@ -17,7 +17,7 @@ has 'missions' => (
     is              => 'rw',
     isa             => 'ArrayRef[Str]',
     required        => 1,
-    documentation   => 'Automatic missions',
+    documentation   => 'Automatic missions [Required, Multiple]',
 );
 
 sub process_planet {

@@ -13,7 +13,7 @@ has 'empire' => (
     is              => 'rw',
     isa             => 'ArrayRef[Str]',
     required        => 1,
-    documentation   => 'Empire name you are looking for [Multiple]',
+    documentation   => 'Empire name you are looking for [Required, Multiple]',
 );
 
 sub description {

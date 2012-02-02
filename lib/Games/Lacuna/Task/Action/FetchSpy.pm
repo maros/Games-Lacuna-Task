@@ -11,7 +11,7 @@ has 'spy_count' => (
     isa         => 'Int',
     is          => 'ro',
     predicate   => 'has_spy_count',
-    documentation=> q[Number of spies to be fetched],
+    documentation=> 'Number of spies to be fetched',
 );
 
 sub description {
