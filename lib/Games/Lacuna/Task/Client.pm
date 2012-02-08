@@ -747,7 +747,7 @@ CREATE TABLE IF NOT EXISTS body (
   water INTEGER,
   ore TEXT,
   empire INTEGER,
-  last_excavated INTEGER
+  is_excavated INTEGER
 );
 
 CREATE INDEX IF NOT EXISTS body_star_index ON body(star);

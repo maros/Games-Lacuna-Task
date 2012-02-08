@@ -5,8 +5,6 @@ use 5.010;
 use Moose;
 with qw(Games::Lacuna::Task::Role::Logger);
 
-our $VERSION = "2.02";
-
 has 'storage' => (
     is              => 'ro',
     isa             => 'DBI::db',
@@ -23,7 +21,7 @@ has 'current_version' => (
 has 'latest_version' => (
     is              => 'ro',
     isa             => 'Num',
-    default         => $VERSION,
+    default         => $Games::Lacuna::Task::VERSION,
     required        => 1,
 );
 
@@ -78,6 +76,32 @@ sub run {
         push(@sql,'ALTER TABLE empire ADD COLUMN date_founded INTEGER');
         push(@sql,'ALTER TABLE empire ADD COLUMN affinity TEXT');
         push(@sql,'ALTER TABLE empire ADD COLUMN last_checked INTEGER');
+    }
+    
+    if ($self->current_version() < 2.03) {
+        $self->log('debug','Upgrade for 2.02->2.03');
+        
+        push(@sql,'ALTER TABLE body RENAME TO body_old');
+        
+        push(@sql,'CREATE TABLE IF NOT EXISTS body (
+          id INTEGER NOT NULL PRIMARY KEY,
+          star INTEGER NOT NULL,
+          x INTEGER NOT NULL,
+          y INTEGER NOT NULL,
+          orbit INTEGER NOT NULL,
+          size INTEGER NOT NULL,
+          name TEXT NOT NULL,
+          normalized_name TEXT NOT NULL,
+          type TEXT NOT NULL,
+          water INTEGER,
+          ore TEXT,
+          empire INTEGER,
+          is_excavated INTEGER
+        )');
+        
+        push(@sql,'INSERT INTO body (id,star,x,y,orbit,size,name,normalized_name,type,water,ore,empire_name) SELECT id,star,x,y,orbit,size,name,normalized_name,type,water,ore,empire_name FROM body_old');
+        
+        push(@sql,'DROP TABLE body_old');
     }
     
     if (scalar @sql) {

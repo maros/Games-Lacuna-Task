@@ -32,7 +32,7 @@ sub run {
     $export_dbh->do('DELETE FROM cache');
     
     # Empty excavator cache
-    $export_dbh->do('UPDATE body SET last_excavated = NULL WHERE last_excavated IS NOT NULL');
+    $export_dbh->do('UPDATE body SET is_excavated = NULL WHERE is_excavated IS NOT NULL');
     
     $export_dbh->close();
     
