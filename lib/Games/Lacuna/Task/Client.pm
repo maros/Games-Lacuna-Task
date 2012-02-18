@@ -7,20 +7,14 @@ with qw(Games::Lacuna::Task::Role::Logger
     Games::Lacuna::Task::Role::Captcha);
 
 use Try::Tiny;
-use DBI;
-use Digest::MD5 qw(md5_hex);
 use IO::Interactive qw(is_interactive);
 use YAML::Any qw(LoadFile);
-use JSON qw();
 use Games::Lacuna::Client;
 use Games::Lacuna::Task::Utils qw(name_to_class);
-use Games::Lacuna::Task::Upgrade;
+use Games::Lacuna::Task::Storage;
 
-our %LOCAL_CACHE;
-our $JSON = JSON->new->pretty(0)->utf8(1)->indent(0);
 our $API_KEY = '6ca1d525-bd4d-4bbb-ae85-b925ed3ea7b7';
 our $URI = 'https://us1.lacunaexpanse.com/';
-our @DB_TABLES = qw(star body cache empire meta);
 our @CONFIG_FILES = qw(lacuna config default);
 
 has 'client' => (
@@ -40,8 +34,17 @@ has 'configdir' => (
 
 has 'storage' => (
     is              => 'ro',
-    isa             => 'DBI::db',
+    isa             => 'Games::Lacuna::Task::Storage',
     lazy_build      => 1,
+    handles         => {
+        storage_do                  => 'do',
+        storage_prepare             => 'prepare',
+        storage_selectrow_array     => 'selectrow_array',
+        storage_selectrow_hashref   => 'selectrow_hashref',
+        get_cache                   => 'get_cache',
+        set_cache                   => 'set_cache',
+        clear_cache                 => 'clear_cache',
+    },
 );
 
 has 'config' => (
@@ -131,83 +134,16 @@ sub _build_client {
 sub _build_storage {
     my ($self) = @_;
     
-    my $database_ok = 1;
-    my $storage;
-    
     # Get lacuna database
     my $storage_file = Path::Class::File->new($self->configdir,'lacuna.db');
     
-    # Touch database file if it does not exist
-    unless (-e $storage_file->stringify) {
-        $database_ok = 0;
-        
-        $self->log('info',"Initializing storage file %s",$storage_file->stringify);
-        my $storage_dir = $self->configdir->stringify;
-        unless (-e $storage_dir) {
-            mkdir($storage_dir)
-                or $self->abort('Could not create storage directory %s: %s',$storage_dir,$!);
-        }
-        $storage_file->touch
-            or $self->abort('Could not create storage file %s: %s',$storage_file->stringify,$!);
-    }
-    
-    # Connect database
-    {
-        no warnings 'once';
-        $storage = DBI->connect("dbi:SQLite:dbname=$storage_file","","",{ sqlite_unicode => 1 })
-            or $self->abort('Could not connect to database: %s',$DBI::errstr);
-    }
-    
-    # Check database for required tables
-    if ($database_ok) {
-        my @tables;
-        my $sth = $storage->prepare('SELECT name FROM sqlite_master WHERE type=? ORDER BY name');
-        $sth->execute('table');
-        while (my $name = $sth->fetchrow_array) {
-            push @tables,$name;
-        }
-        $sth->finish();
-        
-        foreach my $table (@DB_TABLES) {
-            unless ($table ~~ \@tables) {
-                $database_ok = 0;
-                last;
-            }
-        }
-    }
-    
-    # Create missing tables
-    unless ($database_ok) {
-        sleep 1;
-        
-        $self->log('info',"Initializing storage tables in %s",$storage_file->stringify);
-        
-        my $data_fh = *DATA;
-        
-        my $sql = '';
-        while (my $line = <$data_fh>) {
-            $sql .= $line;
-            if ($sql =~ m/;/) {
-                $storage->do($sql)
-                    or $self->abort('Could not excecute sql %s: %s',$sql,$storage->errstr);
-                undef $sql;
-            }
-        }
-        close DATA;
-        
-        $storage->do('INSERT INTO meta (key,value) VALUES (?,?)',{},'database_version',$Games::Lacuna::Task::Upgrade::VERSION);
-    }
-    
     # Upgrade storage
-    my $upgrade = Games::Lacuna::Task::Upgrade->new(
-        storage         => $storage,
+    my $storage = Games::Lacuna::Task::Storage->new(
+        file            => $storage_file,
         loglevel        => $self->loglevel,
         debug           => $self->debug,
     );
-    $upgrade->run;
     
-    # Create distance function
-    $storage->func( 'distance_func', 4, \&Games::Lacuna::Task::Utils::distance, "create_function" );
     
     return $storage;
 }
@@ -296,75 +232,6 @@ after 'request' => sub {
     my ($self) = @_;
     return $self->_update_session();
 };
-
-sub get_cache {
-    my ($self,$key) = @_;
-    
-    return $LOCAL_CACHE{$key}->[0]
-        if defined $LOCAL_CACHE{$key};
-    
-    my ($value,$valid_until) = $self
-        ->storage
-        ->selectrow_array(
-            'SELECT value, valid_until FROM cache WHERE key = ?',
-            {},
-            $key
-        );
-    
-    return
-        unless defined $value
-        && $valid_until > time();
-    
-    return $JSON->decode($value);
-}
-
-sub set_cache {
-    my ($self,%params) = @_;
-    
-    $params{max_age} ||= 3600;
-
-    my $valid_until = $params{valid_until} || ($params{max_age} + time());
-    my $key = $params{key};
-    my $value = $JSON->encode($params{value});
-    my $checksum = md5_hex($value);
-    
-    return
-        if defined $LOCAL_CACHE{$key} 
-        && $LOCAL_CACHE{$key}->[1] eq $checksum;
-    
-    $LOCAL_CACHE{$key} = [ $params{value},$checksum ];
-    
-#    # Check local write cache
-#    my $checksum = $cache->checksum();
-#    if (defined $LOCAL_CACHE{$key}) {
-#        my $local_cache = $LOCAL_CACHE{$key};
-#        return $cache
-#            if $local_cache eq $checksum;
-#    }
-#    
-#    $LOCAL_CACHE{$key} = $checksum;
-    
-    $self->storage_do(
-        'INSERT OR REPLACE INTO cache (key,value,valid_until,checksum) VALUES (?,?,?,?)',
-        $key,
-        $value,
-        $valid_until,
-        $checksum,
-    );
-    
-    return;
-}
-
-sub clear_cache {
-    my ($self,$key) = @_;
-    
-    delete $LOCAL_CACHE{$key};
-    
-    $self->storage_do(
-        'DELETE FROM cache WHERE key = ?',
-        $key,
-    );
-}
 
 sub empire_name {
     my ($self) = @_;
@@ -581,32 +448,6 @@ sub build_object {
     );
 }
 
-sub storage_do {
-    my ($self,$sql,@params) = @_;
-    
-    my $sql_log = $sql;
-    $sql_log =~ s/\n/ /g;
-
-    foreach my $element (@params) {
-        if (ref $element) {
-            $element = $JSON->encode($element);
-        }
-    }
-    
-    return $self->storage->do($sql,{},@params)
-        or $self->abort('Could not run SQL command "%s": %s',$sql_log,$self->storage->errstr);
-}
-
-sub storage_prepare {
-    my ($self,$sql) = @_;
-    
-    my $sql_log = $sql;
-    $sql_log =~ s/\n/ /g;
-    
-    return $self->storage->prepare($sql)
-        or $self->abort('Could not prepare SQL command "%s": %s',$sql_log,$self->storage->errstr);
-}
-
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
@@ -722,59 +563,3 @@ Prepares a SQL-query for the cache database and retuns the statement handle.
 
 =cut
 
-__DATA__
-CREATE TABLE IF NOT EXISTS star (
-  id INTEGER NOT NULL PRIMARY KEY,
-  x INTEGER NOT NULL,
-  y INTEGER NOT NULL,
-  name TEXT NOT NULL,
-  zone TEXT NOT NULL,
-  last_checked INTEGER,
-  is_probed INTEGER,
-  is_known INTEGER
-);
-
-CREATE TABLE IF NOT EXISTS body (
-  id INTEGER NOT NULL PRIMARY KEY,
-  star INTEGER NOT NULL,
-  x INTEGER NOT NULL,
-  y INTEGER NOT NULL,
-  orbit INTEGER NOT NULL,
-  size INTEGER NOT NULL,
-  name TEXT NOT NULL,
-  normalized_name TEXT NOT NULL,
-  type TEXT NOT NULL,
-  water INTEGER,
-  ore TEXT,
-  empire INTEGER,
-  last_excavated INTEGER
-);
-
-CREATE INDEX IF NOT EXISTS body_star_index ON body(star);
-
-CREATE TABLE IF NOT EXISTS empire (
-  id INTEGER NOT NULL PRIMARY KEY,
-  name TEXT NOT NULL,
-  normalized_name TEXT NOT NULL,
-  alignment TEXT NOT NULL,
-  is_isolationist TEXT NOT NULL,
-  alliance INTEGER,
-  colony_count INTEGER,
-  level INTEGER,
-  date_founded INTEGER,
-  affinity TEXT,
-  last_checked INTEGER
-);
-
-CREATE TABLE IF NOT EXISTS cache ( 
-  key TEXT NOT NULL PRIMARY KEY, 
-  value TEXT NOT NULL, 
-  valid_until INTEGER,
-  checksum TEXT NOT NULL
-);
-
-
-CREATE TABLE IF NOT EXISTS meta ( 
-  key TEXT NOT NULL PRIMARY KEY, 
-  value TEXT NOT NULL
-);
