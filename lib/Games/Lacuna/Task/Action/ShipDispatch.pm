@@ -80,6 +80,8 @@ sub process_planet {
             );
         # Start mining
         } elsif ( $ship->{name} =~ m/\b(mining|miner)\b/i) {
+            next
+                unless $ship->{hold_size} > 0;
             $self->log('notice','Starting to mine with ship %s on %s',$ship->{name},$planet_stats->{name});
             
             my $mining_object = $self->get_building_object($planet_stats->{id},'MiningMinistry');
