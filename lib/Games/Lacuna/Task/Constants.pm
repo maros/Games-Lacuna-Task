@@ -6,6 +6,8 @@ use warnings;
 # do not change order
 our @RESOURCES = qw(water ore energy food);
 
+our @RESOURCES_ALL = (@RESOURCES,'waste');
+
 our %CARGO = (
     ship    => 50_000,
     glyph   => 100,
