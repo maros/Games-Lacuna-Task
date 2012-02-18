@@ -15,7 +15,7 @@ use Text::CSV;
 after 'BUILD' => sub {
     my ($self) = @_;
     
-    my ($star_count) = $self->client->storage->selectrow_array('SELECT COUNT(1) FROM star');
+    my ($star_count) = $self->client->storage_selectrow_array('SELECT COUNT(1) FROM star');
     
     if ($star_count == 0) {
         $self->fetch_all_stars(0);
@@ -135,7 +135,7 @@ sub _get_star_cache {
         unless defined $query;
     
     # Get star from cache
-    my $star_cache = $self->client->storage->selectrow_hashref('SELECT 
+    my $star_cache = $self->client->storage_selectrow_hashref('SELECT 
             star.id,
             star.x,
             star.y,
@@ -146,7 +146,6 @@ sub _get_star_cache {
             star.is_known
         FROM star
         WHERE '.$query,
-        {},
         @params
     );
     
@@ -237,18 +236,18 @@ sub _get_body_cache {
     return
         unless defined $query;
     
-    my $body = $self->client->storage->fetchrow_array('SELECT 
+    my $body = $self->client->storage_selectrow_hashref('SELECT 
             body.id, 
             body.star,
             body.x,
             body.y,
             body.orbit,
-            body.size
+            body.size,
             body.name,
             body.type,
-            body.water
-            body.ore
-            body.empire
+            body.water,
+            body.ore,
+            body.empire,
             body.last_excavated,
             star.id AS star_id,
             star.name AS star_name,
@@ -264,7 +263,6 @@ sub _get_body_cache {
         INNER JOIN star ON (star.id = body.star)
         LEFT JOIN empire ON (empire.id = body.empire)
         WHERE '.$query,
-        {},
         @params
     );
     
@@ -352,7 +350,7 @@ sub _get_star_api {
     
     # Fetch x and y unless given
     unless (defined $x && defined $y) {
-        ($x,$y) = $self->client->storage->selectrow_array('SELECT x,y FROM star WHERE id = ?',{},$star_id);
+        ($x,$y) = $self->client->storage_selectrow_array('SELECT x,y FROM star WHERE id = ?',$star_id);
     }
     
     return
@@ -472,7 +470,7 @@ sub set_star_cache {
         if $star_data->{is_probed};
     
     unless (defined $star_data->{is_known}) {
-        ($star_data->{is_known}) = $self->client->storage->selectrow_array('SELECT COUNT(1) FROM body WHERE star = ?',{},$star_id);
+        ($star_data->{is_known}) = $self->client->storage_selectrow_array('SELECT COUNT(1) FROM body WHERE star = ?',$star_id);
     }
     
     # Update star cache

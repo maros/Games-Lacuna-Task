@@ -30,14 +30,13 @@ sub run {
     
     foreach my $state (@states) {
         
-        my ($count,$min,$max,$avg) = $self->client->storage->selectrow_array('SELECT 
+        my ($count,$min,$max,$avg) = $self->client->storage_selectrow_array('SELECT 
                 COUNT(1),
                 MIN(distance_func(?,?,x,y)),
                 MAX(distance_func(?,?,x,y)),
                 AVG(distance_func(?,?,x,y))
             FROM star
             WHERE '.$state->[1],
-            {},
             $planet_stats->{x},
             $planet_stats->{y},
             $planet_stats->{x},

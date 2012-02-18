@@ -24,7 +24,7 @@ sub run {
     
     $self->log('notice','Start exporting star cache to %s',$export_file);
     
-    $self->client->storage->sqlite_backup_to_file( $export_file );
+    $self->client->storage->dbh->sqlite_backup_to_file( $export_file );
     
     my $export_dbh = DBI->connect("dbi:SQLite:dbname=$export_file","","",{ RaiseError => 1 });
     

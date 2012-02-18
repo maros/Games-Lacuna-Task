@@ -71,10 +71,10 @@ sub empire_info {
     } else {
         say "Alliance:        ".($empire->{alliance} ? 'Yes':'No');
         if ($empire->{alliance}) {
-            my ($alliance_size,$alliance_avg_level,$alliance_max_level) = $self->client->storage->selectrow_array('SELECT 
+            my ($alliance_size,$alliance_avg_level,$alliance_max_level) = $self->client->storage_selectrow_array('SELECT 
                 COUNT(1),AVG(level),MAX(level) 
                 FROM empire 
-                WHERE alliance = ?',{},$empire->{alliance});
+                WHERE alliance = ?',$empire->{alliance});
             say "Alliance size:   $alliance_size";
             say "Alliance level:  $alliance_avg_level(avg) / $alliance_max_level(max)";
         }
