@@ -39,27 +39,29 @@ sub run {
         method  => 'view_plans',
     );
     
-    my $vrbansk = 0;
+    my @halls;
     foreach my $plan (@{$plan_data->{plans}}) {
         next
             unless $plan->{name} eq 'Halls of Vrbansk';
         next
             if $plan->{extra_build_level} != 0;
-        $vrbansk++;
+        push(@halls,$plan_data->{id})
     }
     
     return $self->log('error','Could not find plans for Hall of Vrbansk')
-        if $vrbansk == 0;
+        if scalar(@halls) == 0;
     
 
-    my $buildable_spots = $self->find_buildspot($planet_home);
+    my $builspots = $self->find_buildspot($planet_home);
     
     return $self->log('error','Could not find build spots')
-        if scalar @{$buildable_spots} == 0;
+        if scalar @{$builspots} == 0;
     
+    my $continue = 1;
     HALL:
-    for (1..min($self->count,$vrbansk)) {
-        my $buildable_spot = pop(@{$buildable_spots});
+    while ($continue && scalar @halls && scalar @{$buildable_spots}) {
+        my $builspot = pop(@{$builspots});
+        my $vrbansk = pop(@halls);
         
         my $new_vrbansk_object = $self->build_object('/hallsofvrbansk', body_id => $planet_home->{id});
         
@@ -68,11 +70,27 @@ sub run {
         $self->request(
             object  => $new_vrbansk_object,
             method  => 'build',
-            params  => [ $planet_home->{id}, $buildable_spot->[0],$buildable_spot->[1]],
-#            catch   => [
-#                1009): There's no room left in the build queue
-#PC Error (1009): That space is already occupied.
-#            ],
+            params  => [ $planet_home->{id}, $builspot->[0],$builspot->[1]],
+            catch   => [
+               [
+                    1009,
+                    qr/That space is already occupied/,
+                    sub {
+                        $self->log('debug',"Could not build Hall of Vrbansk on %s: Build spot occupied",$body->{name});
+                        push(@vrbansk,$vrbansk);
+                        return 0;
+                    }
+                ],
+                [
+                    1009,
+                    qr/There's no room left in the build queue/,
+                    sub {
+                        $self->log('debug',"Could not build Hall of Vrbansk on %s: Build queue full",$body->{name});
+                        $continue = 0;
+                        return 0;
+                    }
+                ],
+            ],
         );
     }
     
