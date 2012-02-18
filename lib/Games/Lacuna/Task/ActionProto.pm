@@ -1,11 +1,9 @@
-# ============================================================================
 package Games::Lacuna::Task::ActionProto;
-# ============================================================================
 
 use 5.010;
 
 use Moose;
-extends qw(Games::Lacuna::Task::Base);
+extends qw(Games::Lacuna::Task);
 
 use List::Util qw(max);
 use Try::Tiny;

@@ -7,104 +7,74 @@ use 5.010;
 our $AUTHORITY = 'cpan:MAROS';
 our $VERSION = "2.01";
 
+use 5.010;
+
 use Moose;
-extends qw(Games::Lacuna::Task::Base);
-with qw(MooseX::Getopt);
 
-use Games::Lacuna::Task::Utils qw(class_to_name name_to_class);
-use Try::Tiny;
+use Games::Lacuna::Task::Types;
+use Games::Lacuna::Task::Meta::Class::Trait::NoAutomatic;
+use Games::Lacuna::Task::Constants;
 
-has 'exclude'  => (
+with qw(Games::Lacuna::Task::Role::Client
+    Games::Lacuna::Task::Role::Logger);
+
+use Module::Pluggable 
+    search_path => ['Games::Lacuna::Task::Action'],
+    sub_name => '_all_actions';
+
+
+has 'lockfile' => (
     is              => 'rw',
-    isa             => 'ArrayRef[Str]',
-    documentation   => 'Select which tasks NOT to run [Multiple]',
-    predicate       => 'has_exclude',
+    isa             => 'Path::Class::File',
+    traits          => ['NoGetopt'],
+    lazy_build      => 1,
 );
 
-has 'task'  => (
-    is              => 'rw',
-    isa             => 'ArrayRef[Str]',
-    documentation   => 'Select which tasks to run [Multiple, Default all]',
-    predicate       => 'has_task',
-);
-
-has '+configdir' => (
-    required        => 1,
-);
-
-sub run {
+sub _build_lockfile {
     my ($self) = @_;
     
-    my $client = $self->client();
-    
-    # Call lazy builder
-    $client->client;
-    
-    my $empire_name = $self->empire_name;
-    
-    $self->log('notice',("=" x ($Games::Lacuna::Task::Constants::SCREEN_WIDTH - 8)));
-    $self->log('notice',"Running tasks for empire %s",$empire_name);
-    
-    my $global_config = $client->config->{global};
-    
-    $self->task($global_config->{task})
-        if (defined $global_config->{task}
-        && ! $self->has_task);
-    $self->exclude($global_config->{exclude})
-        if (defined $global_config->{exclude}
-        && ! $self->has_exclude);
-    
-    my @tasks;
-    if (! $self->has_task
-        || 'all' ~~ $self->task) {
-        @tasks = $self->all_actions;
-
-    } else {
-        foreach my $task (@{$self->task}) {
-            my $class = name_to_class($task);
-            push(@tasks,$class)
-                unless $class ~~ \@tasks;
-        }
-    }
-    
-    # Loop all tasks
-    TASK:
-    foreach my $task_class (@tasks) {
-        my $task_name = class_to_name($task_class);
-        
-        next
-            if $self->has_exclude && $task_name ~~ $self->exclude;
-        
-        my $ok = 1;
-        try {
-            Class::MOP::load_class($task_class);
-        } catch {
-            $self->log('error',"Could not load task %s: %s",$task_class,$_);
-            $ok = 0;
-        };
-        
-        next
-            if $task_class->meta->can('no_automatic')
-            && $task_class->meta->no_automatic;
-        
-        if ($ok) {
-            $self->log('notice',("-" x ($Games::Lacuna::Task::Constants::SCREEN_WIDTH - 8)));
-            $self->log('notice',"Running action %s",$task_name);
-            try {
-                my $task_config = $client->task_config($task_name);
-                my $task = $task_class->new(
-                    %{$task_config}
-                );
-                $task->execute;
-            } catch {
-                $self->log('error',"An error occured while processing %s: %s",$task_class,$_);
-            }
-        }
-    }
-    $self->log('notice',("=" x ($Games::Lacuna::Task::Constants::SCREEN_WIDTH - 8)));
+    return $self->configdir->file('lacuna.pid');
 }
 
+sub BUILD {
+    my ($self) = @_;
+    
+    my $lockcounter = 0;
+    my $lockfile = $self->lockfile;
+    
+    # Check for lockfile
+    while (-e $lockfile) {
+        my ($pid) = $lockfile->slurp(chomp => 1);
+        
+        if ($lockcounter > 10) {
+            $self->abort('Could not aquire lock (%s)',$lockfile);
+        } else {
+            $self->log('warn','Another process is currently running. Waiting until it has finished');
+        }
+        $lockcounter++;
+        sleep 15;
+    }
+    
+    # Write lock file
+    my $lockfh = $lockfile->openw();
+    print $lockfh $$;
+    $lockfh->close;
+}
 
+sub DEMOLISH {
+    my ($self) = @_;
+    
+    $self->lockfile->remove
+        if -e $self->lockfile;
+}
+
+sub all_actions {
+    _all_actions()
+}
+
+__PACKAGE__->meta->make_immutable;
+no Moose;
+1;
 
 =encoding utf8
 
@@ -212,7 +182,3 @@ This library is free software, you can redistribute it and/or modify
 it under the same terms as Perl itself.
 
 =cut
-
-__PACKAGE__->meta->make_immutable;
-no Moose;
-1;

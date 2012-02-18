@@ -4,9 +4,9 @@ use strict;
 use warnings;
 use 5.010;
 
-use Games::Lacuna::Task;
+use Games::Lacuna::Task::TaskRunner;
 
-my $task = Games::Lacuna::Task->new_with_options();
+my $task = Games::Lacuna::TaskRunner->new_with_options();
 $task->run;
 
 =encoding utf8
