@@ -176,7 +176,7 @@ sub process_planet {
             
             given ($offer->{class}) {
                 when('ship') {
-                    my @avaliable_ships = $self->ships(
+                    my @avaliable_ships = $self->get_ships(
                         planet          => $planet_stats,
                         quantity        => $offer->{quantity},
                         type            => $offer->{type},

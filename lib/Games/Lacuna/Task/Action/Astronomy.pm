@@ -48,7 +48,7 @@ sub process_planet {
         if $can_send_probes <= 0;
     
     # Get available probes
-    my @avaliable_probes = $self->ships(
+    my @avaliable_probes = $self->get_ships(
         planet          => $planet_stats,
         quantity        => $can_send_probes,
         type            => 'probe',

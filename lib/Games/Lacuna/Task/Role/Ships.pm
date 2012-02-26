@@ -101,15 +101,82 @@ sub trade_ships {
     return;
 }
 
-sub ships {
+sub spaceport_slots {
+    my ($self,$planet_id) = @_;
+    
+    my $spaceport = $self->find_building($planet_id,'SpacePort');
+    
+    return (0,0)
+        unless $spaceport;
+    
+    my $spaceport_data = $self->request(
+        object  => $self->build_object($spaceport),
+        method  => 'view',
+    );
+    
+    return ($spaceport_data->{docks_available},$spaceport_data->{max_ships});
+}
+
+sub shipyard_slots {
+    my ($self,$planet_id) = @_;
+    
+    my @shipyards = $self->find_building($planet_id,'Shipyard');
+    
+    return (0,{})
+        unless (scalar @shipyards);
+    
+    my $total_current_queue_size = 0;
+    my $total_max_queue_size = 0;
+    my $available_shipyards = {};
+    
+    SHIPYARDS:
+    foreach my $shipyard (@shipyards) {
+        my $shipyard_id = $shipyard->{id};
+        my $shipyard_object = $self->build_object($shipyard);
+        
+        # Get build queue
+        my $shipyard_queue_data = $self->request(
+            object  => $shipyard_object,
+            method  => 'view_build_queue',
+            params  => [1],
+        );
+        
+        my $shipyard_queue_size = $shipyard_queue_data->{number_of_ships_building} // 0;
+        $total_max_queue_size += $shipyard->{level};
+        $total_current_queue_size += $shipyard_queue_size;
+        
+        # Check available build slots
+        next SHIPYARDS
+            if $shipyard->{level} <= $shipyard_queue_size;
+            
+        $available_shipyards->{$shipyard_id} = {
+            id                  => $shipyard_id,
+            object              => $shipyard_object,
+            level               => $shipyard->{level},
+            seconds_remaining   => ($shipyard_queue_data->{building}{work}{seconds_remaining} // 0),
+            available           => ($shipyard->{level} - $shipyard_queue_size), 
+        };
+    }
+    
+    return ( ($total_max_queue_size - $total_current_queue_size) , $available_shipyards );
+}
+
+sub get_ships {
     my ($self,%params) = @_;
     
+    # Get params
     my $planet_stats = $params{planet};
     my $type = parse_ship_type($params{type});
     my $name_prefix = $params{name_prefix};
     my $quantity = $params{quantity} // 1;
     my $travelling = $params{travelling} // 0;
     my $build = $params{build} // 1;
+    
+    # Initialize vars
+    my @known_ships;
+    my @avaliable_ships;
+    my $building_ships = 0;
+    my $travelling_ships = 0;
     
     return
         unless $type && defined $planet_stats;
@@ -128,11 +195,9 @@ sub ships {
         params  => [ { no_paging => 1 } ],
     );
     
-    # Initialize vars
-    my @known_ships;
-    my @avaliable_ships;
-    my $building_ships = 0;
-    my $travelling_ships = 0;
+    # Get available slots
+    my $max_spaceport_slots = sum map { $_->{level} * 2 } @spaceports;
+    my $available_spaceport_slots = max($max_spaceport_slots - $ships_data->{number_of_ships},0);
     
     # Find all avaliable and buildings ships
     SHIPS:
@@ -156,7 +221,7 @@ sub ships {
             push(@avaliable_ships,$ship->{id});
         } elsif ($ship->{task} eq 'Building') {
             $building_ships ++;
-        } elsif ($ship->{task} eq 'Travelling' && $travelling) {
+        } elsif ($ship->{task} eq 'Travelling') {
             $travelling_ships ++;
         }
         
@@ -167,127 +232,27 @@ sub ships {
             && scalar(@avaliable_ships) >= $quantity;
     }
     
+    # Check if we should bould new ships
     return @avaliable_ships
         unless $build;
     
-    # Check if we have a shipyard
-    my @shipyards = $self->find_building($planet_stats->{id},'Shipyard');
-    return @avaliable_ships
-        unless (scalar @shipyards);
-    
-    # Calc max spaceport capacity
-    my $max_ships_possible = sum map { $_->{level} * 2 } @spaceports;
-    
-    my $max_build_quantity;
-    
-    # Quantity is defined as free-spaceport slots
-    if ($quantity < 0) {
-        $max_build_quantity = max($max_ships_possible - $ships_data->{number_of_ships} + $quantity,0);
-    # Quantity is defined as number of ships
-    } else {
-        $max_build_quantity = min($max_ships_possible - $ships_data->{number_of_ships},$quantity);
-        $max_build_quantity -= $building_ships;
-        $max_build_quantity = max($max_build_quantity,0);
+    if ($quantity > 0) {
+        $quantity -= $building_ships;
+        $quantity -= $travelling_ships
+            if $travelling;
+        $quantity -= scalar(@avaliable_ships);
+        $quantity = max($quantity,0);
     }
     
-    # Check if we can build new ships
     return @avaliable_ships
-        unless ($max_build_quantity > 0);
+        if $quantity <= 0;
     
-    # Calc current ships
-    my $total_ships = scalar(@avaliable_ships) + $building_ships + $travelling_ships;
-    
-    # We have to build new ships
-    my %available_shipyards;
-    my $new_building = 0;
-    my $total_queue_size = 0;
-    my $total_max_queue_size = 0;
-    
-    # Loop all shipyards to get levels ans workload
-    SHIPYARDS:
-    foreach my $shipyard (@shipyards) {
-        my $shipyard_id = $shipyard->{id};
-        my $shipyard_object = $self->build_object($shipyard);
-        
-        # Get build queue
-        my $shipyard_queue_data = $self->request(
-            object  => $shipyard_object,
-            method  => 'view_build_queue',
-            params  => [1],
-        );
-        
-        my $shipyard_queue_size = $shipyard_queue_data->{number_of_ships_building} // 0;
-        $total_max_queue_size += $shipyard->{level};
-        $total_queue_size += $shipyard_queue_size;
-        
-        # Check available build slots
-        next SHIPYARDS
-            if $shipyard->{level} <= $shipyard_queue_size;
-            
-        $available_shipyards{$shipyard_id} = {
-            id                  => $shipyard_id,
-            object              => $shipyard_object,
-            level               => $shipyard->{level},
-            seconds_remaining   => ($shipyard_queue_data->{building}{work}{seconds_remaining} // 0),
-            available           => ($shipyard->{level} - $shipyard_queue_size), 
-        };
-    }
-    
-    # Check if shipyards are available
-    return @avaliable_ships
-        unless scalar keys %available_shipyards;
-    
-    # Check max build queue size
-    $max_build_quantity = min($total_max_queue_size-$total_queue_size,$max_build_quantity);
-    
-    # Check if we still can build ships
-    return @avaliable_ships
-        if $max_build_quantity <= 0;
-    
-    
-    # Repeat until we have enough ships
-    BUILD_QUEUE:
-    while ($new_building < $max_build_quantity) {
-        
-        my $shipyard = 
-            first { $_->{available} > 0 }
-            sort { $a->{seconds_remaining} <=> $b->{seconds_remaining} } 
-            values %available_shipyards;
-        
-        last BUILD_QUEUE
-            unless defined $shipyard;
-        
-        # Get build quantity
-        my $build_per_shipyard = int(($max_build_quantity - $new_building) / scalar (keys %available_shipyards) / 1.5) || 1;
-        my $build_quantity = min($shipyard->{available},$max_build_quantity,$build_per_shipyard);
-        
-        eval {
-            # Build ship
-            my $ship_building = $self->request(
-                object  => $shipyard->{object},
-                method  => 'build_ship',
-                params  => [$type,$build_quantity],
-            );
-            
-            $shipyard->{seconds_remaining} = $ship_building->{building}{work}{seconds_remaining};
-            
-            $self->log('notice',"Building %i %s(s) on %s at shipyard level %i",$build_quantity,$type,$planet_stats->{name},$shipyard->{level});
-            
-            # Remove shipyard slot
-            $shipyard->{available} -= $build_quantity;
-            
-            # Remove from available shipyards
-            delete $available_shipyards{$shipyard->{id}}
-                if $shipyard->{available} <= 0;
-        };
-        if ($@) {
-            $self->log('warn','Could not build %s: %s',$type,$@);
-            last BUILD_QUEUE;
-        }
-        
-        $new_building += $build_quantity;
-        $total_ships += $build_quantity;
-    }
+    my $new_building = $self->build_ships(
+        planet              => $planet_stats,
+        quantity            => $quantity,
+        type                => $type,
+        spaceports_slots    => $available_spaceport_slots,
+    );
     
     # Rename new ships
     if ($new_building > 0
@@ -323,6 +288,101 @@ sub ships {
     return @avaliable_ships;
 }
 
+sub build_ships {
+    my ($self,%params) = @_;
+    
+    # Get params
+    my $planet_stats = $params{planet};
+    my $quantity = $params{quantity};
+    my $type = parse_ship_type($params{type});
+    my $available_spaceport_slots = $params{spaceports_slots};
+    my $available_shipyard_slots = $params{shipyard_slots};
+    my $available_shipyards = $params{shipyards};
+    
+    # Initialize vars
+    my $max_build_quantity = 0;
+    my $new_building = 0;
+    
+    # Get Buildings
+    my @spaceports = $self->find_building($planet_stats->{id},'SpacePort');
+    return 0
+        unless scalar @spaceports;
+    
+    # Get shipyard slots
+    unless (defined $available_shipyard_slots && defined $available_shipyard_slots) {
+        ($available_shipyard_slots,$available_shipyards) = $self->shipyard_slots($planet_stats->{id});
+    }
+    
+    # Get spaceport slots
+    unless (defined $available_spaceport_slots) {
+        ($available_spaceport_slots,undef) = $self->spaceport_slots($planet_stats->{id});
+    }
+    
+    # Calc max spaceport capacity
+    my $max_ships_possible = sum map { $_->{level} * 2 } @spaceports;
+    
+    # Quantity is defined as free-spaceport slots
+    if ($quantity < 0) {
+        $max_build_quantity = max($max_ships_possible - $available_spaceport_slots + $quantity,0);
+    # Quantity is defined as number of ships
+    } else {
+        $max_build_quantity = min($max_ships_possible - $available_spaceport_slots,$quantity);
+        $max_build_quantity = max($max_build_quantity,0);
+    }
+    
+    # Check max build queue size
+    $max_build_quantity = min($available_shipyard_slots,$max_build_quantity);
+    
+    # Check if we can build new ships
+    return 0
+        unless ($max_build_quantity > 0);
+    
+    # Repeat until we have enough ships
+    BUILD_QUEUE:
+    while ($new_building < $max_build_quantity) {
+        
+        my $shipyard = 
+            first { $_->{available} > 0 }
+            sort { $a->{seconds_remaining} <=> $b->{seconds_remaining} } 
+            values %{$available_shipyards};
+        
+        last BUILD_QUEUE
+            unless defined $shipyard;
+        
+        # Get build quantity
+        my $build_per_shipyard = int(($max_build_quantity - $new_building) / scalar (keys %{$available_shipyards}) / 1.5) || 1;
+        my $build_quantity = min($shipyard->{available},$max_build_quantity,$build_per_shipyard);
+        
+        eval {
+            # Build ship
+            my $ship_building = $self->request(
+                object  => $shipyard->{object},
+                method  => 'build_ship',
+                params  => [$type,$build_quantity],
+            );
+            
+            $shipyard->{seconds_remaining} = $ship_building->{building}{work}{seconds_remaining};
+            
+            $self->log('notice',"Building %i %s(s) on %s at shipyard level %i",$build_quantity,$type,$planet_stats->{name},$shipyard->{level});
+            
+            # Remove shipyard slot
+            $shipyard->{available} -= $build_quantity;
+            
+            # Remove from available shipyards
+            delete $available_shipyards->{$shipyard->{id}}
+                if $shipyard->{available} <= 0;
+        };
+        if ($@) {
+            $self->log('warn','Could not build %s: %s',$type,$@);
+            last BUILD_QUEUE;
+        }
+        
+        $new_building += $build_quantity;
+    }
+    
+    return $new_building;
+}
+
 no Moose::Role;
 1;
 
@@ -344,9 +404,9 @@ This role provides ship-related helper methods.
 
 =head1 METHODS
 
-=head2 ships
+=head2 get_ships
 
-    my @avaliable_scows = $self->ships(
+    my @avaliable_scows = $self->get_ships(
         planet          => $planet_stats,
         ships_needed    => 3, # get three
         ship_type       => 'scow',

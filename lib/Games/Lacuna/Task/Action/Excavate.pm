@@ -51,7 +51,7 @@ sub process_planet {
     my $spaceport_object = $self->build_object($spaceport);
     
     # Get available excavators
-    my @avaliable_excavators = $self->ships(
+    my @avaliable_excavators = $self->get_ships(
         planet          => $planet_stats,
         quantity        => $self->excavator_count,
         travelling      => 1,

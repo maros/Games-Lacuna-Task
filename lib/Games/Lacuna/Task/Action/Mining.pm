@@ -43,7 +43,7 @@ sub process_planet {
     my $spaceport_object = $self->build_object($spaceport);
     
     # Get available mining ships
-    my @avaliable_miningships = $self->ships(
+    my @avaliable_miningships = $self->get_ships(
         planet          => $planet_stats,
         quantity        => $available_platforms,
         type            => 'mining_platform_ship',
