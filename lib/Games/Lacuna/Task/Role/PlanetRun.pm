@@ -28,6 +28,15 @@ has 'only_planet' => (
 
 sub run {
     my ($self) = @_;
+
+    foreach my $planet_stats ($self->get_planets) {
+        $self->log('info',"Processing planet %s",$planet_stats->{name});
+        $self->process_planet($planet_stats);
+    }
+}
+
+sub get_planets {
+    my ($self) = @_;
     
     my @planets;
     
@@ -55,11 +64,7 @@ sub run {
         @planets = $self->my_planets;
     }
     
-    PLANETS:
-    foreach my $planet_stats (@planets) {
-        $self->log('info',"Processing planet %s",$planet_stats->{name});
-        $self->process_planet($planet_stats);
-    }
+    return @planets;
 }
 
 no Moose::Role;
