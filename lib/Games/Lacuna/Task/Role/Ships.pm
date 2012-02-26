@@ -5,6 +5,7 @@ use Moose::Role;
 
 use List::Util qw(min sum max first);
 use Games::Lacuna::Task::Utils qw(parse_ship_type);
+use Games::Lacuna::Client::Types qw(ship_tags);
 
 sub push_ships {
     my ($self,$form_id,$to_id,$ships) = @_;
@@ -167,8 +168,9 @@ sub get_ships {
     # Get params
     my $planet_stats = $params{planet};
     my $type = parse_ship_type($params{type});
+    my $tag = $params{tag};
     my $name_prefix = $params{name_prefix};
-    my $quantity = $params{quantity} // 1;
+    my $quantity = $params{quantity};
     my $travelling = $params{travelling} // 0;
     my $build = $params{build} // 1;
     
@@ -179,7 +181,7 @@ sub get_ships {
     my $travelling_ships = 0;
     
     return
-        unless $type && defined $planet_stats;
+        unless ($type || $tag) && defined $planet_stats;
     
     # Get space port
     my @spaceports = $self->find_building($planet_stats->{id},'SpacePort');
@@ -188,11 +190,19 @@ sub get_ships {
     
     my $spaceport_object = $self->build_object($spaceports[0]);
     
+    my $filter = {};
+    if (defined $tag) { 
+        $filter->{tag} = $tag;
+    }
+    if (defined $type) {
+        $filter->{type} = $type;
+    }
+    
     # Get all available ships
     my $ships_data = $self->request(
         object  => $spaceport_object,
         method  => 'view_all_ships',
-        params  => [ { no_paging => 1 } ],
+        params  => [ { no_paging => 1 },$filter ],
     );
     
     # Get available slots
@@ -203,9 +213,6 @@ sub get_ships {
     SHIPS:
     foreach my $ship (@{$ships_data->{ships}}) {
         push(@known_ships,$ship->{id});
-        
-        next SHIPS
-            unless $ship->{type} eq $type;
         
         # Check ship prefix and flags
         if (defined $name_prefix) {
@@ -232,11 +239,12 @@ sub get_ships {
             && scalar(@avaliable_ships) >= $quantity;
     }
     
-    # Check if we should bould new ships
+    # Check if we should build new ships
     return @avaliable_ships
         unless $build;
     
-    if ($quantity > 0) {
+    if (defined $quantity 
+        && $quantity > 0) {
         $quantity -= $building_ships;
         $quantity -= $travelling_ships
             if $travelling;
@@ -245,7 +253,7 @@ sub get_ships {
     }
     
     return @avaliable_ships
-        if $quantity <= 0;
+        if ! defined $quantity || $quantity <= 0 || ! defined $type;
     
     my $new_building = $self->build_ships(
         planet              => $planet_stats,
