@@ -52,15 +52,15 @@ sub run {
         if scalar(@halls) == 0;
     
 
-    my $builspots = $self->find_buildspot($planet_home);
+    my $buildable_spots = $self->find_buildspot($planet_home);
     
     return $self->log('error','Could not find build spots')
-        if scalar @{$builspots} == 0;
+        if scalar @{$buildable_spots} == 0;
     
     my $continue = 1;
     HALL:
     while ($continue && scalar @halls && scalar @{$buildable_spots}) {
-        my $builspot = pop(@{$builspots});
+        my $builspot = pop(@{$buildable_spots});
         my $vrbansk = pop(@halls);
         
         my $new_vrbansk_object = $self->build_object('/hallsofvrbansk', body_id => $planet_home->{id});
@@ -76,8 +76,8 @@ sub run {
                     1009,
                     qr/That space is already occupied/,
                     sub {
-                        $self->log('debug',"Could not build Hall of Vrbansk on %s: Build spot occupied",$body->{name});
-                        push(@vrbansk,$vrbansk);
+                        $self->log('debug',"Could not build Hall of Vrbansk on %s: Build spot occupied",$planet_home->{name});
+                        push(@halls,$vrbansk);
                         return 0;
                     }
                 ],
@@ -85,7 +85,7 @@ sub run {
                     1009,
                     qr/There's no room left in the build queue/,
                     sub {
-                        $self->log('debug',"Could not build Hall of Vrbansk on %s: Build queue full",$body->{name});
+                        $self->log('debug',"Could not build Hall of Vrbansk on %s: Build queue full",$planet_home->{name});
                         $continue = 0;
                         return 0;
                     }
