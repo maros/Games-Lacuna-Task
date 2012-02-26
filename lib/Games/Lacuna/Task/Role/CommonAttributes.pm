@@ -56,7 +56,7 @@ role {
             is      => 'rw',
             isa     => 'Str',
             required=> 1,
-            documentation => 'Target planet (Name, ID or Coordinates)',
+            documentation => 'Target planet (Name, ID or Coordinates)  [Required]',
         );
         
         has 'target_planet_data' => (
@@ -86,12 +86,36 @@ role {
         };
     }
     
+    if ('mytarget_planet' ~~ $p->attributes) {
+        has 'target_planet' => (
+            is      => 'rw',
+            isa     => 'Str',
+            required=> 1,
+            documentation => 'Target planet [Required]',
+        );
+        
+        has 'target_planet_data' => (
+            isa             => 'HashRef',
+            is              => 'rw',
+            traits          => ['NoGetopt'],
+            lazy_build      => 1,
+        );
+        method '_build_target_planet_data' => sub {
+            my ($self) = @_;
+            my $target_planet = $self->my_body_status($self->target_planet);
+            unless (defined $target_planet) {
+                $self->abort('Could not find target planet "%s"',$self->target_planet);
+            }
+            return $target_planet;
+        };
+    }
+    
     if ('home_planet' ~~ $p->attributes) {
         has 'home_planet' => (
             is      => 'rw',
             isa     => 'Str',
             required=> 1,
-            documentation => 'Home planet',
+            documentation => 'Home planet  [Required]',
         );
         
         has 'home_planet_data' => (
