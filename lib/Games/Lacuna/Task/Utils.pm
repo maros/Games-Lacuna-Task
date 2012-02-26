@@ -47,6 +47,9 @@ sub name_to_class {
 sub normalize_name {
     my ($name) = @_;
     
+    return
+        unless defined $name;
+    
     my $name_simple = decompose($name); 
     $name_simple =~ s/\p{NonSpacingMark}//g;
     return uc($name_simple);
@@ -75,6 +78,9 @@ sub pretty_dump {
 
 sub parse_ship_type {
     my ($name) = @_;
+    
+    return
+        unless defined $name;
     
     $name = lc($name);
     $name =~ s/\s+/_/g;
