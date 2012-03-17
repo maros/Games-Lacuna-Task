@@ -82,7 +82,7 @@ sub _build_config {
         $self->log('info',"Could not find config. Initializing new config");
         require Games::Lacuna::Task::Setup;
         my $setup = Games::Lacuna::Task::Setup->new(
-            configfile  => Path::Class::File->new($self->configdir,$CONFIG_FILES[0].'.yml')
+            configfile      => Path::Class::File->new($self->configdir,$CONFIG_FILES[0].'.yml'),
         );
         $global_config = $setup->run;
     }

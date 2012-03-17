@@ -47,7 +47,7 @@ sub fetch_all_stars {
     
     # Parse star map
     $self->log('debug',"Parsing new star map");
-    my $csv = Text::CSV->new ();
+    my $csv = Text::CSV->new();
     open my $fh, "<:encoding(utf8)", \$content;
     $csv->column_names( $csv->getline($fh) );
     
