@@ -53,12 +53,11 @@ sub run {
     if (! $self->has_task
         || 'all' ~~ $self->task) {
         @tasks = $self->all_actions;
-
     } else {
-        foreach my $task (@{$self->task}) {
-            my $class = name_to_class($task);
-            push(@tasks,$class)
-                unless $class ~~ \@tasks;
+        foreach my $action_class ($self->all_actions) {
+            my $action_name = class_to_name($action_class);
+            push(@tasks,$action_class)
+                if $action_name ~~ \@tasks;
         }
     }
     
@@ -70,30 +69,20 @@ sub run {
         next
             if $self->has_exclude && $task_name ~~ $self->exclude;
         
-        my $ok = 1;
-        try {
-            Class::MOP::load_class($task_class);
-        } catch {
-            $self->log('error',"Could not load task %s: %s",$task_class,$_);
-            $ok = 0;
-        };
-        
         next
             if $task_class->meta->can('no_automatic')
             && $task_class->meta->no_automatic;
         
-        if ($ok) {
-            $self->log('notice',("-" x ($Games::Lacuna::Task::Constants::SCREEN_WIDTH - 8)));
-            $self->log('notice',"Running action %s",$task_name);
-            try {
-                my $task_config = $client->task_config($task_name);
-                my $task = $task_class->new(
-                    %{$task_config}
-                );
-                $task->execute;
-            } catch {
-                $self->log('error',"An error occured while processing %s: %s",$task_class,$_);
-            }
+        $self->log('notice',("-" x ($Games::Lacuna::Task::Constants::SCREEN_WIDTH - 8)));
+        $self->log('notice',"Running action %s",$task_name);
+        try {
+            my $task_config = $client->task_config($task_name);
+            my $task = $task_class->new(
+                %{$task_config}
+            );
+            $task->execute;
+        } catch {
+            $self->log('error',"An error occured while processing %s: %s",$task_class,$_);
         }
     }
     $self->log('notice',("=" x ($Games::Lacuna::Task::Constants::SCREEN_WIDTH - 8)));

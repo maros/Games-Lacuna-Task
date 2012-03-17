@@ -27,13 +27,13 @@ sub run {
         $ARGV[0] = '--help'
             if defined $ARGV[0] && $ARGV[0] eq 'help';
         
-        my $ok = 1;
-        try {
-            Class::MOP::load_class($task_class);
-        } catch {
-            $self->log('error',"Could not load task %s: %s",$task_name,$_);
-            $ok = 0;
-        };
+        my $ok = Class::Load::is_class_loaded($task_class);
+#        try {
+#            Class::MOP::load_class($task_class);
+#        } catch {
+#            $self->log('error',"Could not load task %s: %s",$task_name,$_);
+#            $ok = 0;
+#        };
         
         if ($ok) {
             my $configdir;
@@ -162,7 +162,6 @@ sub global_usage {
     
     foreach my $class ($self->all_actions()) {
         my $command = class_to_name($class);
-        Class::MOP::load_class($class);
         my $meta = $class->meta;
         my $description = $class->description;
         my $no_automatic = $meta->can('no_automatic') ? $meta->no_automatic : 0;

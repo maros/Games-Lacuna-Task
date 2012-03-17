@@ -17,12 +17,8 @@ use Games::Lacuna::Task::Meta::Class::Trait::Deprecated;
 use Games::Lacuna::Task::Constants;
 
 with qw(Games::Lacuna::Task::Role::Client
-    Games::Lacuna::Task::Role::Logger);
-
-use Module::Pluggable 
-    search_path => ['Games::Lacuna::Task::Action'],
-    sub_name => '_all_actions';
-
+    Games::Lacuna::Task::Role::Logger
+    Games::Lacuna::Task::Role::Actions);
 
 has 'lockfile' => (
     is              => 'rw',
@@ -69,9 +65,6 @@ sub DEMOLISH {
         if -e $self->lockfile;
 }
 
-sub all_actions {
-    _all_actions()
-}
 
 __PACKAGE__->meta->make_immutable;
 no Moose;

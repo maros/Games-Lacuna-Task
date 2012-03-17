@@ -3,20 +3,13 @@ package Games::Lacuna::Task::Setup;
 use 5.010;
 
 use Moose;
+with qw(Games::Lacuna::Task::Role::Actions);
 
 use Games::Lacuna::Task::Utils qw(class_to_name name_to_class);
 use Term::ANSIColor qw(color);
 use Term::ReadLine;
 use Try::Tiny;
 use YAML::Any qw(DumpFile);
-
-use Module::Pluggable 
-    search_path => ['Games::Lacuna::Task::Action'],
-    sub_name => '_all_actions';
-
-sub all_actions {
-    _all_actions()
-}
 
 has 'configfile' => (
     is              => 'rw',
@@ -47,14 +40,6 @@ sub run {
     my %selected_tasks;
     foreach my $task_class (sort $self->all_actions) {
         my $task_name = class_to_name($task_class);
-        
-        my $ok = 1;
-        try {
-            Class::MOP::load_class($task_class);
-        } catch {
-            $self->saycolor("red","Error: Could not load task $task_class: $_");
-            next;
-        };
         
         next
             if $task_class->meta->can('no_automatic')
