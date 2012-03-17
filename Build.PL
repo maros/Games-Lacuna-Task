@@ -17,6 +17,7 @@ my $build = Module::Build->new(
         'perl'                          => '5.10.1',
 
         'Moose'                         => '2.0000',
+        'Class::Load'                   => 0,
 
         'Module::Pluggable'             => 0,
 
