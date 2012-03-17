@@ -3,7 +3,7 @@ package Games::Lacuna::Task::Role::Storage;
 use 5.010;
 use Moose::Role;
 
-use Games::Lacuna::Client::Types qw(ore_types food_types);
+use Games::Lacuna::Client::Types qw(ore_types food_types is_food_type is_ore_type);
 
 sub resource_type {
     my ($self,$type) = @_;

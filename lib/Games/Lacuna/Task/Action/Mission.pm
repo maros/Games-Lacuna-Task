@@ -7,8 +7,6 @@ extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun
     Games::Lacuna::Task::Role::Storage);
 
-use Games::Lacuna::Client::Types qw(ore_types food_types);
-
 sub description {
     return q[Automatically accept missions];
 }
