@@ -270,38 +270,39 @@ sub get_ships {
         quantity            => $quantity,
         type                => $type,
         spaceports_slots    => $available_spaceport_slots,
+        (defined $name_prefix ? (name_prefix => $name_prefix):()),
     );
     
-    # Rename new ships
-    if ($new_building > 0
-        && defined $name_prefix) {
-            
-        # Get all available ships
-        my $ships_data = $self->request(
-            object  => $spaceport_object,
-            method  => 'view_all_ships',
-            params  => [ { no_paging => 1 } ],
-        );
-        
-        NEW_SHIPS:
-        foreach my $ship (@{$ships_data->{ships}}) {
-            next NEW_SHIPS
-                if $ship->{id} ~~ \@known_ships;
-            next NEW_SHIPS
-                unless $ship->{type} eq $type;
-            
-            my $name = $name_prefix .': '.$ship->{name}.'!';
-            
-            $self->log('notice',"Renaming new ship to %s on %s",$name,$planet_stats->{name});
-            
-            # Rename ship
-            $self->request(
-                object  => $spaceport_object,
-                method  => 'name_ship',
-                params  => [$ship->{id},$name],
-            );
-        }
-    }
+#    # Rename new ships
+#    if ($new_building > 0
+#        && defined $name_prefix) {
+#            
+#        # Get all available ships
+#        my $ships_data = $self->request(
+#            object  => $spaceport_object,
+#            method  => 'view_all_ships',
+#            params  => [ { no_paging => 1 } ],
+#        );
+#        
+#        NEW_SHIPS:
+#        foreach my $ship (@{$ships_data->{ships}}) {
+#            next NEW_SHIPS
+#                if $ship->{id} ~~ \@known_ships;
+#            next NEW_SHIPS
+#                unless $ship->{type} eq $type;
+#            
+#            my $name = $name_prefix .': '.$ship->{name}.'!';
+#            
+#            $self->log('notice',"Renaming new ship to %s on %s",$name,$planet_stats->{name});
+#            
+#            # Rename ship
+#            $self->request(
+#                object  => $spaceport_object,
+#                method  => 'name_ship',
+#                params  => [$ship->{id},$name],
+#            );
+#        }
+#    }
     
     return @avaliable_ships;
 }
@@ -316,6 +317,7 @@ sub build_ships {
     my $available_spaceport_slots = $params{spaceports_slots};
     my $available_shipyard_slots = $params{shipyard_slots};
     my $available_shipyards = $params{shipyards};
+    my $name_prefix = $params{name_prefix};
     
     # Initialize vars
     my $max_build_quantity = 0;
@@ -325,6 +327,8 @@ sub build_ships {
     my @spaceports = $self->find_building($planet_stats->{id},'SpacePort');
     return 0
         unless scalar @spaceports;
+    
+    my $spaceport_object = $self->build_object($spaceports[0]);
     
     # Get shipyard slots
     unless (defined $available_shipyard_slots && defined $available_shipyard_slots) {
@@ -373,13 +377,13 @@ sub build_ships {
         
         eval {
             # Build ship
-            my $ship_building = $self->request(
+            my $ships_building = $self->request(
                 object  => $shipyard->{object},
                 method  => 'build_ship',
                 params  => [$type,$build_quantity],
             );
             
-            $shipyard->{seconds_remaining} = $ship_building->{building}{work}{seconds_remaining};
+            $shipyard->{seconds_remaining} = $ships_building->{building}{work}{seconds_remaining};
             
             $self->log('notice',"Building %i %s(s) on %s at shipyard level %i",$build_quantity,$type,$planet_stats->{name},$shipyard->{level});
             
@@ -389,6 +393,22 @@ sub build_ships {
             # Remove from available shipyards
             delete $available_shipyards->{$shipyard->{id}}
                 if $shipyard->{available} <= 0;
+            
+            if (defined $name_prefix) {
+                for (1..$build_quantity) {
+                    my $ship_building = pop @{$ships_building->{ships_building}};
+                    my $name = $name_prefix .': '.$ship_building->{type_human}.'!';
+                    
+                    $self->log('notice',"Renaming new ship to %s on %s",$name,$planet_stats->{name});
+                    
+                    # Rename ship
+                    $self->request(
+                        object  => $spaceport_object,
+                        method  => 'name_ship',
+                        params  => [$ship_building->{id},$name],
+                    );
+                }
+            }
         };
         if ($@) {
             $self->log('warn','Could not build %s: %s',$type,$@);
