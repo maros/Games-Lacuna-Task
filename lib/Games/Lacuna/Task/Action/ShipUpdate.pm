@@ -28,7 +28,22 @@ has 'best_ships' => (
     traits          => ['NoGetopt','Hash'],
     lazy_build      => 1,
     handles         => {
-        available_best_ships  => 'count',
+        available_best_ships    => 'count',
+        get_best_ship           => 'get',
+        best_ship_types         => 'keys',
+    },
+);
+
+has 'best_planets' => (
+    is              => 'rw',
+    isa             => 'HashRef',
+    traits          => ['NoGetopt','Hash'],
+    lazy_build      => 1,
+    handles         => {
+        get_best_planet         => 'get',
+        remove_best_planet      => 'delete',
+        has_best_planet         => 'count',
+        best_planet_ids         => 'keys',
     },
 );
 
@@ -41,7 +56,7 @@ has 'threshold' => (
 );
 
 sub description {
-    return q[Keep fleet up to date by building new ships and scuttling old ones];
+    return q[Keep fleet up to date by building new ships and scuttling old ones. Use in conjunction with ship_dispatch];
 }
 
 sub run {
@@ -53,6 +68,9 @@ sub run {
     }
     
     foreach my $planet_stats ($self->get_planets) {
+        $self->check_best_planets();
+        last 
+            unless $self->has_best_planet;
         $self->log('info',"Processing planet %s",$planet_stats->{name});
         $self->process_planet($planet_stats);
     }
@@ -82,11 +100,13 @@ sub process_planet {
         $ship_type =~ s/\d$//;
         
         next
+            if $ship->{name} =~ m/\bScuttle\b/i;
+        next
             unless $ship_type ~~ $self->handle_ships;
         next
             unless defined $self->best_ships->{$ship_type};
         
-        my $best_ship = $self->best_ships->{$ship_type};
+        my $best_ship = $self->get_best_ships($ship_type);
         
         my $ship_is_ok = 1;
         
@@ -108,21 +128,32 @@ sub process_planet {
     
     foreach my $ship_type (sort { scalar @{$old_ships->{$b}} <=> scalar @{$old_ships->{$a}} } keys %{$old_ships}) {
         my $old_ships = $old_ships->{$ship_type};
-        my $best_ships = $self->best_ships->{$ship_type};
+        my $best_ships = $self->get_best_ships($ship_type);
+        my $build_planet_id = $best_ships->{planet};
+        my $build_planet_stats = $self->get_best_planet($build_planet_id);
+        next
+            if ! defined $build_planet_stats 
+            ||$build_planet_stats->{total_slots} <= 0;
         
         my $new_building = $self->build_ships(
-            planet              => $self->my_body_status($best_ships->{planet}{planet}),
+            planet              => $self->my_body_status($build_planet_id),
             quantity            => scalar(@{$old_ships}),
-            type                => $ship_type,
-            spaceports_slots    => $best_ships->{spaceport_slots},
-            shipyard_slots      => $best_ships->{shipyard_slots},
-            shipyards           => $best_ships->{shipyards},
+            type                => $best_ships->{type},
+            spaceports_slots    => $build_planet_stats->{spaceport_slots},
+            shipyard_slots      => $build_planet_stats->{shipyard_slots},
+            shipyards           => $build_planet_stats->{shipyards},
+            ($build_planet_id != $planet_stats->{id} ? (name_prefix => $planet_stats->{name}) : () ),
         );
         
-        warn $new_building;
+        $build_planet_stats->{spaceport_slots} -= $new_building;
+        $build_planet_stats->{shipyard_slots} -= $new_building;
+        $build_planet_stats->{total_slots} -= $new_building;
         
         for (1..$new_building) {
             my $old_ship = pop(@{$old_ships});
+            
+            next
+                if $old_ship->{name} =~ /\bScuttle\b/i;
             
             $self->request(
                 object  => $spaceport_object,
@@ -130,6 +161,8 @@ sub process_planet {
                 params  => [$old_ship->{id},$old_ship->{name}.' Scuttle!'],
             );
         }
+        
+        #$self->check_best_planets;
     }
 }
 
@@ -140,13 +173,13 @@ sub _build_best_ships {
     
     my $best_ships = {};
     foreach my $planet_stats ($self->get_planets) {
-        my $buildable_ships = $self->get_buildable_ships($planet_stats);
+        my ($buildable_ships,$docks_available) = $self->get_buildable_ships($planet_stats);
         
         BUILDABLE_SHIPS:
         while (my ($type,$data) = each %{$buildable_ships}) {
             $data->{planet} = $planet_stats->{id};
             $best_ships->{$type} ||= $data;
-            
+            warn $data;
             foreach my $attribute (@ATTRIBUTES) {
                 if ($best_ships->{$type}{$attribute} < $data->{$attribute}) {
                     
@@ -157,40 +190,46 @@ sub _build_best_ships {
         }
     }
     
-    my $build_planets = {};
-    foreach my $best_ship (keys %{$best_ships}) {
-        my $planet_id = $best_ships->{$best_ship}{planet};
+    return $best_ships;
+}
+
+sub _build_best_planets {
+    my ($self) = @_;
+    
+    $self->log('info',"Get info about best build planets");
+    
+    my $best_planets = {};
+    foreach my $best_ship ($self->best_ship_types) {
+        my $planet_id = $self->get_best_ship($best_ship)->{planet};
         
-        unless (defined $build_planets->{$planet_id}) {
+        unless (defined $best_planets->{$planet_id}) {
             my ($available_shipyard_slots,$available_shipyards) = $self->shipyard_slots($planet_id);
             my ($available_spaceport_slots) = $self->spaceport_slots($planet_id);
             
-            # Get all available ships
-            my $ships_data = $self->request(
-                object  => $self->get_building_object($planet_id,'SpacePort'),
-                method  => 'view_all_ships',
-                params  => [ { no_paging => 1 } ],
-            );
+            my $shipyard_slots = max($available_shipyard_slots,0);
+            my $spaceport_slots = max($available_spaceport_slots,0);
+            my $total_slots = min($shipyard_slots,$spaceport_slots);
             
-            $build_planets->{$planet_id} = {
-                planet          => $planet_id,
-                shipyard_slots  => max($available_shipyard_slots,0),
-                spaceport_slots => max($available_spaceport_slots,0),
+            $best_planets->{$planet_id} = {
+                shipyard_slots  => $shipyard_slots,
+                spaceport_slots => $spaceport_slots,
+                total_slots     => $total_slots,
                 shipyards       => $available_shipyards,
             };
         }
-        
-        $best_ships->{$best_ship}{planet} = $build_planets->{$planet_id};
     }
     
-    foreach my $best_ship (keys %{$best_ships}) {
-        delete $best_ships->{$best_ship}
-            if $best_ships->{$best_ship}{planet}{shipyard_slots} <= 0;
-        delete $best_ships->{$best_ship}
-            if $best_ships->{$best_ship}{planet}{spaceport_slots} <= 0;
-    }
+    return $best_planets;
+}
+
+sub check_best_planets {
+    my ($self) = @_;
     
-    return $best_ships;
+    foreach my $planet_id ($self->best_planet_ids) {
+        $self->remove_best_planet($planet_id)
+            if $self->get_best_planet($planet_id)->{total_slots} <= 0;
+    }
+    return;
 }
 
 sub get_buildable_ships {
@@ -199,7 +238,7 @@ sub get_buildable_ships {
     my $shipyard = $self->find_building($planet_stats->{id},'Shipyard');
     
     return
-        unless $shipyard;
+        unless defined $shipyard;
     
     my $shipyard_object = $self->build_object($shipyard);
     
@@ -217,7 +256,8 @@ sub get_buildable_ships {
             unless $ship_type ~~ $self->handle_ships;
         next
             if $data->{can} == 0 
-            && $data->{reason}[1] !~ /You can only have \d+ ships in the queue at this shipyard/;
+            && $data->{reason}[1] !~ m/^You can only have \d+ ships in the queue at this shipyard/i
+            && $data->{reason}[1] !~ m/^You do not have \d docks available at the Spaceport/i;
         next
             if defined $ships->{$ship_type}
             && grep { $data->{attributes}{$_} < $ships->{$ship_type}{$_} } @ATTRIBUTES;
@@ -228,6 +268,7 @@ sub get_buildable_ships {
         };
     }
     
+    #,$ship_buildable->{docks_available}
     return $ships;
 }
 
