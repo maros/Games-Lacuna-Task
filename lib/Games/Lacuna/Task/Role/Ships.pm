@@ -12,10 +12,20 @@ sub push_ships {
     
     my $trade_object = $self->get_building_object($form_id,'Trade');
     my $spaceport_object = $self->get_building_object($form_id,'SpacePort');
+    my $target_spaceport_object = $self->get_building_object($to_id,'SpacePort');
     
     return 0
-        unless $trade_object && $spaceport_object;
+        unless $trade_object && $spaceport_object && $target_spaceport_object;
     
+    my $docks_available = $self->request(
+        object  => $target_spaceport_object,
+        method  => 'view',
+    )->{docks_available};
+    
+    if (scalar @{$ships} > $docks_available) {
+        $ships = [ @{$ships}[0..$docks_available-1] ];
+    }
+
     my $trade_cargo = scalar(@{$ships}) * $Games::Lacuna::Task::Constants::CARGO{ship};
     
     my @cargo;
