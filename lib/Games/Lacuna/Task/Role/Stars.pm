@@ -108,7 +108,7 @@ sub _get_body_cache_for_star {
             body.water,
             body.ore,
             body.empire,
-            body.last_excavated,
+            body.is_excavated,
             empire.id AS empire_id,
             empire.name AS empire_name,
             empire.alignment AS empire_alignment,
@@ -213,7 +213,7 @@ sub _inflate_body {
     }
     
     my $body_data = {
-        (map { $_ => $body->{$_} } qw(id x y orbit name type water size last_excavated)),
+        (map { $_ => $body->{$_} } qw(id x y orbit name type water size is_excavated)),
         ore         => $Games::Lacuna::Task::Client::JSON->decode($body->{ore}), 
         %{$star_data},
     };
@@ -495,11 +495,11 @@ sub _set_star_cache_bodies {
     my $star_id = $star_data->{id};
     
     # Get excavate status
-    my %last_excavated;
-    my $sth_excavate = $self->storage_prepare('SELECT id,last_excavated FROM body WHERE star = ? AND last_excavated IS NOT NULL');
+    my %is_excavated;
+    my $sth_excavate = $self->storage_prepare('SELECT id,is_excavated FROM body WHERE star = ? AND is_excavated IS NOT NULL');
     $sth_excavate->execute($star_id);
-    while (my ($body_id,$last_excavated) = $sth_excavate->fetchrow_array) {
-        $last_excavated{$body_id} = $last_excavated;
+    while (my ($body_id,$is_excavated) = $sth_excavate->fetchrow_array) {
+        $is_excavated{$body_id} = $is_excavated;
     }
     
     # Remove all bodies
@@ -513,7 +513,7 @@ sub _set_star_cache_bodies {
     
     # Insert new bodies
     my $sth_insert = $self->storage_prepare('INSERT INTO body 
-        (id,star,x,y,orbit,size,name,normalized_name,type,water,ore,empire,last_excavated) 
+        (id,star,x,y,orbit,size,name,normalized_name,type,water,ore,empire,is_excavated) 
         VALUES
         (?,?,?,?,?,?,?,?,?,?,?,?,?)');
     
@@ -521,7 +521,7 @@ sub _set_star_cache_bodies {
     foreach my $body_data (@{$star_data->{bodies}}) {
         my $empire = $body_data->{empire} || {};
         
-        $body_data->{last_excavated} = $last_excavated{$body_data->{id}};
+        $body_data->{is_excavated} = $is_excavated{$body_data->{id}};
         
         my $ore = $body_data->{ore};
         $ore = $Games::Lacuna::Task::Client::JSON->encode($ore)
@@ -540,7 +540,7 @@ sub _set_star_cache_bodies {
             $body_data->{water},
             $ore,
             $empire->{id},
-            $body_data->{last_excavated},
+            $body_data->{is_excavated},
         );
         
         if (defined $empire->{id}) {
@@ -661,10 +661,10 @@ sub search_stars_callback {
 }
 
 sub set_body_excavated {
-    my ($self,$body_id,$timestamp) = @_;
+    my ($self,$body_id,$is_excavated) = @_;
     
-    $timestamp ||= time();
-    $self->storage_do('UPDATE body SET last_excavated = ? WHERE id = ?',$timestamp,$body_id);
+    $is_excavated //= 1;
+    $self->storage_do('UPDATE body SET is_excavated = ? WHERE id = ?',$is_excavated,$timestamp,$body_id);
 }
 
 no Moose::Role;
@@ -735,7 +735,7 @@ Fetches body data from the local cache for the given body coordinates
 
 =head2 set_body_excavated
 
- $self->set_body_excavated($body_id,$timestamp);
+ $self->set_body_excavated($body_id,$is_excavated);
 
 Mark body as excavated
 

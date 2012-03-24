@@ -562,4 +562,3 @@ Runs a command in the cache database
 Prepares a SQL-query for the cache database and retuns the statement handle.
 
 =cut
-
