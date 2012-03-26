@@ -664,7 +664,7 @@ sub set_body_excavated {
     my ($self,$body_id,$is_excavated) = @_;
     
     $is_excavated //= 1;
-    $self->storage_do('UPDATE body SET is_excavated = ? WHERE id = ?',$is_excavated,$timestamp,$body_id);
+    $self->storage_do('UPDATE body SET is_excavated = ? WHERE id = ?',$is_excavated,$body_id);
 }
 
 no Moose::Role;

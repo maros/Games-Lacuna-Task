@@ -191,7 +191,7 @@ sub upgrade {
           is_excavated INTEGER
         )');
         
-        push(@sql,'INSERT INTO body (id,star,x,y,orbit,size,name,normalized_name,type,water,ore,empire_name) SELECT id,star,x,y,orbit,size,name,normalized_name,type,water,ore,empire_name FROM body_old');
+        push(@sql,'INSERT INTO body (id,star,x,y,orbit,size,name,normalized_name,type,water,ore,empire) SELECT id,star,x,y,orbit,size,name,normalized_name,type,water,ore,empire FROM body_old');
         
         push(@sql,'DROP TABLE body_old');
     }
