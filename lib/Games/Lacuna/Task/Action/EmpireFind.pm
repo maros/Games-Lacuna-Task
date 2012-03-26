@@ -49,7 +49,7 @@ sub run {
     $sth_empire->execute(@query_params);
     
     while (my $empire = $sth_empire->fetchrow_hashref) {
-        $empire->{affinity} = $Games::Lacuna::Task::Client::JSON->decode($empire->{affinity})
+        $empire->{affinity} = $Games::Lacuna::Task::Storage::JSON->decode($empire->{affinity})
             if defined $empire->{affinity};
         $self->empire_info($empire);
         $found++;

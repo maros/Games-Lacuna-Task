@@ -214,7 +214,7 @@ sub _inflate_body {
     
     my $body_data = {
         (map { $_ => $body->{$_} } qw(id x y orbit name type water size is_excavated)),
-        ore         => $Games::Lacuna::Task::Client::JSON->decode($body->{ore}), 
+        ore         => $Games::Lacuna::Task::Storage::JSON->decode($body->{ore}), 
         %{$star_data},
     };
     
@@ -524,7 +524,7 @@ sub _set_star_cache_bodies {
         $body_data->{is_excavated} = $is_excavated{$body_data->{id}};
         
         my $ore = $body_data->{ore};
-        $ore = $Games::Lacuna::Task::Client::JSON->encode($ore)
+        $ore = $Games::Lacuna::Task::Storage::JSON->encode($ore)
             if ref $ore eq 'HASH';
         
         $sth_insert->execute(
