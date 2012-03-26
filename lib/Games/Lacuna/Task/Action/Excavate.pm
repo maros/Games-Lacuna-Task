@@ -18,6 +18,16 @@ has 'min_ore' => (
     required        => 1,
 );
 
+has 'excavated_bodies' => (
+    is          => 'rw',
+    isa         => 'ArrayRef[Int]',
+    traits      => [qw(NoGetopt Array)],
+    traits          => ['Array','NoGetopt'],
+    handles         => {
+        add_excavated_body => 'push',
+    }
+);
+
 sub description {
     return q[This task automates building and dispatching of excavators];
 }
@@ -49,7 +59,14 @@ sub process_planet {
     );
     
     my $max_excavators = $response->{max_excavators};
-    my $possible_excavators = $max_excavators - scalar @{$response->{excavators}};
+    my $possible_excavators = $max_excavators - scalar @{$response->{excavators}} - 1;
+    
+    # Get all excavated bodies
+    foreach my $excavator (@{$response->{excavators}}) {
+        next
+            if $excavator->{id} == 0;
+        $self->add_excavated_body($excavator->{body}{id})
+    }
     
     # Check if we can have more excavators
     return
@@ -123,6 +140,8 @@ sub process_planet {
                 
                 $self->log('notice',"Sending excavator from %s to %s",$planet_stats->{name},$body->{name});
                 
+                $self->add_excavated_body($body->{id});
+                
                 # Send excavator to body
                 my $response = $self->request(
                     object  => $spaceport_object,
@@ -138,6 +157,15 @@ sub process_planet {
                                 return 0;
                             }
                         ],
+                        [
+                            1009,
+                            qr/Can only be sent to asteroids and uninhabited planets/,
+                            sub {
+                                $self->log('debug',"Could not send excavator to %s",$body->{name});
+                                push(@avaliable_excavators,$excavator);
+                                return 0;
+                            }
+                        ]
                     ],
                 );
                 
@@ -153,6 +181,16 @@ sub process_planet {
         distance    => 1,
     );
 }
+
+after 'run' => sub {
+    my ($self) = @_;
+    
+    my $excavated = join(',',@{$self->excavated_bodies});
+    
+    $self->log('debug',"Updating excavator cache");
+    
+    $self->storage_do('UPDATE body SET is_excavated = 0 WHERE is_excavated = 1 AND id NOT IN ('.$excavated.')');
+};
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
