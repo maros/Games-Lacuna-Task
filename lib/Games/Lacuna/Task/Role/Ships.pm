@@ -178,7 +178,6 @@ sub get_ships {
     # Get params
     my $planet_stats = $params{planet};
     my $type = parse_ship_type($params{type});
-    my $tag = $params{tag};
     my $name_prefix = $params{name_prefix};
     my $quantity = $params{quantity};
     my $travelling = $params{travelling} // 0;
@@ -191,7 +190,7 @@ sub get_ships {
     my $travelling_ships = 0;
     
     return
-        unless ($type || $tag) && defined $planet_stats;
+        unless defined $type && defined $planet_stats;
     
     # Get space port
     my @spaceports = $self->find_building($planet_stats->{id},'SpacePort');
@@ -200,19 +199,11 @@ sub get_ships {
     
     my $spaceport_object = $self->build_object($spaceports[0]);
     
-    my $filter = {};
-    if (defined $tag) { 
-        $filter->{tag} = $tag;
-    }
-    if (defined $type) {
-        $filter->{type} = $type;
-    }
-    
     # Get all available ships
     my $ships_data = $self->request(
         object  => $spaceport_object,
         method  => 'view_all_ships',
-        params  => [ { no_paging => 1 },$filter ],
+        params  => [ { no_paging => 1 } ],
     );
     
     # Get available slots
@@ -222,6 +213,9 @@ sub get_ships {
     # Find all avaliable and buildings ships
     SHIPS:
     foreach my $ship (@{$ships_data->{ships}}) {
+        next
+            unless $type eq $ship->{type};
+        
         push(@known_ships,$ship->{id});
         
         # Check ship prefix and flags
@@ -261,6 +255,7 @@ sub get_ships {
         $quantity -= scalar(@avaliable_ships);
         $quantity = max($quantity,0);
     }
+    
     
     return @avaliable_ships
         if ! defined $quantity || $quantity <= 0 || ! defined $type;
@@ -354,6 +349,7 @@ sub build_ships {
     
     # Check max build queue size
     $max_build_quantity = min($available_shipyard_slots,$max_build_quantity);
+    
     
     # Check if we can build new ships
     return 0
