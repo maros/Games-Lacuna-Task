@@ -10,13 +10,13 @@ with qw(Games::Lacuna::Task::Role::Stars
     Games::Lacuna::Task::Role::Ships
     Games::Lacuna::Task::Role::PlanetRun);
 
-has 'min_ore' => {
+has 'min_ore' => (
     is              => 'rw',
     isa             => 'Int',
     documentation   => 'Only select bodies with mininimal ore quantities [Default 9000]',
     default         => 9000,
     required        => 1,
-};
+);
 
 sub description {
     return q[This task automates building and dispatching of excavators];
@@ -36,9 +36,8 @@ sub process_planet {
     return
         unless defined $archaeology_ministry;
     return
-        unless $archaeology_ministry->{level} >= 15;
+        unless $archaeology_ministry->{level} >= 11;
     
-    my $max_excavators = $archaeology_ministry->{level} - 14;
     
     # Get building objects
     my $archaeology_ministry_object = $self->build_object($archaeology_ministry);
@@ -46,21 +45,24 @@ sub process_planet {
     
     my $response = $self->request(
         object  => $archaeology_ministry_object,
-        method  => 'view_excavator',
+        method  => 'view_excavators',
     );
     
+    my $max_excavators = $response->{max_excavators};
     my $possible_excavators = $max_excavators - scalar @{$response->{excavators}};
     
     # Check if we can have more excavators
     return
         if $possible_excavators <= 0;
     
+    
     # Get available excavators
-    my @avaliable_excavators = $self->ships(
+    my @avaliable_excavators = $self->get_ships(
         planet          => $planet_stats,
         quantity        => $possible_excavators,
         travelling      => 1,
         type            => 'excavator',
+        build           => 1,
     );
     
     # Check if we have available excavators
@@ -68,7 +70,6 @@ sub process_planet {
         unless (scalar @avaliable_excavators);
     
     $self->log('debug','%i excavators available at %s',(scalar @avaliable_excavators),$planet_stats->{name});
-    
     
     $self->search_stars_callback(
         sub {
@@ -86,7 +87,7 @@ sub process_planet {
                 # Check if solar system is inhabited by hostile empires
                 return 1
                     if defined $body->{empire}
-                    && $body->{empire}{allignment} =~ /hostile/;
+                    && $body->{empire}{alignment} =~ m/hostile/;
                 
                 # Check if body is inhabited
                 next
@@ -130,7 +131,7 @@ sub process_planet {
                     catch   => [
                         [
                             1010,
-                            qr/You have already sent an Excavator there/,
+                            qr/already has an excavator from your empire or one is on the way/,
                             sub {
                                 $self->log('debug',"Could not send excavator to %s",$body->{name});
                                 push(@avaliable_excavators,$excavator);
@@ -141,7 +142,7 @@ sub process_planet {
                 );
                 
                 # Set body exacavated
-                $self->set_body_excavated($body->{id}) 
+                $self->set_body_excavated($body->{id});
             }
             
             return 1;
@@ -177,7 +178,7 @@ sub check_for_destroyed_excavators {
         next
             unless $message->{from_id} == $message->{to_id};
         
-        if ($message->{subject} ~~ ['Excavator Destroyed','Lost Contact With Probe']) {
+        if ($message->{subject} ~~ ['Excavator Destroyed']) {
             # Get message
             my $message_data = $self->request(
                 object  => $inbox_object,
