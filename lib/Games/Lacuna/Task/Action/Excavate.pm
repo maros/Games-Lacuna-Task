@@ -1,4 +1,4 @@
-package Games::Lacuna::Task::Action::ExcavateNew;
+package Games::Lacuna::Task::Action::Excavate;
 
 use 5.010;
 
