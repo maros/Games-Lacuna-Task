@@ -45,6 +45,14 @@ has 'plans' => (
             'Ravine',
             'Rocky Outcropping',
             'Volcano',
+            
+            'Citadel of Knope',
+            'Black Hole Generator',
+            'Oracle of Anid',
+            'Temple of the Drajilites',
+            'Library of Jith',
+            'Kalavian Ruins',
+            'Interdimensional Rift',
         ]
     }
 );
