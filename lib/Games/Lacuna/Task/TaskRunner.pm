@@ -20,7 +20,11 @@ has 'task'  => (
     is              => 'rw',
     isa             => 'ArrayRef[Str]',
     documentation   => 'Select which tasks to run [Multiple, Default all]',
-    predicate       => 'has_task',
+    traits          => ['Array'],
+    default         => sub { [] },
+    handles         => {
+        has_task        => 'count',
+    },
 );
 
 has '+configdir' => (
@@ -57,7 +61,7 @@ sub run {
         foreach my $action_class ($self->all_actions) {
             my $action_name = class_to_name($action_class);
             push(@tasks,$action_class)
-                if $action_name ~~ \@tasks;
+                if $action_name ~~ $self->task;
         }
     }
     
