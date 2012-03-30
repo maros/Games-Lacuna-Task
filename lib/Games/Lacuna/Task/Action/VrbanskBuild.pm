@@ -46,6 +46,8 @@ sub run {
         next
             if $plan->{extra_build_level} != 0;
         push(@halls,$plan_data->{id})
+        last
+            if scalar @halls >= $self->count;
     }
     
     return $self->log('error','Could not find plans for Hall of Vrbansk')
