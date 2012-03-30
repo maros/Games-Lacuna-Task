@@ -53,6 +53,8 @@ has 'plans' => (
             'Library of Jith',
             'Kalavian Ruins',
             'Interdimensional Rift',
+            'Gratch\'s Gauntlet',
+            'Crashed Ship Site',
         ]
     }
 );
