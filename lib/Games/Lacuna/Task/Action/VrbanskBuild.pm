@@ -45,14 +45,13 @@ sub run {
             unless $plan->{name} eq 'Halls of Vrbansk';
         next
             if $plan->{extra_build_level} != 0;
-        push(@halls,$plan_data->{id})
+        push(@halls,$plan_data->{id});
         last
             if scalar @halls >= $self->count;
     }
     
     return $self->log('error','Could not find plans for Hall of Vrbansk')
         if scalar(@halls) == 0;
-    
 
     my $buildable_spots = $self->find_buildspot($planet_home);
     
