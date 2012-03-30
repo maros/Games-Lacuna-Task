@@ -63,6 +63,9 @@ has 'upgrade_buildings' => (
             'Sand'                  => ['extra'],
             'Grove'                 => ['extra'],
             'Lagoon'                => ['extra'],
+            (map {
+                 'LCOT'.$_          => ['global'],
+            } qw(A..I)),
         }
     },
     documentation => 'Building uprade preferences',
