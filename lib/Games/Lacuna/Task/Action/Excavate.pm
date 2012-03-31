@@ -185,6 +185,9 @@ sub dispatch_excavators {
                 }
                 push(@available_bodies,[ $weighted_ores, $body ]);
             }
+            
+            return 0
+                if scalar @available_bodies > 30;
 
             return 1;
         },
@@ -192,7 +195,6 @@ sub dispatch_excavators {
         y           => $planet_stats->{y},
         is_known    => 1,
         distance    => 1,
-        limit       => 10,
     );
     
     foreach my $body_data (sort { $b->[0] <=> $a->[0] } @available_bodies) {
