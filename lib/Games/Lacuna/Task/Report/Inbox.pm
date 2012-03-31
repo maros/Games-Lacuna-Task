@@ -9,7 +9,10 @@ has 'archive' => (
     isa             => 'RegexpRef',
     documentation   => 'Message subjects matching this pattern will be archived',
     default         => sub { 
-        qr/^ Trade \s Accepted $/x;
+        qr/^ ( 
+            Trade \s Accepted |
+            Mission \s completed
+        ) $/x;
     },
 );
 
@@ -23,10 +26,11 @@ has 'delete' => (
             Glyph \s Discovered! | 
             Control \s Changed \s Hands | 
             Mining \s Platform \s Deployed | 
-            Excavator \s Uncovered \s Plan |
-            Control \s Changed \s Hands |
             Probe \s Detected! |
-            Trade \s Withdrawn
+            Trade \s Withdrawn |
+            Excavator \s Results |
+
+            Excavator \s Uncovered \s Plan
         ) $/x;
     },
 );
