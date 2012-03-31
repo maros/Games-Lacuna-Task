@@ -96,8 +96,7 @@ sub current_excavators {
         method  => 'view_excavators',
     );
     
-    my $max_excavators = $response->{max_excavators};
-    my $possible_excavators = $max_excavators - scalar @{$response->{excavators}} - 1;
+    my $possible_excavators = $response->{max_excavators} - scalar @{$response->{excavators}} - 1 - $response->{travelling};
     
     # Get all excavated bodies
     foreach my $excavator (@{$response->{excavators}}) {
@@ -106,6 +105,7 @@ sub current_excavators {
         }
         next
             if $excavator->{id} == 0;
+        
         $self->add_excavated_body($excavator->{body}{id});
     }
     
