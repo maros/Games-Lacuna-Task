@@ -55,6 +55,8 @@ has 'plans' => (
             'Interdimensional Rift',
             'Gratch\'s Gauntlet',
             'Crashed Ship Site',
+            'Pantheon of Hagness',
+            
         ]
     }
 );
