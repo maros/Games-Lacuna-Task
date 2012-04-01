@@ -29,7 +29,7 @@ has 'delete' => (
             Probe \s Detected! |
             Trade \s Withdrawn |
             Excavator \s Results |
-
+            Excavator \s Deployed |
             Excavator \s Uncovered \s Plan
         ) $/x;
     },
