@@ -7,7 +7,7 @@ extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Ships',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['mytarget_planet','home_planet'] };
 
-use List::Util qw(sum min);
+use List::Util qw(sum min max);
 use Games::Lacuna::Client::Types qw(ore_types food_types is_ore_type is_food_type);
 
 our @RESOURCES_FULL = (@Games::Lacuna::Task::Constants::RESOURCES_ALL,ore_types(),food_types());
@@ -18,6 +18,21 @@ has 'auto' => (
     documentation   => 'Automatically determine required ressources',
     default         => 0,
 );
+
+has 'auto_target' => (
+    is              => 'rw',
+    isa             => 'Int',
+    documentation   => 'Storage fill percentage target in auto mode',
+    default         => 80,
+);
+
+has 'auto_hours' => (
+    is              => 'rw',
+    isa             => 'Int',
+    documentation   => 'Plan for n-hours if running in auto mode',
+    default         => 1,
+);
+
 
 foreach my $resource (@RESOURCES_FULL) {
     has $resource=> (
@@ -52,7 +67,6 @@ sub run {
         method  => 'view_all_ships',
         params  => [ { no_paging => 1 },{ tag => 'Trade', task => 'Docked' } ],
     );
-    
     
     my $available_hold_size = 0;
     my $available_ships = [];
@@ -111,30 +125,54 @@ sub run {
         $resource_total += $quantity_required;
     };
     
+    # Get requested resources
+    my %resources_requested;
     if ($self->auto) {
-        # TODO
-        $self->abort('auto=1 option not yet implemented');
+        my $resource_auto_total = 0;
+        foreach my $resource (@Games::Lacuna::Task::Constants::RESOURCES) {
+            my $resource_required = int(
+                ($planet_target->{$resource.'_capacity'} * ($self->auto_target / 100)) - 
+                $planet_target->{$resource.'_stored'} + 
+                ($planet_target->{$resource.'_hour'} * $self->auto_hours)
+            );
+            if ($resource_required > 0) {
+                $resource_required = min(int($planet_home->{$resource.'_stored'} * 0.8),$resource_required);
+                $resources_requested{$resource} = $resource_required;
+                $resource_auto_total += $resource_required;
+            }
+        }
+        if ($resource_auto_total > $available_hold_size) {
+            my $resource_coeficient = $available_hold_size/$resource_auto_total;
+            foreach my $resource (@Games::Lacuna::Task::Constants::RESOURCES) {
+                $resources_requested{$resource} = int($resource_coeficient * $resources_requested{$resource});
+            }
+        }
     }  else {
         foreach my $resource (@RESOURCES_FULL) {
             my $predicate_method = 'has_'.$resource;
             if ($self->$predicate_method
                 && $self->$resource > 0) {
-                given ($resource) {
-                    when ([qw(ore food)]) {
-                        my $quantity_stored = $resources_stored{$resource} // 0;
-                        my $resource_percentage = $self->$resource / $quantity_stored;
-                        no strict 'refs';
-                        my @resource_sub = &{$_.'_types'}();
-                        foreach my $resource_sub (@resource_sub) {
-                            next
-                                unless defined $resources_stored{$resource_sub};
-                            $resources_take->($resource_sub,int($resource_percentage * $resources_stored{$resource_sub} + 0.5 // 0));
-                        }
-                    }
-                    default {
-                        $resources_take->($resource,$self->$resource);
-                    }
+                $resources_requested{$resource} = $self->$resource;
+            }
+        }
+    }
+    
+    # Take requested resources
+    foreach my $resource (keys %resources_requested) {
+        given ($resource) {
+            when ([qw(ore food)]) {
+                my $quantity_stored = $resources_stored{$resource} // 0;
+                my $resource_percentage = $resources_requested{$resource} / $quantity_stored;
+                no strict 'refs';
+                my @resource_sub = &{$_.'_types'}();
+                foreach my $resource_sub (@resource_sub) {
+                    next
+                        unless defined $resources_stored{$resource_sub};
+                    $resources_take->($resource_sub,int($resource_percentage * $resources_stored{$resource_sub} + 0.5 // 0));
                 }
+            }
+            default {
+                $resources_take->($resource,$resources_requested{$resource});
             }
         }
     }
