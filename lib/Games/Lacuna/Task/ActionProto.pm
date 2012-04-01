@@ -117,6 +117,8 @@ sub _usage_attributes {
         push(@attributes,[$attribute_name,$attribute->documentation]);
     }
     
+    @attributes = sort { $a->[0] cmp $b->[0] } @attributes;
+    
     return _format_list(@attributes);
 }
 
