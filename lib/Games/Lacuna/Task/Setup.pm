@@ -47,6 +47,8 @@ sub run {
             if $task_class->meta->can('no_automatic')
             && $task_class->meta->no_automatic;
         
+        my $task_name = class_to_name($task_class);
+        
         $self->saycolor("magenta bold",$task_name);
         say $task_class->description;
         if ($self->readline("Select task (y/n):",qr/^[yn]$/i) =~ /^[yY]$/) {
