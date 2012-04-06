@@ -27,15 +27,11 @@ sub run {
         $ARGV[0] = '--help'
             if defined $ARGV[0] && $ARGV[0] eq 'help';
         
-        my $ok = Class::Load::is_class_loaded($task_class);
-#        try {
-#            Class::MOP::load_class($task_class);
-#        } catch {
-#            $self->log('error',"Could not load task %s: %s",$task_name,$_);
-#            $ok = 0;
-#        };
+        my ($ok,$error) = $self->load_action($task_class);
         
-        if ($ok) {
+        if (! $ok) {
+            $self->log('error',$error);
+        } else {
             my $configdir;
             my $loglevel;
             my $help;
@@ -162,14 +158,17 @@ sub global_usage {
     my @commands;
     push(@commands,['help','Prints this usage information']);
     
-    foreach my $class ($self->all_actions()) {
-        my $command = class_to_name($class);
-        my $meta = $class->meta;
-        my $description = $class->description;
+    foreach my $task_class ($self->all_actions()) {
+        my ($ok,$error) = $self->load_action($task_class);
+        next
+            unless $ok;
+        my $task_command = class_to_name($task_class);
+        my $meta = $task_class->meta;
+        my $description = $task_class->description;
         my $no_automatic = $meta->can('no_automatic') ? $meta->no_automatic : 0;
         $description .= " [Manual]"
             if $no_automatic;
-        push(@commands,[$command,$description]);
+        push(@commands,[$task_command,$description]);
     }
     
     @commands = sort { $a->[0] cmp $b->[0] } @commands;

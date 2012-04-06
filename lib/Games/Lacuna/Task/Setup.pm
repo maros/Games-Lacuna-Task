@@ -39,8 +39,10 @@ sub run {
     
     my %selected_tasks;
     foreach my $task_class (sort $self->all_actions) {
-        my $task_name = class_to_name($task_class);
+        my ($ok,$error) = $self->load_action($task_class);
         
+        next
+            unless $ok;
         next
             if $task_class->meta->can('no_automatic')
             && $task_class->meta->no_automatic;

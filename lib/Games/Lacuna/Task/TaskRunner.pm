@@ -53,16 +53,22 @@ sub run {
         if (defined $global_config->{exclude}
         && ! $self->has_exclude);
     
-    my @tasks;
+    my (@tasks,@tmp_tasks);
     if (! $self->has_task
         || 'all' ~~ $self->task) {
-        @tasks = $self->all_actions;
+        @tmp_tasks = $self->all_actions;
     } else {
         foreach my $action_class ($self->all_actions) {
             my $action_name = class_to_name($action_class);
-            push(@tasks,$action_class)
+            push(@tmp_tasks,$action_class)
                 if $action_name ~~ $self->task;
         }
+    }
+    
+    foreach my $task_class (@tmp_tasks) {
+        my ($ok,$error) = $self->load_action($task_class);
+        push(@tasks,$task_class)
+            if ($ok);   
     }
     
     # Loop all tasks

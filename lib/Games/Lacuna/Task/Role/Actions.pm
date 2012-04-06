@@ -4,6 +4,7 @@ use 5.010;
 use Moose::Role;
 
 use Class::Load qw();
+use Games::Lacuna::Task::Utils qw(class_to_name);
 
 use Module::Pluggable 
     search_path => ['Games::Lacuna::Task::Action'],
@@ -11,29 +12,32 @@ use Module::Pluggable
 
 our @ALL_ACTIONS;
 
+sub load_action {
+    my ($self,$action_class) = @_;
+    
+    my $action_name = class_to_name($action_class);
+    
+    my ($ok,$error) = Class::Load::try_load_class($action_class);
+       
+    if (! $ok) {
+        return (0,sprintf("Could not load task '%s': %s",$action_name,$error));
+    }
+    
+    my $action_class_meta = $action_class->meta;
+    if ($action_class_meta->can('deprecated')) {
+        return (0,sprintf("Task '%s' is deprecated",$action_name));
+    }
+    
+    return (1,undef);
+}
+
 sub all_actions {
     my ($self) = @_;
     
     return @ALL_ACTIONS
         if scalar @ALL_ACTIONS;
     
-    foreach my $action_class (_all_actions()) {
-        my ($ok,$error) = Class::Load::try_load_class($action_class);
-        
-        unless ($ok) {
-            $error =~ s/\n\n/\n/g;
-            die "Could not load action class $action_class\n$error";
-        } else {
-            my $meta_action_class = $action_class->meta;
-            
-            next
-                if $meta_action_class->can('deprecated')
-                && $meta_action_class->deprecated;
-            
-            push(@ALL_ACTIONS,$action_class);
-        }
-    }
-    
+    @ALL_ACTIONS = _all_actions();
     return @ALL_ACTIONS;
 }
 
