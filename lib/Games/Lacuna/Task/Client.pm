@@ -459,7 +459,7 @@ Games::Lacuna::Task::Client - Client class
 
 =head1 DESCRIPTION
 
-Implements basic cacheing and the connection to the lacuna API.
+Implements basic caching and the connection to the lacuna API.
 
 =head1 ACCESSORS
 
@@ -471,9 +471,9 @@ L<Games::Lacuna::Client> object
 
 L<Games::Lacuna::Task> config directory
 
-=head3 configdir
+=head3 storage
 
-DBI connection to the cacheing database.
+Access to the caching database via L<Games::Lacuna::Storage>
 
 =head3 config
 
@@ -491,6 +491,10 @@ Simple Stash for storing various temporary values.
 
 Calculates the config for a given task
 
+=head2 empire_name 
+
+Returns the current empire name
+
 =head2 get_cache
 
  my $value = $self->get_cache('key1');
@@ -506,14 +510,14 @@ Remove an entry from the cache.
 
 =head2 set_cache
 
- $self->clear_cache(
+ $self->set_cache(
     max_age     => $valid_seconds,  # optional
     valid_until => $timestamp,      # optional, either max_age or valid_until
     key         => 'key1',          # required
     value       => $some_data       # required
  );
 
-Stores an arbitrary data structure (no objects) in a presistant cache
+Stores an arbitrary data structure (no objects) in a persistent cache
 
 =head3 request
 

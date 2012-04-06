@@ -6,9 +6,12 @@ HOWTO for the Games::Lacuna::Task automation framework
 
 =head1 USERS
 
-After installing Games::Lacuna::Task you need to create a configuration file 
-called config.yml in the lacuna directory (Defaults to ~/.lacuna).
-The file should have the following format:
+After installing Games::Lacuna::Task you need to run C<lacuna_task> once. 
+The programm will guide your through the installation process. After the setup
+is finished you will find a basic configuration file called config.yml in the 
+lacuna directory (Defaults to ~/.lacuna).
+
+The config should have the following format:
 
  ---
  connect: 
@@ -42,9 +45,9 @@ To see which tasks are available type C<lacuna_run help>.
 To see options for a specific task type C<lacuna_run TASK --help>.
 
 Once you have a working setup you can start either the C<lacuna_run> or the 
-C<lacuna_task> script. Configure cron to run these tasks regularly. Eg.g
+C<lacuna_task> script. Configure cron to run these tasks regularly. Eg.
 
-    # Run default tasks every hour
+    # Run all default tasks every hour
     0   *    *    *    *     lacuna_task
     # Collect excavator booty once daily
     10  8    *    *    *     lacuna_run collect_excavator_booty
@@ -72,7 +75,7 @@ Accessors should have a documentation string and meaningfull defaults. You
 can add the 'NoGetopt' trait if you do not want to display an accessor in the 
 task info.
 
-Optionall you can set the 'NoAutomatic' class trait, indication that this task
+Optionall you can set the 'NoAutomatic' class trait, indicating that this task
 should not be run automatically/unatented but requires som sort of
 extra input or human interaction.
 
@@ -142,9 +145,15 @@ Tasks can also be called/embedded/executed directly
 
 =head1 INSTALLING
 
-Fetch from github.com
+=head2 From cpan
 
- git://github.com/maros/Games-Lacuna-Task.git
+ # Install cpanmius first (also available as package for debian, fedora, ...)
+ curl -L http://cpanmin.us | perl - App::cpanminus
+ cpanm Games-Lacuna-Task
+
+=head2 From github.com
+
+ git clone git://github.com/maros/Games-Lacuna-Task.git
  cd Games-Lacuna-Task
 
 Then continue by typing
@@ -158,7 +167,7 @@ Then continue by typing
 
 Alternatively you can install missing dependencies via cpanminus:
  
- # Install cpanmius (also available as packages for debian, fedora, ...)
+ # Install cpanmius first (also available as package for debian, fedora, ...)
  curl -L http://cpanmin.us | perl - App::cpanminus
  # Install dependencies via cpanminus
  cpanm --installdeps .
