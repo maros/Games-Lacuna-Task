@@ -28,6 +28,9 @@ lib/Games/Lacuna/Task/Action/SendSpy.pm
 lib/Games/Lacuna/Task/Action/ShipDispatch.pm
 lib/Games/Lacuna/Task/Action/ShipUpdate.pm
 lib/Games/Lacuna/Task/Action/Spy.pm
+lib/Games/Lacuna/Task/Action/SpyFetch.pm
+lib/Games/Lacuna/Task/Action/SpySend.pm
+lib/Games/Lacuna/Task/Action/SpyTraining.pm
 lib/Games/Lacuna/Task/Action/StarCacheBuild.pm
 lib/Games/Lacuna/Task/Action/StarCacheExport.pm
 lib/Games/Lacuna/Task/Action/StarCacheReport.pm
