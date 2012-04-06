@@ -39,6 +39,12 @@ sub BUILD {
     my $lockcounter = 0;
     my $lockfile = $self->lockfile;
     
+    # Check for configdir
+    unless (-e $self->configdir) {
+        $self->log('notice','Creating Games-Lacuna-Task config directory at %s',$self->configdir);
+        $self->configdir->mkpath();
+    }
+    
     # Check for lockfile
     while (-e $lockfile) {
         my ($pid) = $lockfile->slurp(chomp => 1);
