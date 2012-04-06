@@ -26,7 +26,7 @@ sub run {
     my $empire_name = $self->readline("Empire name:",qr/.+/);
     $self->sayline();
     
-    $self->saycolor("bold cyan","Enter your empire passwort (preferably your sitter passwort)");
+    $self->saycolor("bold cyan","Enter your empire password (preferably your sitter passwort)");
     my $empire_password = $self->readline("Password:",qr/.+/);
     $self->sayline();
     
