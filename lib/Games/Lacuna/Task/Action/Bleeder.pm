@@ -8,7 +8,7 @@ with qw(Games::Lacuna::Task::Role::Notify
     Games::Lacuna::Task::Role::PlanetRun);
 
 sub description {
-    return q[This task reports deployed bleeders];
+    return q[Report deployed bleeders];
 }
 
 has 'known_bleeder' => (

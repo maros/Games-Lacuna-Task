@@ -12,7 +12,7 @@ use List::Util qw(sum);
 use Games::Lacuna::Client::Types qw(ore_types);
 
 sub description {
-    return q[This task automates the deployment of mining platforms on asteroids];
+    return q[Deploy mining platforms to best available asteroids];
 }
 
 sub process_planet {

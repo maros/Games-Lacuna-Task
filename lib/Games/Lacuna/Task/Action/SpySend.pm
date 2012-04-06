@@ -31,7 +31,7 @@ has 'best_spy' => (
 );
 
 sub description {
-    return q[Send a spy to another planet];
+    return q[Send spies to another planet];
 }
 
 sub run {

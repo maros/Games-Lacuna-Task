@@ -10,7 +10,7 @@ with qw(Games::Lacuna::Task::Role::Notify
 use Games::Lacuna::Task::Utils qw(parse_date format_date);
 
 sub description {
-    return q[This task reports incoming foreign ships];
+    return q[Report incoming foreign ships];
 }
 
 has 'known_incoming' => (

@@ -31,7 +31,7 @@ has '_planet_attack' => (
 );
 
 sub description {
-    return q[Defend against enemy attacks];
+    return q[Defend against enemy attacks by dispatching fighters and sweepers];
 }
 
 after 'run' => sub {

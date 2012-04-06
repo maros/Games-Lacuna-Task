@@ -8,7 +8,7 @@ with qw(Games::Lacuna::Task::Role::PlanetRun
     Games::Lacuna::Task::Role::Stars);
 
 sub description {
-    return q[Checks for duplicate probes];
+    return q[Check for duplicate probes];
 }
 
 has 'optimize_alliance' => (

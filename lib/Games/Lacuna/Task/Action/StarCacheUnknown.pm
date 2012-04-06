@@ -9,7 +9,7 @@ with qw(Games::Lacuna::Task::Role::Stars);
 use List::Util qw(min);
 
 sub description {
-    return q[This task builds the star cache for all solar systems which have not been checked yet];
+    return q[Builds the star cache for all solar systems which have not been checked yet];
 }
 
 has 'coordinate' => (

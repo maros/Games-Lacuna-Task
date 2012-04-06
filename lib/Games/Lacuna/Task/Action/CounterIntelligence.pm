@@ -12,7 +12,7 @@ use List::Util qw(min);
 use Games::Lacuna::Task::Utils qw(parse_date);
 
 sub description {
-    return q[Manage counter intelligence activities];
+    return q[Manage counter intelligence activities (not working due to captcha)];
 }
 
 sub process_planet {

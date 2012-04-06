@@ -15,7 +15,7 @@ has 'spy_count' => (
 );
 
 sub description {
-    return q[Fetch spies from other planets];
+    return q[Fetch spies from enemy planets];
 }
 
 sub run {

@@ -10,7 +10,7 @@ with qw(Games::Lacuna::Task::Role::Stars
     Games::Lacuna::Task::Role::RPCLimit);
 
 sub description {
-    return q[This task automates probing of stars];
+    return q[Explore solar systems in your vincity];
 }
 
 before 'run' => sub {

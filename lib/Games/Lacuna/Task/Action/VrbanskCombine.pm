@@ -25,7 +25,7 @@ has 'keep_gylphs' => (
 );
 
 sub description {
-    return q[This task automates the combination of glyphs to build Halls of Vrbansk];
+    return q[Cobine glyphs to get Halls of Vrbansk plans];
 }
 
 sub process_planet {

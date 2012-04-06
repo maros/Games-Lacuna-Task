@@ -11,7 +11,7 @@ with 'Games::Lacuna::Task::Role::Waste',
 use List::Util qw(min);
 
 sub description {
-    return q[This task maintains minimum waste levels for waste recycling buildings];
+    return q[Maintain minimum waste levels for waste recycling buildings];
 }
 
 sub process_planet {

@@ -18,7 +18,7 @@ our @WASTE_MONUMENTS = (
 );
 
 sub description {
-    return q[This task automates the building and demoltion of waste monuments];
+    return q[Demolish and rebuild waste monuments];
 }
 
 sub process_planet {

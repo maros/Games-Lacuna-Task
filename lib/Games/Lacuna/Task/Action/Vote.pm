@@ -12,7 +12,7 @@ has 'accept_proposition' => (
     isa             => 'RegexpRef',
     is              => 'rw',
     required        => 1,
-    documentation   => 'Propositions matching this regexps should accepted',
+    documentation   => 'Propositions matching this regexp should accepted',
     default         => sub { qr/^( 
         (Upgrade|Install) \s $NAME_RE
         |
@@ -32,12 +32,12 @@ has 'reject_proposition' => (
     isa             => 'RegexpRef',
     is              => 'rw',
     required        => 1,
-    documentation   => 'Propositions matching this regexps should be rejected',
+    documentation   => 'Propositions matching this regexp should be rejected',
     default         => sub { qr//xi },
 );
 
 sub description {
-    return q[This task automates parliament voting];
+    return q[Parliament voting based on rules];
 }
 
 sub run {

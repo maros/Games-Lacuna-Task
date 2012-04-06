@@ -72,7 +72,7 @@ has 'upgrade_buildings' => (
 );
 
 sub description {
-    return q[This task automates advanced upgrading of buildings if the build queue is empty];
+    return q[Upgrade buildings if the build queue is empty];
 }
 
 sub process_planet {

@@ -7,7 +7,7 @@ extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun);
 
 sub description {
-    return q[This task automates the repair of damaged buildings];
+    return q[Repair damaged buildings];
 }
 
 sub process_planet {

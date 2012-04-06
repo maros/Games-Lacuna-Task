@@ -79,7 +79,7 @@ has 'min_items' => (
 
 
 sub description {
-    return q[This task ships excavator booty to a selected planet];
+    return q[Ship excavator booty to a selected planet];
 }
 
 sub process_planet {

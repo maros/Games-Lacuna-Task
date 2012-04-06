@@ -46,7 +46,7 @@ has 'excavated_bodies' => (
 );
 
 sub description {
-    return q[This task automates building and dispatching of excavators];
+    return q[Building and dispatch excavators to best suited bodies];
 }
 
 sub process_planet {}

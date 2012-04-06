@@ -42,7 +42,7 @@ has 'output' => (
 );
 
 sub description {
-    return q[This task generates an informative empire status report];
+    return q[Generate an informative empire status report];
 }
 
 sub run {

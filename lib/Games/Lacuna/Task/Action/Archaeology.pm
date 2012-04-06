@@ -11,7 +11,7 @@ use Games::Lacuna::Client::Types qw(ore_types);
 use Games::Lacuna::Task::Utils qw(parse_date);
 
 sub description {
-    return q[This task automates the search for glyphs via Archaeology Ministry];
+    return q[Search for glyphs via Archaeology Ministry];
 }
 
 sub all_glyphs {

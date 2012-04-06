@@ -11,7 +11,7 @@ use Games::Lacuna::Task::Utils qw(normalize_name parse_date);
 our $MAX_EMPIRE_CACHE_TIME = 60 * 60 * 24 * 31 * 3;
 
 sub description {
-    return q[Fill empire info cache];
+    return q[Build the empire info cache];
 }
 
 sub run {

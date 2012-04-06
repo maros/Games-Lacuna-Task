@@ -56,7 +56,7 @@ has 'threshold' => (
 );
 
 sub description {
-    return q[Keep fleet up to date by building new ships and scuttling old ones. Use in conjunction with ship_dispatch];
+    return q[Keep fleet up to date by building new ships and scuttling old ones. Best used in conjunction with ship_dispatch];
 }
 
 sub run {

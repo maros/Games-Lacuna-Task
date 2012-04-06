@@ -9,7 +9,7 @@ with 'Games::Lacuna::Task::Role::Waste',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage','keep_waste_hours'] };
 
 sub description {
-    return q[This task automates the disposal of overflowing waste with scows];
+    return q[Dispose overflowing waste with scows];
 }
 
 sub process_planet {
