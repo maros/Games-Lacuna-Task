@@ -1,4 +1,4 @@
-package Games::Lacuna::Task::Action::FetchSpy;
+package Games::Lacuna::Task::Action::SpyFetch;
 
 use 5.010;
 

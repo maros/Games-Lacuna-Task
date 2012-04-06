@@ -1,4 +1,4 @@
-package Games::Lacuna::Task::Action::Spy;
+package Games::Lacuna::Task::Action::SpyTraining;
 
 use 5.010;
 

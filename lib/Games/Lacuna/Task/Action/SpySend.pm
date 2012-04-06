@@ -1,4 +1,4 @@
-package Games::Lacuna::Task::Action::SendSpy;
+package Games::Lacuna::Task::Action::SpySend;
 
 use 5.010;
 
