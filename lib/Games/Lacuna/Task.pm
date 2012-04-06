@@ -125,6 +125,9 @@ Games::Lacuna::Task uses a yaml configuration file which is loaded from the
 database directory (defaults to ~/.lacuna). The filename should be config.yml
 or lacuna.yml.
 
+If you run C<lacuna_task> for the first time the programm will guide you 
+through the setup process and create a basic config file.
+
 Example config.yml
 
  ---
