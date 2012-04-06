@@ -1,5 +1,19 @@
 Changes for Game-Lacuna-Task
 
+2.03 Fri, Apr 06, 2012
+    * New resources push action
+    * New upgrade fleet action
+    * New excavator action
+    * Rename some actions
+    * Cache empire info and add action to query this cache
+    * Star cache helper actions
+    * Better API exception handling
+    * Refactor ship helper role
+    * Refactor base classes and how actions are loaded
+    * Refactor storage logic to separate class
+    * Better documentation
+    * Many bugfixes
+
 2.01 Fri, Jan 13, 2012
     * Incompatible database changes: Distinguish between probed (currently 
       probed by empire or alliance) and known solar systems (body data 
