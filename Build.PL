@@ -21,7 +21,7 @@ my $build = Module::Build->new(
 
         'Module::Pluggable'             => 0,
 
-        'Games::Lacuna::Client'         => 0,
+        'Games::Lacuna::Client'         => '0.003',
 
         'DBI'                           => 0,
         'DBD::SQLite'                   => 0,
