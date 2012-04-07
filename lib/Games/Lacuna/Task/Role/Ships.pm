@@ -1,6 +1,8 @@
 package Games::Lacuna::Task::Role::Ships;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
+
 use Moose::Role;
 
 use List::Util qw(min sum max first);

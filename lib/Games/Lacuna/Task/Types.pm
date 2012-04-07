@@ -1,7 +1,10 @@
 package Games::Lacuna::Task::Types;
 
+use 5.010;
 use strict;
 use warnings;
+our $VERSION = $Games::Lacuna::Task::VERSION;
+
 
 use Games::Lacuna::Client::Types qw(ore_types food_types);
 

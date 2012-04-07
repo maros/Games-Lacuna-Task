@@ -1,6 +1,7 @@
 package Games::Lacuna::Task::Action::VrbanskBuild;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose -traits => 'NoAutomatic';
 extends qw(Games::Lacuna::Task::Action);

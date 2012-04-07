@@ -1,6 +1,8 @@
 package Games::Lacuna::Task::Role::Captcha;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
+
 use Moose::Role;
 
 use IO::Interactive qw(is_interactive);

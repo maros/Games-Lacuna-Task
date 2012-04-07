@@ -3,6 +3,8 @@ package Games::Lacuna::Task::Utils;
 use strict;
 use warnings;
 
+our $VERSION = $Games::Lacuna::Task::VERSION;
+
 use Unicode::Normalize qw(decompose);
 use Scalar::Util qw(blessed);
 use Time::Local qw(timegm);

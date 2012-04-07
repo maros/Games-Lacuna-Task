@@ -1,6 +1,7 @@
 package Games::Lacuna::Task::Storage;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose;
 with qw(Games::Lacuna::Task::Role::Logger);

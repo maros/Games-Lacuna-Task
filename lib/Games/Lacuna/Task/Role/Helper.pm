@@ -2,6 +2,7 @@ package Games::Lacuna::Task::Role::Helper;
 
 use utf8;
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose::Role;
 

@@ -1,8 +1,10 @@
 package Games::Lacuna::Task::Report::Fleet;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose::Role;
+
 use List::Util qw(max min);
 
 sub report_fleet {

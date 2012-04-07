@@ -1,8 +1,10 @@
 package Games::Lacuna::Task::Report::Glyph;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose::Role;
+
 use Games::Lacuna::Client::Types qw(ore_types);
 
 sub report_glyph {

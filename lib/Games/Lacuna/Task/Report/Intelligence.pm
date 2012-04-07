@@ -1,6 +1,7 @@
 package Games::Lacuna::Task::Report::Intelligence;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose::Role;
 with qw(Games::Lacuna::Task::Role::Intelligence

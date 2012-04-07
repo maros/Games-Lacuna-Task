@@ -1,8 +1,9 @@
 # ============================================================================
 package Games::Lacuna::Task::Meta::Class::Trait::Deprecated;
 # ============================================================================
-use utf8;
-use 5.0100;
+
+use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose::Role;
 

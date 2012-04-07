@@ -1,6 +1,8 @@
 package Games::Lacuna::Task::Role::Intelligence;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
+
 use Moose::Role;
 
 sub assigned_to_type {

@@ -1,6 +1,7 @@
 package Games::Lacuna::Task::Table;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose;
 use Text::Table;

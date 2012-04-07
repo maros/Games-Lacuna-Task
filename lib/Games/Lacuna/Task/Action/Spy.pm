@@ -1,6 +1,7 @@
 package Games::Lacuna::Task::Action::Spy;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose  -traits => 'Deprecated';
 extends qw(Games::Lacuna::Task::Action);

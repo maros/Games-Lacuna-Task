@@ -1,8 +1,7 @@
 package Games::Lacuna::Task::Action::Excavate;
 
 use 5.010;
-
-use List::Util qw(sum);
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
@@ -10,6 +9,7 @@ with qw(Games::Lacuna::Task::Role::Stars
     Games::Lacuna::Task::Role::Ships
     Games::Lacuna::Task::Role::PlanetRun);
 
+use List::Util qw(sum);
 use Games::Lacuna::Client::Types qw(ore_types);
 
 has 'min_ore' => (

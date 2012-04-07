@@ -1,6 +1,8 @@
 package Games::Lacuna::Task::Role::Notify;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
+
 use Moose::Role;
 
 use Email::Stuff;

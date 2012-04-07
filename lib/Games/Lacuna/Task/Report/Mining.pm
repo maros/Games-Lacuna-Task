@@ -1,8 +1,10 @@
 package Games::Lacuna::Task::Report::Mining;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose::Role;
+
 use Games::Lacuna::Client::Types qw(ore_types);
 use List::Util qw(min max);
 

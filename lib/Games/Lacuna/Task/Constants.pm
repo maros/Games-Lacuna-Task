@@ -2,6 +2,8 @@ package Games::Lacuna::Task::Constants;
 
 use strict;
 use warnings;
+use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 # do not change order
 our @RESOURCES = qw(water ore energy food);

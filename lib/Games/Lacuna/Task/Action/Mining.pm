@@ -1,6 +1,7 @@
 package Games::Lacuna::Task::Action::Mining;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);

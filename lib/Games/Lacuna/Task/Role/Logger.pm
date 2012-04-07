@@ -1,6 +1,8 @@
 package Games::Lacuna::Task::Role::Logger;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
+
 use Moose::Role;
 
 use Games::Lacuna::Task::Utils qw(pretty_dump format_date);

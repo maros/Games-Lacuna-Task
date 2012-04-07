@@ -1,6 +1,8 @@
 package Games::Lacuna::Task::Role::CommonAttributes;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
+
 use MooseX::Role::Parameterized;
 
 parameter 'attributes' => (

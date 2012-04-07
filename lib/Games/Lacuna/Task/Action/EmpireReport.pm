@@ -1,6 +1,7 @@
 package Games::Lacuna::Task::Action::EmpireReport;
 
 use 5.010;
+our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Module::Pluggable 
     search_path => ['Games::Lacuna::Task::Report'],
