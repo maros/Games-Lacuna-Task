@@ -85,6 +85,8 @@ sub run {
             }
         }
     }
+    
+    return;
 }
 
 
@@ -151,6 +153,8 @@ short description:
 options:
 $options
 USAGE_ACTION
+
+    return;
 }
 
 sub global_usage {
@@ -186,6 +190,8 @@ $global_options
 available commands:
 $available_commands
 USAGE
+
+    return;
 }
 
 sub _format_list {

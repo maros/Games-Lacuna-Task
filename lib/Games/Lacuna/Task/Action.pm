@@ -44,12 +44,14 @@ sub execute {
         $self->log('error',"An error occured while processing action %s: %s",$command_name,$_);
     };
     
+    return;
 }
 
 sub run {
     my ($self) = @_;
     
-    $self->abort('Abstract method <run> called in %s',__PACKAGE__)
+    $self->abort('Abstract method <run> called in %s',__PACKAGE__);
+    return;
 }
 
 __PACKAGE__->meta->make_immutable;

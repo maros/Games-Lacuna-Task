@@ -423,6 +423,7 @@ no Moose::Role;
 1;
 
 =encoding utf8
+
 =head1 NAME
 
 Games::Lacuna::Task::Role::Ships - Helper methods for fetching and building ships

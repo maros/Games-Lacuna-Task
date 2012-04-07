@@ -59,6 +59,8 @@ sub BUILD {
     my $lockfh = $lockfile->openw();
     print $lockfh $$;
     $lockfh->close;
+    
+    return $self;
 }
 
 sub DEMOLISH {
@@ -66,6 +68,7 @@ sub DEMOLISH {
     
     $self->lockfile->remove
         if -e $self->lockfile;
+    return;
 }
 
 
