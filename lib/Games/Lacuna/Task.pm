@@ -4,7 +4,7 @@ package Games::Lacuna::Task;
 
 use 5.010;
 our $AUTHORITY = 'cpan:MAROS';
-our $VERSION = "2.03";
+our $VERSION = "2.04";
 
 use Moose;
 
