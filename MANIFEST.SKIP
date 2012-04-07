@@ -54,4 +54,5 @@ meta/
 ^MYMETA\.json$
 ^MYMETA\.yml$
 
+xt/
 Games-Lacuna-Task-\d.\d\d.tar.gz$
