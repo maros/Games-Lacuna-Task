@@ -109,7 +109,7 @@ Games::Lacuna::Task::Role::Waste - Waste helper methods
 
 This role provides helper method to work with waste diposal
 
-=head METHODS
+=head1 METHODS
 
 =head2 disposeable_waste
 

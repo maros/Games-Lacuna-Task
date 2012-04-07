@@ -119,7 +119,7 @@ the Lacuna Expanse MMPOG. It provides
 
 =back
 
-=head CONFIGURATION
+=head1 CONFIGURATION
 
 Games::Lacuna::Task uses a yaml configuration file which is loaded from the
 database directory (defaults to ~/.lacuna). The filename should be config.yml

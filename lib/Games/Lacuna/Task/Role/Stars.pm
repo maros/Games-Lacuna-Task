@@ -774,7 +774,7 @@ Valid search options are
 
 =item * distance (1 = ascending, 0 = descending)
 
-=iten * zone
+=item * zone
 
 =item * x,y (refernce coordinates for distance calculations)
 
