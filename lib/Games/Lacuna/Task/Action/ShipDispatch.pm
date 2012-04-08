@@ -71,7 +71,7 @@ sub process_planet {
         }
         
         # Scuttle
-        if ( $ship->{name} =~ m/\b(scuttle|demolish)\b/i) {
+        if ( $ship->{name} =~ m/\b scuttle \b/ix) {
             $self->log('notice','Scuttling ship %s on %s',$ship->{name},$planet_stats->{name});
             
             $self->request(

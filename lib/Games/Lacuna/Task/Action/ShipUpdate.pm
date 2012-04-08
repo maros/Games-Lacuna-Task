@@ -102,7 +102,7 @@ sub process_planet {
         $ship_type =~ s/\d$//;
         
         next
-            if $ship->{name} =~ m/\bScuttle\b/i;
+            if $ship->{name} =~ m/\b scuttle \b/ix;
         next
             unless $ship_type ~~ $self->handle_ships;
         next

@@ -19,14 +19,15 @@ sub name_ship {
     my $ship = $params{ship};
     
     my ($old_name,$old_prefix,$old_ignore);
-    $old_name = $ship->{name};
+    $ship->{name} ||= $ship->{type_human};
+    $old_name = $ship->{name} ;
     if ($old_name =~ s/!//g) {
         $old_ignore = 1;
     } else {
         $old_ignore = 0;
     }
 
-    if ($old_name =~ /^([^:]+):(.+)/) {
+    if ($old_name =~ m/^([^:]+):(.+)$/) {
         $old_prefix = $1;
         $old_name = $2;
     }
@@ -54,8 +55,9 @@ sub name_ship {
     $new_name .= '!'
         if $ignore;
     
+    
     if ($new_name ne $ship->{name}) {
-        $self->log('notice',"Renaming ship from %s to %s",$name,$new_name);
+        $self->log('notice',"Renaming ship from '%s' to '%s'",$ship->{name},$new_name);
         $self->request(
             object  => $spaceport,
             method  => 'name_ship',
