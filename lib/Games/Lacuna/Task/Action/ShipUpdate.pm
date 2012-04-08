@@ -156,14 +156,11 @@ sub process_planet {
         
         for (1..$new_building) {
             my $old_ship = pop(@{$old_ships});
-            
-            next
-                if $old_ship->{name} =~ /\bScuttle\b/i;
-            
-            $self->request(
-                object  => $spaceport_object,
-                method  => 'name_ship',
-                params  => [$old_ship->{id},$old_ship->{name}.' Scuttle!'],
+            $self->name_ship(
+                spaceport   => $spaceport_object,
+                ship        => $old_ship,
+                prefix      => 'Scuttle',
+                ignore      => 1,
             );
         }
         
@@ -219,7 +216,7 @@ sub _build_best_planets {
             };
         }
         
-        $self->log('info',"Best %s can be buildt at %s",$self->my_body_status($planet_id)->{name});
+        $self->log('info',"Best %s can be buildt at %s",$best_ship,$self->my_body_status($planet_id)->{name});
     }
     
     return $best_planets;

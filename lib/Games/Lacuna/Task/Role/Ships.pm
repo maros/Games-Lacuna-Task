@@ -9,6 +9,61 @@ use List::Util qw(min sum max first);
 use Games::Lacuna::Task::Utils qw(parse_ship_type);
 use Games::Lacuna::Client::Types qw(ship_tags);
 
+sub name_ship {
+    my ($self, %params) = @_;
+    
+    my $spaceport = $params{spaceport};
+    my $name = $params{name};
+    my $ignore = $params{ignore};
+    my $prefix = $params{prefix};
+    my $ship = $params{ship};
+    
+    my ($old_name,$old_prefix,$old_ignore);
+    $old_name = $ship->{name};
+    if ($old_name =~ s/!//g) {
+        $old_ignore = 1;
+    } else {
+        $old_ignore = 0;
+    }
+
+    if ($old_name =~ /^([^:]+):(.+)/) {
+        $old_prefix = $1;
+        $old_name = $2;
+    }
+    
+    $prefix ||= $old_prefix; # not defined or!
+    $ignore //= $old_ignore;
+    $name //= $old_name;
+    
+    # Normalize name
+    $prefix = Games::Lacuna::Task::Utils::clean_name($prefix);
+    $name = Games::Lacuna::Task::Utils::clean_name($name);
+    
+    # Get max name length
+    my $max_length = 30;
+    $max_length -= 1
+        if $ignore;
+    $max_length -= ( 1 + length($prefix))
+        if $prefix; 
+    
+    # Build new name
+    my $new_name = '';
+    $new_name .= $prefix.':'
+        if defined $prefix;
+    $new_name .= substr($name,0,$max_length);
+    $new_name .= '!'
+        if $ignore;
+    
+    if ($new_name ne $ship->{name}) {
+        $self->log('notice',"Renaming ship from %s to %s",$name,$new_name);
+        $self->request(
+            object  => $spaceport,
+            method  => 'name_ship',
+            params  => [$ship->{id},$new_name],
+        );
+    }
+}
+
 sub push_ships {
     my ($self,$form_id,$to_id,$ships) = @_;
     
@@ -17,7 +72,9 @@ sub push_ships {
     my $target_spaceport_object = $self->get_building_object($to_id,'SpacePort');
     
     return 0
-        unless $trade_object && $spaceport_object && $target_spaceport_object;
+        unless $trade_object 
+        && $spaceport_object 
+        && $target_spaceport_object;
     
     my $docks_available = $self->request(
         object  => $target_spaceport_object,
@@ -27,66 +84,87 @@ sub push_ships {
     if (scalar @{$ships} > $docks_available) {
         $ships = [ @{$ships}[0..$docks_available-1] ];
     }
-
-    my $trade_cargo = scalar(@{$ships}) * $Games::Lacuna::Task::Constants::CARGO{ship};
     
-    my @cargo;
-    my $send_with_ship_id;
-    my $send_ship_stay = 0;
-    
-    foreach my $ship (sort { $b->{speed} <=> $a->{speed} }  @{$ships}) {
-        if ($ship->{type} ~~ [qw(galleon hulk cargo freighter hulk smuggler)]
-            && $ship->{hold_size} >= ($trade_cargo - $Games::Lacuna::Task::Constants::CARGO{ship})
-            && ! defined $send_with_ship_id) {
-            $send_with_ship_id =  $ship->{id};
-            $send_ship_stay = 1;
+    # Loop all ships
+    my (@cargo_ships,@other_ships);
+    foreach my $ship (@{$ships}) {
+        if ($ship->{type} ~~ [qw(galleon hulk cargo freighter hulk smuggler barge dory)]) {
+            push(@cargo_ships,$ship);
         } else {
+            push(@other_ships,$ship);
+        }
+        
+        $self->name_ship(
+            spaceport   => $spaceport_object,
+            ship        => $ship,
+            ignore      => 0
+        );
+    }
+    
+    # Loop all cargo ships to be sent
+    foreach my $cargo_ship (sort { $b->{speed} <=> $a->{speed} } @cargo_ships) {
+        my $available_hold_size = $cargo_ship->{hold_size};
+        my @cargo;
+        
+        while (scalar @other_ships
+            && $available_hold_size >= $Games::Lacuna::Task::Constants::CARGO{ship}) {
+            my $ship = shift @other_ships;
             push (@cargo,{
                 "type"      => "ship",
                 "ship_id"   => $ship->{id},
             });
+            $available_hold_size -= $Games::Lacuna::Task::Constants::CARGO{ship}
         }
+        
+        # Add minimum cargo
+        push(@cargo,{
+            "type"      => "water",
+            "quantity"  => 1,
+        }) unless scalar(@cargo);
+        
+        $self->request(
+            object  => $trade_object,
+            method  => 'push_items',
+            params  => [ 
+                $to_id, 
+                \@cargo, 
+                { 
+                    ship_id => $cargo_ship->{id},
+                    stay    => 1,
+                } 
+            ]
+        );
     }
-    
-    # Get trade ship
-    $send_with_ship_id ||= $self->trade_ships($form_id,$trade_cargo);
-    
-    return
-        unless $send_with_ship_id;
 
-    # Add minimum cargo
-    push(@cargo,{
-        "type"      => "water",
-        "quantity"  => 1,
-    }) unless scalar(@cargo);
-
-    # Rename ships
-    foreach my $ship (@{$ships}) {
-        my $name = $ship->{name};
+    # We have non-cargo ships left
+    if (scalar @other_ships) {
+        my @cargo;
+        foreach my $other_ship (@other_ships) {
+            push(@cargo,{
+                type    => 'ship',
+                ship_id => $other_ship->{id},
+            });
+        }
         
-        # Replace one exclamation mark
-        $name =~ s/!//;
+        my $trade_ships = $self->trade_ships($form_id,\@cargo);
         
-        if ($name ne $ship->{name}) {
+        foreach my $ship_id (keys %{$trade_ships}) {
             $self->request(
-                object  => $spaceport_object,
-                method  => 'name_ship',
-                params  => [$ship->{id},$name],
+                object  => $trade_object,
+                method  => 'push_items',
+                params  => [ 
+                    $to_id, 
+                    $trade_ships->{$ship_id}, 
+                    { 
+                        ship_id => $ship_id,
+                        stay    => 0,
+                    } 
+                ]
             );
         }
-    }
+    } 
     
-    my $response = $self->request(
-        object  => $trade_object,
-        method  => 'push_items',
-        params  => [ $to_id, \@cargo, { 
-            ship_id => $send_with_ship_id,
-            stay    => $send_ship_stay,
-        } ]
-    );
-    
-
-    return scalar(@{$ships});
+    return;
 }
 
 sub trade_ships {
@@ -97,21 +175,71 @@ sub trade_ships {
         unless defined $trade;
     my $trade_object = $self->build_object($trade);
     
+    # Calculate cargo capacity
+    my $required_hold_size = 0;
+    foreach my $position (@$cargo) {
+        $position->{hold_size_per_item} = $Games::Lacuna::Task::Constants::CARGO{$position->{type}}; 
+        $position->{quantity} //= 1;
+        $required_hold_size += $position->{hold_size_per_item} * $position->{quantity};
+    }
+    
+    # Get all trade ships
     my $trade_ships = $self->request(
         object  => $trade_object,
         method  => 'get_trade_ships',
     )->{ships};
     
-    TRADE_SHIP:
-    foreach my $ship (sort { $b->{speed} <=> $a->{speed} } @{$trade_ships}) {
-        next TRADE_SHIP
-            if $ship->{hold_size} < $cargo;
-        next TRADE_SHIP
-            if $ship->{name} =~ m/\!/;
-        return $ship->{id};
+    # Get max hold size
+    my $max_hold_size = max map { $_->{hold_size} } @{$trade_ships};
+    
+    my $return = {};
+    
+    # One cargo ship is enough
+    if ($max_hold_size > $required_hold_size) {
+        foreach my $cargo_ship (sort { $b->{speed} <=> $a->{speed} } @{$trade_ships}) {
+            next
+                if $cargo_ship->{name} =~ m/!/;
+            if ($cargo_ship->{hold_size} > $required_hold_size) {
+                $return->{$cargo_ship->{id}} = $cargo;
+                last;
+            }
+        }
+    # We need multiple cargo ships
+    } else {
+        foreach my $cargo_ship (sort { $b->{hold_size} <=> $a->{hold_size} } @{$trade_ships}) {
+            next
+                if $cargo_ship->{name} =~ m/!/;
+            
+            my $available_hold_size = $cargo_ship->{hold_size};
+            my @cargo_for_ship;
+            
+            foreach my $position (sort { $b->{hold_size_per_item} <=> $a->{hold_size_per_item} } @{$cargo}) {
+                next
+                    if $position->{quantity} == 0; 
+                if ($available_hold_size > $position->{hold_size_per_item}) {
+                    my $this_position = \%{$position}; # shallow copy
+                    $this_position->{quantity} = min( ($available_hold_size/$position->{hold_size_per_item}), $position->{quantity} );
+                    $position->{quantity} -= $this_position->{quantity};
+                    $available_hold_size -= $this_position->{quantity} * $position->{hold_size_per_item};
+                    push(@cargo_for_ship,$this_position);
+                }
+            }
+            
+            last
+                if scalar @cargo_for_ship == 0;
+            
+            $return->{$cargo_ship->{id}} = \@cargo_for_ship;
+        }
     }
     
-    return;
+#    # Remove temporary values from return value
+#    foreach my $cargo_for_ship (values %{$return}) {
+#        foreach my $position (@$cargo_for_ship) {
+#            delete $cargo_for_ship->{hold_size_per_item};
+#        }
+#    }
+
+    return $return;
 }
 
 sub spaceport_slots {
@@ -395,16 +523,14 @@ sub build_ships {
             if (defined $name_prefix) {
                 for (1..$build_quantity) {
                     my $ship_building = pop @{$ships_building->{ships_building}};
-                    my $name = $name_prefix .': '.$ship_building->{type_human}.'!';
-                    
-                    $self->log('notice',"Renaming new ship to %s on %s",$name,$planet_stats->{name});
-                    
-                    # Rename ship
-                    $self->request(
-                        object  => $spaceport_object,
-                        method  => 'name_ship',
-                        params  => [$ship_building->{id},$name],
+                    $self->name_ship(
+                        spaceport   => $spaceport_object,
+                        ship        => $ship_building,
+                        prefix      => $name_prefix,
+                        name        => $ship_building->{type_human},
+                        ignore      => 1,
                     );
+                    
                 }
             }
         };
@@ -484,9 +610,9 @@ will be renamed to add the prefix.
 
 =head2 trade_ships
 
- my $trade_ship_id = $self->trade_ships($body_id,$cargo);
+ my $trade_ships = $self->trade_ships($body_id,$cargo_list);
 
-Returns a ship that can transport the required quantity of cargo
+Returns a hashref with cargo ship ids as keys and cargo lists as values.
 
 =head2 push_ships
 

@@ -126,7 +126,6 @@ sub process_planet {
     TRADE:
     foreach my $trade (@{$trades}) {
         my @offer_data;
-        my $trade_cargo = 0;
         my $trade_complete = 1;
         my $trade_identifier;
         my %trade_identifier_parts;
@@ -190,7 +189,6 @@ sub process_planet {
                                 "type"      => "ship",
                                 "ship_id"   => $ship,
                             });
-                            $trade_cargo += $Games::Lacuna::Task::Constants::CARGO{ship};
                         }
                     } else {
                         $trade_complete = 0;
@@ -212,7 +210,6 @@ sub process_planet {
                                 "type"      => "plan",
                                 "plan_id"  => $plan->{id},
                             });
-                            $trade_cargo += $Games::Lacuna::Task::Constants::CARGO{plan};
                             $needed_quantity --;
                             last PLAN
                                 if $needed_quantity == 0;
@@ -235,7 +232,6 @@ sub process_planet {
                                 "type"      => "glyph",
                                 "glyph_id"  => $glyph->{id},
                             });
-                            $trade_cargo += $Games::Lacuna::Task::Constants::CARGO{glyph};
                             $needed_quantity --;
                             last GLYPH
                                 if $needed_quantity == 0;
@@ -260,7 +256,6 @@ sub process_planet {
                             "type"      => $offer->{type},
                             "quantity"  => $offer->{quantity},
                         });
-                        $trade_cargo += $offer->{quantity};
                     } else {
                         $trade_complete = 0;
                     }
@@ -279,15 +274,16 @@ sub process_planet {
         if ($trade_complete) {
             
             # Get trade ship
-            my $trade_ship_id = $self->trade_ships($planet_stats->{id},$trade_cargo);
+            my $trade_ships = $self->trade_ships($planet_stats->{id},\@offer_data);
+            my @trade_ships = keys %{$trade_ships};
             
             next TRADE
-                unless $trade_ship_id;
+                unless scalar @trade_ships == 1;
             
             my $response = $self->request(
                 object  => $tradeministry_object,
                 method  => 'add_to_market',
-                params  => [ \@offer_data, $trade->{ask}, { ship_id => $trade_ship_id } ]
+                params  => [ \@offer_data, $trade->{ask}, { ship_id => $trade_ships[0] } ]
             );
             $self->log('notice','Adding trade on %s',$planet_stats->{name});
         }
