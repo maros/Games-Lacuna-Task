@@ -83,5 +83,6 @@ lib/Games/Lacuna/Task/Utils.pm
 MANIFEST			This list of files
 META.json
 META.yml
+README
 t/00-load.t
 t/01-utils.t
