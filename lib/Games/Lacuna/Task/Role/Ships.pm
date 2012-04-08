@@ -487,6 +487,8 @@ sub build_ships {
     return 0
         unless ($max_build_quantity > 0);
     
+    my @building_ships;
+    
     # Repeat until we have enough ships
     BUILD_QUEUE:
     while ($new_building < $max_build_quantity) {
@@ -522,9 +524,10 @@ sub build_ships {
             delete $available_shipyards->{$shipyard->{id}}
                 if $shipyard->{available} <= 0;
             
+            push (@building_ships,@{$ships_building->{ships_building}});
+            
             if (defined $name_prefix) {
-                for (1..$build_quantity) {
-                    my $ship_building = pop @{$ships_building->{ships_building}};
+                foreach my $ship_building (@{$ships_building->{ships_building}}) {
                     $self->name_ship(
                         spaceport   => $spaceport_object,
                         ship        => $ship_building,
@@ -544,7 +547,7 @@ sub build_ships {
         $new_building += $build_quantity;
     }
     
-    return $new_building;
+    return wantarray ? @building_ships : scalar @building_ships;
 }
 
 no Moose::Role;

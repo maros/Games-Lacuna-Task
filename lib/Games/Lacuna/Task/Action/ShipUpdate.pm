@@ -96,13 +96,17 @@ sub process_planet {
     my $old_ships = {};
     my $threshold = $self->threshold / 100 + 1;
     
+    # Loop all shios
     SHIPS:
     foreach my $ship (@{$ships_data->{ships}}) {
         my $ship_type = $ship->{type};
         $ship_type =~ s/\d$//;
         
+        # Filter ships by name, type and task
         next
             if $ship->{name} =~ m/\b scuttle \b/ix;
+        next
+            if $ship->{task} ~~ [qw(Waiting On Trade Building)];
         next
             unless $ship_type ~~ $self->handle_ships;
         next
@@ -116,7 +120,7 @@ sub process_planet {
             if ($ship->{$attribute} > $best_ship->{$attribute}) {
                 next SHIPS;
             }
-            if ($best_ship->{$attribute} / $threshold < $ship->{$attribute}) {
+            if ($ship->{$attribute} < ($best_ship->{$attribute} / $threshold)) {
                 $ship_is_ok = 0;
             }
         }
@@ -127,7 +131,6 @@ sub process_planet {
         $self->log('debug','Ship %s on %s is outdated',$ship->{name},$planet_stats->{name});
         
         $old_ships->{$ship_type} ||= [];
-        
         push (@{$old_ships->{$ship_type}},$ship);
     }
     
@@ -139,23 +142,49 @@ sub process_planet {
         next
             if ! defined $build_planet_stats 
             ||$build_planet_stats->{total_slots} <= 0;
+            
+        my $build_spaceport = $self->find_building($build_planet_id,'SpacePort');
+        my $build_spaceport_object = $self->build_object($build_spaceport);
         
-        my $new_building = $self->build_ships(
+        my (@ships_mining,@ships_general);
+        foreach my $old_ship (@{$old_ships}) {
+            if ($old_ship->{task} eq 'Mining') {
+                push(@ships_mining,$old_ship);    
+            } else {
+                push(@ships_general,$old_ship); 
+            }
+        }
+        
+        my @new_building = $self->build_ships(
             planet              => $self->my_body_status($build_planet_id),
             quantity            => scalar(@{$old_ships}),
             type                => $best_ships->{type},
             spaceports_slots    => $build_planet_stats->{spaceport_slots},
             shipyard_slots      => $build_planet_stats->{shipyard_slots},
             shipyards           => $build_planet_stats->{shipyards},
-            ($build_planet_id != $planet_stats->{id} ? (name_prefix => $planet_stats->{name}) : () ),
+            name_prefix         => $planet_stats->{name},
         );
         
-        $build_planet_stats->{spaceport_slots} -= $new_building;
-        $build_planet_stats->{shipyard_slots} -= $new_building;
-        $build_planet_stats->{total_slots} -= $new_building;
+        my $new_building_count = scalar @new_building;
+        $build_planet_stats->{spaceport_slots} -= $new_building_count;
+        $build_planet_stats->{shipyard_slots} -= $new_building_count;
+        $build_planet_stats->{total_slots} -= $new_building_count;
         
-        for (1..$new_building) {
-            my $old_ship = pop(@{$old_ships});
+        warn \@new_building;
+        
+        foreach my $new_ship (@new_building) {
+            my $old_ship;
+            if ($old_ship = pop(@ships_mining)) {
+                $self->name_ship(
+                    spaceport   => $build_spaceport_object,
+                    ship        => $new_ship,
+                    prefix      => $planet_stats->{name}.',Mining',
+                    name        => $new_ship->{type_human},
+                );
+            } else {
+                $old_ship = pop(@ships_general)   
+            }
+            
             $self->name_ship(
                 spaceport   => $spaceport_object,
                 ship        => $old_ship,
@@ -164,6 +193,8 @@ sub process_planet {
             );
         }
         
+        
+        die('XXXX');
         #$self->check_best_planets;
     }
 }
