@@ -36,6 +36,9 @@ sub name_ship {
     $ignore //= $old_ignore;
     $name //= $old_name;
     
+    $prefix = join(',', grep { defined $_ && $_ !~ /^\s*$/ } @{$prefix} )
+        if ref $prefix eq 'ARRAY';
+    
     # Normalize name
     $prefix = Games::Lacuna::Task::Utils::clean_name($prefix);
     $name = Games::Lacuna::Task::Utils::clean_name($name);
