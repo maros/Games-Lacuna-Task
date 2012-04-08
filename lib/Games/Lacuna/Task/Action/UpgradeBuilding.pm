@@ -25,7 +25,7 @@ has 'upgrade_buildings' => (
             'EnergyReserve'         => ['energy','storage','max20'],
             
             'Stockpile'             => ['global','storage'],
-            #'PlanetaryCommand'      => ['global','storage'],
+            'PlanetaryCommand'      => ['global','storage'],
             'DistributionCenter'    => ['global','storage','max18'],
             
             'AtmosphericEvaporator' => ['water','production'],
@@ -38,9 +38,11 @@ has 'upgrade_buildings' => (
             'OreRefinery'           => ['ore','production'],
             'WasteDigester'         => ['ore','waste','production'],
             
-            'Mine'                  => ['energy','production'],
-            'MiningMinistry'        => ['energy','production'],
-            'OreRefinery'           => ['energy','production'],
+            'Hydrocarbon'           => ['energy','production'],
+            'Geo'                   => ['energy','production'],
+            'Fission'               => ['energy','production'],
+            'Fusion'                => ['energy','production'],
+            'Singularity'           => ['energy','production'],
             'WasteEnergy'           => ['energy','waste','production'],
             
             'Algae'                 => ['food','production'],
@@ -60,13 +62,14 @@ has 'upgrade_buildings' => (
             
             'Shipyard'              => ['extra','maxother'],
             'SpacePort'             => ['extra','maxother'],
+            'SAW'                   => ['extra','maxother'],
             
             'Sand'                  => ['extra'],
             'Grove'                 => ['extra'],
             'Lagoon'                => ['extra'],
             (map {
-                 'LCOT'.$_          => ['global'],
-            } qw(A..I)),
+                 'lcot'.$_          => ['global','extra'],
+            } qw(a..i)),
         }
     },
     documentation => 'Building uprade preferences',
