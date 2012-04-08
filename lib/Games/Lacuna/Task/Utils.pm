@@ -14,6 +14,7 @@ our @EXPORT_OK = qw(
     class_to_name
     name_to_class
     normalize_name
+    clean_name
     distance 
     pretty_dump
     parse_ship_type
@@ -52,9 +53,22 @@ sub normalize_name {
     return
         unless defined $name;
     
+    return uc(clean_name($name));
+}
+
+sub clean_name {
+    my ($name) = @_;
+    
+    return
+        unless defined $name;
+    
     my $name_simple = decompose($name); 
     $name_simple =~ s/\p{NonSpacingMark}//g;
-    return uc($name_simple);
+    
+    $name_simple =~ s/^\s+//g;
+    $name_simple =~ s/\s+$//g;
+    
+    return $name_simple;
 }
 
 sub distance {
