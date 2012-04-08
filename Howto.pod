@@ -84,48 +84,50 @@ extra input or human interaction.
 In your task class you have access to various helper methods that are provided
 by several roles:
 
-=head2 Games::Lacuna::Task::Role::Client
+=over
+
+=item Games::Lacuna::Task::Role::Client
 
 Basic methods to access the Lacuna API via L<Games::Lacuna::Task::Client>.
 Is always loaded.
 
-=head2 Games::Lacuna::Task::Role::Logger
+=item Games::Lacuna::Task::Role::Logger
 
 Prints log messages. Is always loaded.
 
-=head2 Games::Lacuna::Task::Role::Helper
+=item Games::Lacuna::Task::Role::Helper
 
 Various helper methods. Is always loaded.
 
-=head2 Games::Lacuna::Task::Role::Stars
+=item Games::Lacuna::Task::Role::Stars
 
 Helper methods for working with the star map.
 
-=head2 Games::Lacuna::Task::Role::Ships
+=item Games::Lacuna::Task::Role::Ships
 
 Helper methods for fetching and building ships.
 
-=head2 Games::Lacuna::Task::Role::Intelligence
+=item Games::Lacuna::Task::Role::Intelligence
 
 Helper methods for working with spies.
 
-=head2 Games::Lacuna::Task::Role::Notify
+=item Games::Lacuna::Task::Role::Notify
 
 Helper methods for sending notification e-mails.
 
-=head2 Games::Lacuna::Task::Role::Storage
+=item Games::Lacuna::Task::Role::Storage
 
 Helper methods for querying the storage
 
-=head2 Games::Lacuna::Task::Role::Waste
+=item Games::Lacuna::Task::Role::Waste
 
 Helper methods for handling waste
 
-=head2 Games::Lacuna::Task::Role::Building
+=item Games::Lacuna::Task::Role::Building
 
 Helper methods for handling buildings.
 
-=head2 Games::Lacuna::Task::Role::CommonAttributes
+=item Games::Lacuna::Task::Role::CommonAttributes
 
 Role providing common attributes used by multiple actions.
 
