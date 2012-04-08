@@ -490,7 +490,7 @@ sub build_ships {
     return 0
         unless ($max_build_quantity > 0);
     
-    my @building_ships;
+    my @ships_building;
     
     # Repeat until we have enough ships
     BUILD_QUEUE:
@@ -510,13 +510,13 @@ sub build_ships {
         
         eval {
             # Build ship
-            my $ships_building = $self->request(
+            my $response = $self->request(
                 object  => $shipyard->{object},
                 method  => 'build_ship',
                 params  => [$type,$build_quantity],
             );
             
-            $shipyard->{seconds_remaining} = $ships_building->{building}{work}{seconds_remaining};
+            $shipyard->{seconds_remaining} = $response->{building}{work}{seconds_remaining};
             
             $self->log('notice',"Building %i %s(s) on %s at shipyard level %i",$build_quantity,$type,$planet_stats->{name},$shipyard->{level});
             
@@ -527,10 +527,12 @@ sub build_ships {
             delete $available_shipyards->{$shipyard->{id}}
                 if $shipyard->{available} <= 0;
             
-            push (@building_ships,@{$ships_building->{ships_building}});
-            
-            if (defined $name_prefix) {
-                foreach my $ship_building (@{$ships_building->{ships_building}}) {
+            # Add ship to list and rename
+            for (1..$build_quantity) {
+                my $ship_building =  pop(@{$response->{ships_building}});
+                push(@ships_building,$ship_building);
+                
+                if (defined $name_prefix) {
                     $self->name_ship(
                         spaceport   => $spaceport_object,
                         ship        => $ship_building,
@@ -538,9 +540,9 @@ sub build_ships {
                         name        => $ship_building->{type_human},
                         ignore      => 1,
                     );
-                    
                 }
             }
+            
         };
         if ($@) {
             $self->log('warn','Could not build %s: %s',$type,$@);
@@ -550,7 +552,7 @@ sub build_ships {
         $new_building += $build_quantity;
     }
     
-    return wantarray ? @building_ships : scalar @building_ships;
+    return wantarray ? @ships_building : scalar @ships_building;
 }
 
 no Moose::Role;

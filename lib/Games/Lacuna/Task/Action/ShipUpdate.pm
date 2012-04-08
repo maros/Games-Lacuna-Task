@@ -155,6 +155,8 @@ sub process_planet {
             }
         }
         
+        my $name_prefix = ($build_planet_id == $planet_stats->{id} ) ? '' : $planet_stats->{name};
+        
         my @new_building = $self->build_ships(
             planet              => $self->my_body_status($build_planet_id),
             quantity            => scalar(@{$old_ships}),
@@ -162,7 +164,7 @@ sub process_planet {
             spaceports_slots    => $build_planet_stats->{spaceport_slots},
             shipyard_slots      => $build_planet_stats->{shipyard_slots},
             shipyards           => $build_planet_stats->{shipyards},
-            name_prefix         => $planet_stats->{name},
+            name_prefix         => $name_prefix,
         );
         
         my $new_building_count = scalar @new_building;
@@ -170,15 +172,13 @@ sub process_planet {
         $build_planet_stats->{shipyard_slots} -= $new_building_count;
         $build_planet_stats->{total_slots} -= $new_building_count;
         
-        warn \@new_building;
-        
         foreach my $new_ship (@new_building) {
             my $old_ship;
             if ($old_ship = pop(@ships_mining)) {
                 $self->name_ship(
                     spaceport   => $build_spaceport_object,
                     ship        => $new_ship,
-                    prefix      => $planet_stats->{name}.',Mining',
+                    prefix      => [ $planet_stats->{name},'Mining' ],
                     name        => $new_ship->{type_human},
                 );
             } else {
