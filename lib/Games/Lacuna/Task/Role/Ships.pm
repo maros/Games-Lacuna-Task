@@ -61,6 +61,7 @@ sub name_ship {
     
     if ($new_name ne $ship->{name}) {
         $self->log('notice',"Renaming ship from '%s' to '%s'",$ship->{name},$new_name);
+        $ship->{name} = $new_name;
         $self->request(
             object  => $spaceport,
             method  => 'name_ship',

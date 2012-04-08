@@ -193,8 +193,6 @@ sub process_planet {
             );
         }
         
-        
-        die('XXXX');
         #$self->check_best_planets;
     }
 }
