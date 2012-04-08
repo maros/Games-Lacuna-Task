@@ -2,7 +2,6 @@ bin/lacuna_run
 bin/lacuna_task
 Build.PL
 Changes
-Howto.pod
 lib/Games/Lacuna/Task.pm
 lib/Games/Lacuna/Task/Action.pm
 lib/Games/Lacuna/Task/Action/Archaeology.pm
@@ -50,6 +49,7 @@ lib/Games/Lacuna/Task/Action/WasteRecycle.pm
 lib/Games/Lacuna/Task/ActionProto.pm
 lib/Games/Lacuna/Task/Client.pm
 lib/Games/Lacuna/Task/Constants.pm
+lib/Games/Lacuna/Task/Howto.pod
 lib/Games/Lacuna/Task/Meta/Class/Trait/Deprecated.pm
 lib/Games/Lacuna/Task/Meta/Class/Trait/NoAutomatic.pm
 lib/Games/Lacuna/Task/Report/Battle.pm
