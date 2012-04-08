@@ -9,8 +9,13 @@ use Moose::Role;
 
 sub deprecated { 1 }
 
-package Moose::Meta::Class::Custom::Trait::Deprecated;
-sub register_implementation { 'Games::Lacuna::Task::Meta::Class::Trait::Deprecated' }
-
 no Moose::Role;
+
+{
+    package Moose::Meta::Class::Custom::Trait::Deprecated;
+    use strict;
+    use warnings;
+    sub register_implementation { 'Games::Lacuna::Task::Meta::Class::Trait::Deprecated' }
+}
+
 1;
