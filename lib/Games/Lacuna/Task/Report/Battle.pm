@@ -4,6 +4,7 @@ use 5.010;
 our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose::Role;
+with qw(Games::Lacuna::Task::Role::Stars);
 
 use Games::Lacuna::Task::Utils qw(parse_date);
 
@@ -45,10 +46,21 @@ sub _report_battle_body {
         data    => 'battle_log',
     );
     
+    my @excavators_lost_star;
+    
     foreach my $battle (@{$battle_data->{battle_log}}) {
         my $date = parse_date($battle->{date});
         next
             if $date < $limit;
+        
+        if (lc($battle->{attacking_empire}) eq lc($self->empire_name)
+            && $battle->{attacking_type} eq 'Excavator') {
+            my $body = $self->get_body_by_id($battle->{defending_body_id});
+            push(@excavators_lost_star,$body->{star_id})
+                unless $body->{star_id} ~~ \@excavators_lost_star;
+        }
+        
+        
         $table->add_row({
             planet          => $planet_stats->{name},
             system          => $battle->{defending_body},
@@ -57,6 +69,10 @@ sub _report_battle_body {
             defending_ship  => $battle->{defending_unit},
             victory         => $battle->{victory_to},
         });
+    }
+    
+    foreach my $star_id (@excavators_lost_star) {
+        $self->_get_star_api($star_id);
     }
     
     return 1;
