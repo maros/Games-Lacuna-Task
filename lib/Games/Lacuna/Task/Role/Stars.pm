@@ -250,7 +250,7 @@ sub _get_body_cache {
             body.water,
             body.ore,
             body.empire,
-            body.last_excavated,
+            body.is_excavated,
             star.id AS star_id,
             star.name AS star_name,
             star.zone AS zone,
