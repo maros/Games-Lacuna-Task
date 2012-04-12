@@ -1,5 +1,11 @@
 Changes for Game-Lacuna-Task
 
+2.05 Fri, Apr 07, 2012
+    * Fix bugs in ship_update, ship_dispatch and building_upgrade tasks
+    * Check for shot down excavators
+    * Better ship renaming
+    * Dist maintenance
+
 2.04 Fri, Apr 07, 2012
     * Maintenance release
 
