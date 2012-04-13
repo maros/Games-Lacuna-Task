@@ -8,7 +8,7 @@ extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Ships
     Games::Lacuna::Task::Role::PlanetRun);
 
-use Games::Lacuna::Task::Utils qw(parse_ship_type);
+use Games::Lacuna::Task::Utils qw(parse_ship_type clean_name);
 
 has 'trades' => (
     is              => 'rw',
@@ -91,7 +91,8 @@ sub process_planet {
     
     return
         unless defined $self->trades->{$planet_stats->{name}}
-        || defined $self->trades->{$planet_stats->{id}};
+        || defined $self->trades->{$planet_stats->{id}}
+        || defined $self->trades->{clean_name($planet_stats->{name})};
         
     # Get trade ministry
     my $tradeministry = $self->find_building($planet_stats->{id},'Trade');
@@ -130,6 +131,7 @@ sub process_planet {
         my $trade_identifier;
         my %trade_identifier_parts;
         
+        
         # Check offers
         unless (defined $trade->{offers}
             && ref $trade->{offers} eq 'ARRAY') {
@@ -146,7 +148,7 @@ sub process_planet {
         # Build trade identifier
         foreach my $offer (@{$trade->{offers}}) {
             unless (defined $offer->{type}) {
-                $self->log('error','Invalid trade setting: Ask missing or invalid (%s)',$offer->{ask});
+                $self->log('error','Invalid trade setting: Offer type missing or invalid (%s)',$offer->{type});
                 next TRADE;
             }
             $offer->{quantity} ||= 1;
@@ -191,10 +193,13 @@ sub process_planet {
                             });
                         }
                     } else {
+                        $self->log('debug','Not enough %s ships available',$offer->{type});
                         $trade_complete = 0;
                     }
                 }
                 when ('plan') {
+                    next
+                        unless $trade_complete;
                     $stored_plans ||= $self->request(
                         object  => $tradeministry_object,
                         method  => 'get_plans',
@@ -215,10 +220,15 @@ sub process_planet {
                                 if $needed_quantity == 0;
                         }
                     }
-                    $trade_complete = 0
-                        unless ($needed_quantity == 0);
+                    
+                    unless ($needed_quantity == 0) {
+                        $trade_complete = 0;
+                        $self->log('debug','Not enough %s(%i+%i) plans available',$offer->{type},$offer->{level},$offer->{extra_build_level});
+                    }
                 }
                 when ('glyph') {
+                    next
+                        unless $trade_complete;
                     $stored_glyphs ||= $self->request(
                         object  => $tradeministry_object,
                         method  => 'get_glyphs',
@@ -237,10 +247,14 @@ sub process_planet {
                                 if $needed_quantity == 0;
                         }
                     }
-                    $trade_complete = 0
-                        unless ($needed_quantity == 0);
+                    unless ($needed_quantity == 0) {
+                        $trade_complete = 0;
+                        $self->log('debug','Not enough %s glyphs available',$offer->{type});
+                    }
                 }
                 when ('resource') {
+                    next
+                        unless $trade_complete;
                     $stored_resources ||= $self->request(
                         object  => $tradeministry_object,
                         method  => 'get_stored_resources',
@@ -257,6 +271,7 @@ sub process_planet {
                             "quantity"  => $offer->{quantity},
                         });
                     } else {
+                        $self->log('debug','Not enough %s available',$offer->{type});
                         $trade_complete = 0;
                     }
                 }
