@@ -6,8 +6,9 @@ our $VERSION = $Games::Lacuna::Task::VERSION;
 use Moose::Role;
 
 use Games::Lacuna::Task::Client;
+use File::HomeDir;
 
-our $DEFAULT_DIRECTORY = Path::Class::Dir->new($ENV{HOME}.'/.lacuna');
+our $DEFAULT_DIRECTORY = Path::Class::Dir->new(File::HomeDir->my_home.'/.lacuna');
 
 has 'configdir' => (
     is              => 'rw',

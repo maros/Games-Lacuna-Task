@@ -26,6 +26,7 @@ my $build = Module::Build->new(
         'DBI'                           => 0,
         'DBD::SQLite'                   => 0,
 
+        'File::HomeDir'                 => 0,
         'Path::Class'                   => 0,
         'MooseX::Getopt'                => 0,
         'MooseX::Types::Path::Class'    => 0,
