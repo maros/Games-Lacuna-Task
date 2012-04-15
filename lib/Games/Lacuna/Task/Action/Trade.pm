@@ -350,7 +350,7 @@ sub _trade_serialize_response {
                     $moniker = 'ship:'.parse_ship_type($+{type});
                     $quantity = 1;
                 }
-                when (/^(?<type>[[:alpha:][:space:]]+)\s\((?<level>[^\)]+)\)\splan$/) {
+                when (/^(?<type>[[:alpha:]'\[\]()[:space:]]+)\s\((?<level>[^\)]+)\)\splan$/) {
                     $moniker = 'plan:'.lc($+{type}).':'.$+{level};
                     $quantity = 1;
                 }
