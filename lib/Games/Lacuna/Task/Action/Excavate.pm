@@ -187,7 +187,7 @@ sub dispatch_excavators {
             }
             
             return 0
-                if scalar @available_bodies > 30;
+                if scalar @available_bodies > 50;
 
             return 1;
         },
