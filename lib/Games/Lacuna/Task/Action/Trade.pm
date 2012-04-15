@@ -19,6 +19,14 @@ has 'trades' => (
 
 =pod
 
+=encoding utf8
+
+=head1 NAME
+
+NAME - Games::Lacuna::Task::Action::Trade
+
+=head1 DESCRIPTION
+
 Usually you will need to set up automatic trades in your config file to 
 use this action. The trade will only be created if you have the needed goods
 on stock. Ships that are not on stock will be built.
@@ -31,7 +39,7 @@ trade:
         offers:
           -
             class: "[ship|glyph|resource|plan|prisoner]"
-            type: "[NAME OF ITEM]"
+            type: "[NAME/TYPE OF ITEM]"
             quantity: [QUANTITY]
             level: [PLAN LEVEL]
             extra_build_level: [PLAN EXTRA BUILD LEVEL]

@@ -153,6 +153,9 @@ Tasks can also be called/embedded/executed directly
  curl -L http://cpanmin.us | perl - App::cpanminus
  cpanm Games-Lacuna-Task
 
+The version available on CPAN might be well behind the version available from 
+github.
+
 =head2 From github.com
 
  git clone git://github.com/maros/Games-Lacuna-Task.git
@@ -173,7 +176,7 @@ Alternatively you can install missing dependencies via cpanminus:
  curl -L http://cpanmin.us | perl - App::cpanminus
  # Install dependencies via cpanminus
  cpanm --installdeps .
- # Install verything via cpanminus
+ # Install everything via cpanminus
  cpanm .
 
 =cut
