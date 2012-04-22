@@ -31,19 +31,19 @@ has 'upgrade_buildings' => (
             'AtmosphericEvaporator' => ['water','production'],
             'WaterProduction'       => ['water','production'],
             'WaterPurification'     => ['water','production'],
-            'WaterReclamation'      => ['water','waste','production'],
+            'WaterReclamation'      => ['waste','production'],
             
             'Mine'                  => ['ore','production'],
             'MiningMinistry'        => ['ore','production'],
             'OreRefinery'           => ['ore','production'],
-            'WasteDigester'         => ['ore','waste','production'],
+            'WasteDigester'         => ['waste','production'],
             
             'Hydrocarbon'           => ['energy','production'],
             'Geo'                   => ['energy','production'],
             'Fission'               => ['energy','production'],
             'Fusion'                => ['energy','production'],
             'Singularity'           => ['energy','production'],
-            'WasteEnergy'           => ['energy','waste','production'],
+            'WasteEnergy'           => ['waste','production'],
             
             'Algae'                 => ['food','production'],
             'Apple'                 => ['food','production'],
@@ -57,8 +57,8 @@ has 'upgrade_buildings' => (
             'Potato'                => ['food','production'],
             'Wheat'                 => ['food','production'],
             
-            'WasteTreatment'        => ['global','waste','production'],
-            'WasteExchanger'        => ['global','waste','production'],
+            'WasteTreatment'        => ['waste','production'],
+            'WasteExchanger'        => ['waste','production'],
             
             'Shipyard'              => ['extra','maxother'],
             'SpacePort'             => ['extra','maxother'],
@@ -70,6 +70,9 @@ has 'upgrade_buildings' => (
             (map {
                  'lcot'.$_          => ['global','extra'],
             } qw(a..i)),
+#            (map {
+#                 'ssl'.$_           => ['extra','maxother'],
+#            } qw(a..d)),
         }
     },
     documentation => 'Building uprade preferences',
@@ -124,7 +127,7 @@ sub process_planet {
     }
     
     # Find any other upgradeable building
-    for my $tag (qw(storage waste global extra)) {
+    for my $tag (qw(storage global extra waste)) {
         last
             if (scalar @upgradeable_buildings > 0);
         @upgradeable_buildings = $self->find_upgrade_buildings($planet_stats,$tag);
@@ -144,8 +147,6 @@ sub process_planet {
                 if ($build_queue_size > $self->start_building_at);
         }
     }
-    
-    warn \@upgradeable_buildings;
     
     return;
 }
