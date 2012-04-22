@@ -93,32 +93,6 @@ sub process_planet {
     return
         if defined $archaeology_view->{building}{work}{seconds_remaining};
     
-    # Get local ores
-    my %ores;
-    foreach my $ore (keys %{$planet_stats->{ore}}) {
-        $ores{$ore} = 1
-            if $planet_stats->{ore}{$ore} > 1;
-    }
-    
-    # Get local ores form mining platforms
-    my $mining_ministry = $self->find_building($planet_stats->{id},'MiningMinistry');
-    if (defined $mining_ministry) {
-        my $mining_ministry_object = $self->build_object($mining_ministry);
-        my $platforms = $self->request(
-            object  => $mining_ministry_object,
-            method  => 'view_platforms',
-        );
-        
-        if (defined $platforms
-            && $platforms->{platforms}) {
-            foreach my $platform (@{$platforms->{platforms}}) {
-                foreach my $ore (keys %{$platform->{asteroid}{ore}}) {
-                    $ores{$ore} = 1
-                        if $platform->{asteroid}{ore}{$ore} > 1;
-                }
-            }
-        }
-    }
     
     # Get searchable ores
     my $archaeology_ores = $self->request(
@@ -126,33 +100,16 @@ sub process_planet {
         method  => 'get_ores_available_for_processing',
     );
     
-    foreach my $ore (keys %ores) {
-        # Local ore
-        if (defined $archaeology_ores->{ore}{$ore}) {
-            $ores{$ore} = $archaeology_ores->{ore}{$ore};
-        # This ore has been imported
-        } else {
-            delete $ores{$ore}
-        }
-    }
+
+    my ($search_ore) = sort { $all_glyphs->{$a} <=> $all_glyphs->{$b} } 
+        keys %{$archaeology_ores->{ore}};
     
-    # Check best suited glyph
-    for my $max_glyph (0..$max_glyphs) {
-        foreach my $ore (keys %ores) {
-            next
-                if $all_glyphs->{$ore} > $max_glyph;
-            $self->log('notice',"Searching for %s glyph on %s",$ore,$planet_stats->{name});
-            $self->request(
-                object  => $archaeology_ministry_object,
-                method  => 'search_for_glyph',
-                params  => [$ore],
-            );
-            
-            #$self->clear_cache('body/'.$planet_stats->{id}.'/buildings');
-            
-            return;
-        }
-    }
+    $self->log('notice',"Searching for %s glyph on %s",$search_ore,$planet_stats->{name});
+    $self->request(
+        object  => $archaeology_ministry_object,
+        method  => 'search_for_glyph',
+        params  => [$search_ore],
+    );
 }
 
 __PACKAGE__->meta->make_immutable;
