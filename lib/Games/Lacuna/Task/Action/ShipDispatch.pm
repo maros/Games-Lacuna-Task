@@ -41,11 +41,18 @@ sub _build_planet_re {
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
+    my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');
+    
+    return
+        unless $spaceport;
+    
     # Get space port
-    my $spaceport_object = $self->get_building_object($planet_stats->{id},'SpacePort');
+    my $spaceport_object = $self->build_object($spaceport);
     
     return 
         unless $spaceport_object;
+    
+    my $max_berth = $spaceport->{level};
     
     # Get all available ships
     my $ships_data = $self->request(
@@ -58,7 +65,7 @@ sub process_planet {
     
     SHIPS:
     foreach my $ship (@{$ships_data->{ships}}) {
-        # Dispatch to another planet
+        
         if ( uc($ship->{name}) =~ $self->_planet_re ) {
             my $target_planet = $self->my_body_status($1);
             unless ($target_planet->{id} == $planet_stats->{id}) {
@@ -83,6 +90,9 @@ sub process_planet {
         } elsif ( $ship->{name} =~ m/\b(mining|miner)\b/i) {
             next
                 unless $ship->{hold_size} > 0;
+            next
+                if $ship->{berth_level} > $max_berth;
+            
             $self->log('notice','Starting to mine with ship %s on %s',$ship->{name},$planet_stats->{name});
             
             my $mining_object = $self->get_building_object($planet_stats->{id},'MiningMinistry');

@@ -19,7 +19,26 @@ has 'handle_ships' => (
     isa             => 'ArrayRef',
     documentation   => "List of ships which should be handled [Multiple]",
     default         => sub {
-        return [qw(barge cargo_ship dory fighter freighter galleon hulk observatory_seeker scow security_ministry_seeker smuggler_ship snark spaceport_seeker sweeper)];
+        return [qw(barge 
+            cargo_ship 
+            dory 
+            fighter 
+            freighter 
+            galleon 
+            hulk 
+            hulk_fast
+            hulk_huge
+            observatory_seeker 
+            scow
+            scow_fast
+            scow_large
+            scow_mega
+            security_ministry_seeker 
+            smuggler_ship 
+            snark 
+            spaceport_seeker 
+            sweeper
+            )];
     },
 );
 

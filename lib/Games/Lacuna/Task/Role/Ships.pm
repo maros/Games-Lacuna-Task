@@ -71,10 +71,11 @@ sub name_ship {
 }
 
 sub push_ships {
-    my ($self,$form_id,$to_id,$ships) = @_;
+    my ($self,$from_id,$to_id,$ships) = @_;
     
-    my $trade_object = $self->get_building_object($form_id,'Trade');
-    my $spaceport_object = $self->get_building_object($form_id,'SpacePort');
+    my $trade_object = $self->get_building_object($from_id,'Trade');
+    my $spaceport = $self->find_building($from_id,'SpacePort');
+    my $spaceport_object = $self->build_object($spaceport);
     my $target_spaceport_object = $self->get_building_object($to_id,'SpacePort');
     
     return 0
@@ -82,10 +83,14 @@ sub push_ships {
         && $spaceport_object 
         && $target_spaceport_object;
     
-    my $docks_available = $self->request(
+    my $response = $self->request(
         object  => $target_spaceport_object,
         method  => 'view',
-    )->{docks_available};
+    );
+    
+    my $max_berth = $spaceport->{level};
+    my $target_max_berth = $response->{building}{level};
+    my $docks_available = $response->{docks_available};
     
     if (scalar @{$ships} > $docks_available) {
         $ships = [ @{$ships}[0..$docks_available-1] ];
@@ -94,7 +99,8 @@ sub push_ships {
     # Loop all ships
     my (@cargo_ships,@other_ships);
     foreach my $ship (@{$ships}) {
-        if ($ship->{type} ~~ [qw(galleon hulk cargo freighter hulk smuggler barge dory)]) {
+        if ($ship->{type} ~~ [qw(galleon hulk cargo freighter hulk smuggler barge dory hulk_fast hulk_huge)]
+            && $ship->{berth_level} <= $max_berth) {
             push(@cargo_ships,$ship);
         } else {
             push(@other_ships,$ship);
@@ -144,6 +150,7 @@ sub push_ships {
 
     # We have non-cargo ships left
     if (scalar @other_ships) {
+        
         my @cargo;
         foreach my $other_ship (@other_ships) {
             push(@cargo,{
@@ -152,7 +159,7 @@ sub push_ships {
             });
         }
         
-        my $trade_ships = $self->trade_ships($form_id,\@cargo);
+        my $trade_ships = $self->trade_ships($from_id,\@cargo);
         
         foreach my $ship_id (keys %{$trade_ships}) {
             $self->request(
