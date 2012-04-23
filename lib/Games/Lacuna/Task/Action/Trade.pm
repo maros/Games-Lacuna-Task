@@ -336,27 +336,28 @@ sub _trade_serialize_response {
         my %trade_serialize;
         foreach my $offer (@{$trade->{offer}}) {
             my ($moniker,$quantity);
+            $offer =~ s/^\s+//g;
             given ($offer) {
                 when (/^(?<quantity>[0-9,]+)\s(?<type>\w+)$/) {
                     $moniker = 'resource:'.$+{type};
                     $quantity = $+{quantity};
                     $quantity =~ s/,//g;
                 }
-                when (/^(?<type>\w+)\sglyph$/) {
+                when (/^(?<quantity>[0-9,]+)\s(?<type>\w+)\sglyph$/) {
                     $moniker = 'glyph:'.$+{type};
-                    $quantity = 1;
+                    $quantity = $+{quantity};
                 }
-                when (/^(?<type>[[:alpha:][:space:]]+)\s\(.+\)$/) {
+                when (/^(?<quantity>[0-9,]+)\s(?<type>[[:alpha:][:space:]]+)\s\(.+\)$/) {
                     $moniker = 'ship:'.parse_ship_type($+{type});
-                    $quantity = 1;
+                    $quantity = $+{quantity};
                 }
-                when (/^(?<type>[[:alpha:]'\[\]()[:space:]]+)\s\((?<level>[^\)]+)\)\splan$/) {
+                when (/^(?<quantity>[0-9,]+)\s(?<type>[[:alpha:]'\[\]()[:space:]]+)\s\((?<level>[^\)]+)\)\splan$/) {
                     $moniker = 'plan:'.lc($+{type}).':'.$+{level};
-                    $quantity = 1;
+                    $quantity = $+{quantity};
                 }
-                when (/^Level\s(?<level>\d+)\sspy\snamed\s[^(]\(prisoner\)/) {
+                when (/^(?<quantity>[0-9,]+)\sLevel\s(?<level>\d+)\sspy\snamed\s[^(]\(prisoner\)/) {
                     $moniker = 'prisoner:'.lc($+{level});
-                    $quantity = 1;
+                    $quantity = $+{quantity};
                 }
                 default {
                     warn("Unkown offer: $_");
