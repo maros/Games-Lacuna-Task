@@ -61,7 +61,7 @@ has 'upgrade_buildings' => (
             'WasteExchanger'        => ['waste','production'],
             
             'Shipyard'              => ['extra','maxother'],
-            'SpacePort'             => ['extra','maxother'],
+            #'SpacePort'             => ['extra'],
             'SAW'                   => ['extra','maxother'],
             
             'Sand'                  => ['extra'],
