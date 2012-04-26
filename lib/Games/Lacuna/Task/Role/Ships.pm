@@ -540,7 +540,7 @@ sub build_ships {
                 my $ship_building =  pop(@{$response->{ships_building}});
                 push(@ships_building,$ship_building);
                 
-                if (defined $name_prefix) {
+                if (defined $name_prefix && $name_prefix ne '') {
                     $self->name_ship(
                         spaceport   => $spaceport_object,
                         ship        => $ship_building,

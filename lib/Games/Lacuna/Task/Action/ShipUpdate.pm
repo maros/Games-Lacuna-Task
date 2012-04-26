@@ -174,7 +174,7 @@ sub process_planet {
             }
         }
         
-        my $name_prefix = ($build_planet_id == $planet_stats->{id} ) ? '' : $planet_stats->{name};
+        my $name_prefix = ($build_planet_id == $planet_stats->{id} ) ? undef : $planet_stats->{name};
         
         my @new_building = $self->build_ships(
             planet              => $self->my_body_status($build_planet_id),
