@@ -3,6 +3,8 @@ package Games::Lacuna::Task::Action::WasteDispose;
 use 5.010;
 our $VERSION = $Games::Lacuna::Task::VERSION;
 
+use List::Util qw(min);
+
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Waste',
@@ -44,12 +46,10 @@ sub process_planet {
         next
             unless $ship->{task} eq 'Docked';
         next
-            unless $ship->{type} eq 'scow';
+            unless $ship->{type} =~ m/^scow/;
         next
             if $ship->{name} =~ m/\!/;
-        next
-            if $ship->{hold_size} > $waste_disposeable;
-            
+         
         $self->log('notice',"Disposing %s waste on %s",$ship->{hold_size},$planet_stats->{name});
         
         # Send scow to closest star
@@ -59,10 +59,16 @@ sub process_planet {
             params  => [ $ship->{id},{ "star_id" => $planet_stats->{star_id} } ],
         );
         
-        $waste_disposeable -= $ship->{hold_size};
-        $waste_stored -= $ship->{hold_size};
+        my $waste_dispose = min($waste_disposeable,$ship->{hold_size});
+        $waste_disposeable -= $waste_dispose; 
+        $waste_stored -= $waste_dispose;
         $waste_filled = ($waste_stored / $waste_capacity) * 100;
+        my $waste_percentage = $waste_dispose / $ship->{hold_size};
         
+        # Only sent scow if 50% filled
+        return
+            if $waste_percentage < 0.5;
+
         # Check if waste is overflowing
         return 
             if ($waste_filled < $self->dispose_percentage);
