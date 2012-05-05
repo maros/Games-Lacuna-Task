@@ -79,7 +79,7 @@ sub run {
         next SHIPS
             if $ship->{name} =~ m/!/;
         next SHIPS
-            if $ship->{type} eq 'scow';
+            if $ship->{type} =~ m/^scow/;
         
         $available_hold_size += $ship->{hold_size};
         
