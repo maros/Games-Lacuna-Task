@@ -151,9 +151,13 @@ sub max_resource_building_level {
     if (defined $stockpile) {
        $max_resource_level += int(sprintf("%i",$stockpile->{level}/3));
     }
-    my $university_level = $self->university_level + 1;
+    my $university_level = $self->university_level;
     
-    return min($max_resource_level,$university_level);
+    if ($university_level <= 25) {
+        return min($max_resource_level,$university_level + 1);
+    } else {
+        return $max_resource_level + $university_level - 25;
+    }
 }
 
 sub university_level {
