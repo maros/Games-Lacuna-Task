@@ -332,6 +332,7 @@ sub _trade_serialize_response {
     
     my @trade_identifiers;
     
+    TRADES:
     foreach my $trade (@{$trades}) {
         my %trade_serialize;
         foreach my $offer (@{$trade->{offer}}) {
@@ -351,7 +352,7 @@ sub _trade_serialize_response {
                     $moniker = 'ship:'.parse_ship_type($+{type});
                     $quantity = $+{quantity};
                 }
-                when (/^(?<quantity>[0-9,]+)\s(?<type>[[:alpha:]'\[\]()[:space:]]+)\s\((?<level>[^\)]+)\)\splan$/) {
+                when (/^(?<quantity>[0-9,]+)\s(?<type>[[:alnum:]'\[\]()[:space:]+]+)\s\((?<level>[^\)]+)\)\splan$/) {
                     $moniker = 'plan:'.lc($+{type}).':'.$+{level};
                     $quantity = $+{quantity};
                 }
@@ -361,6 +362,7 @@ sub _trade_serialize_response {
                 }
                 default {
                     warn("Unkown offer: $_");
+                    next TRADES;
                 }
             }
             $trade_serialize{$moniker} ||= 0;
