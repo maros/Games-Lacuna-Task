@@ -86,8 +86,8 @@ sub run {
     );
     
     if (defined $spacestaion_lab_data->{building}{work}) {
-        my $work_end = parse_date($spacestaion_lab->{building}{work}{end});
-        return $self->log('info','Space station lab is busy until %s %s',format_date($work_end))
+        my $work_end = parse_date($spacestaion_lab_data->{building}{work}{end});
+        return $self->log('info','Space station lab is busy until %s',format_date($work_end))
     }
     
     # Get max level
@@ -167,6 +167,7 @@ sub get_plans_stored {
     foreach my $plan (@{$plans}) {
         my $name = $plan->{name};
         my $level = $plan->{level};
+        my $quantity = $plan->{quantity};
         
         next
             unless $plan->{extra_build_level} == 0;
@@ -175,8 +176,7 @@ sub get_plans_stored {
         
         my $plan_key = $space_station_plans{$name};
         $stored_plans{$plan_key} ||= {};
-        $stored_plans{$plan_key}->{$level} ||= 0;
-        $stored_plans{$plan_key}->{$level} ++;
+        $stored_plans{$plan_key}->{$level} = $quantity;
     }
     
     return \%stored_plans;
