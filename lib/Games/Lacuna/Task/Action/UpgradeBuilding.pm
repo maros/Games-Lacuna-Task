@@ -127,12 +127,13 @@ sub process_planet {
     }
     
     # Find any other upgradeable building
-    for my $tag (qw(storage global extra waste)) {
+    for my $tag (qw(storage global extra)) {
         last
             if (scalar @upgradeable_buildings > 0);
         @upgradeable_buildings = $self->find_upgrade_buildings($planet_stats,$tag);
     }
     
+    # Process upgradeable buildings
     if (scalar @upgradeable_buildings) {
         @upgradeable_buildings = sort { $a->{level} <=> $b->{level} } 
             @upgradeable_buildings;
