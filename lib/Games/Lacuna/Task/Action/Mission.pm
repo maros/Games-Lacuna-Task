@@ -46,12 +46,12 @@ sub process_planet {
         my $objectives = $self->parse_mission($mission->{objectives});
         
         # Check if we have the required resources
-        my @used_plans;
         foreach my $objective (@{$objectives}) {
             given ($objective->{type}) {
                 when ('plan') {
                     $plans ||= $self->plans_stored($planet_stats->{id});
                     my $found_plan = 0;
+                    
                     PLANS:
                     foreach my $plan (@$plans) {
                         next PLANS
@@ -61,8 +61,7 @@ sub process_planet {
                         next PLANS
                             if $plan->{extra_build_level} != $objective->{extra_build_level};
                         next PLANS
-                            if grep { $plan == $_ } @used_plans;
-                        push (@used_plans,$plan);
+                            if $plan->{quantity} < $objective->{quantity};
                         $found_plan ++;
                         last PLANS;
                     }
@@ -93,6 +92,8 @@ sub process_planet {
                 if $capacity < -100000;
         }
         
+        
+        
         $self->log('notice',"Completing mission %s on %s",$mission->{name},$planet_stats->{name});
         
         my $response = $self->request(
@@ -105,12 +106,15 @@ sub process_planet {
                     sub {
                         my ($error) = @_;
                         $self->log('debug',"Could not complete mission %s: %s",$mission->{name},$error->message);
-                        next MISSION;
+                        return 0;
                     }
                 ]
             ],
-            
         );
+        
+        next MISSIONS
+            unless defined $response;
+        
         $planet_stats = $response->{status}{body};
             
         my $body = sprintf("We have completed the mission *%s* on {Planet %i %s}\nObjective: %s\nReward:%s",
@@ -122,6 +126,7 @@ sub process_planet {
         );
             
         $self->send_message('Mission completed',$body);
+        return;
     }
 }
 
@@ -133,6 +138,9 @@ sub parse_mission {
     foreach my $element (@{$list}) {
         given ($element) {
             when (m/^
+                \s*
+                (?<quantity>[0-9,]+)
+                \s
                 (?<plan>[^(]+)
                 \s
                 \(
@@ -142,44 +150,46 @@ sub parse_mission {
                 \)
                 \s
                 plan$/x) {
-                
+                my $quantity = $+{quantity};
+                $quantity =~ s/\D//g;
+                $quantity += 0;
                 push(@parsed,{
                     type                => 'plan',
                     level               => $+{level},
                     plan                => $+{plan},
+                    quantity            => $quantity,
                     extra_build_level   => ($+{extra_build_level} // 0)
                 });
             }
-            when (m/^(?<quantity>[,0-9]+)\s(?<resource>.+)$/) {
+            when (m/^\s*(?<quantity>[,0-9]+)\s(?<glyph>.+)\sglyph$/) {
                 my $quantity = $+{quantity};
-                my $resource = $+{resource};
                 $quantity =~ s/\D//g;
                 $quantity += 0;
                 push(@parsed,{
-                    type                => 'resource',
-                    resource            => $resource,
+                    type                => 'glyph',
+                    glyph               => $+{glyph},
                     quantity            => $quantity,
                 });
             }
-            when (m/^(?<glyph>.+)\sglyph$/) {
-                push(@parsed,{
-                    type                => 'glyph',
-                    glyph               => $+{glyph},
-                });
-            }
             when (m/^
+                \s*
+                (?<quantity>[,0-9]+)
+                \s
                 (?<ship>[^(]+)
                 \s
                 \(
-                    speed \s >= \s (?<speed>[0-9,]+),
+                    speed ( \s >= | :) \s  (?<speed>[0-9,]+),
                     \s
-                    stealth \s >= \s (?<stealth>[0-9,]+),
+                    stealth ( \s >= | :) \s (?<stealth>[0-9,]+),
                     \s
-                    hold \s size \s >= \s (?<hold>[0-9,]+),
+                    hold \s size ( \s >= | :) \s (?<hold>[0-9,]+),
                     \s
-                    combat \s >= \s (?<combat>[0-9,]+)
+                    combat ( \s >= | :) \s (?<combat>[0-9,]+)
                 \)
                 $/x) {
+                my $quantity = $+{quantity};
+                $quantity =~ s/\D//g;
+                $quantity += 0;
                 my $ship = $+{ship};
                 my $speed = $+{speed};
                 my $hold = $+{hold};
@@ -196,9 +206,14 @@ sub parse_mission {
                     hold                => $hold,
                     combat              => $combat,
                     speed               => $speed,
+                    quantity            => $quantity,
                 });
             }
-            when (m/^Send 
+            when (m/^
+                \s*
+                (?<quantity>[,0-9]+)
+                \s
+                Send 
                 \s 
                 (?<ship>.+?) 
                 \s to \s 
@@ -209,16 +224,31 @@ sub parse_mission {
                 ,
                 (?<y>-?\d+)
                 \)/x) {
+                my $quantity = $+{quantity};
+                $quantity =~ s/\D//g;
+                $quantity += 0;
                 push(@parsed,{
                     type                => 'send',
                     ship                => $+{ship},
                     planet              => $+{planet},
                     x                   => $+{x},
                     y                   => $+{y},
+                    quantity            => $quantity,
+                });
+            }
+            when (m/^\s*(?<quantity>[,0-9]+)\s(?<resource>\w+\.?)$/) {
+                my $quantity = $+{quantity};
+                my $resource = $+{resource};
+                $quantity =~ s/\D//g;
+                $quantity += 0;
+                push(@parsed,{
+                    type                => 'resource',
+                    resource            => $resource,
+                    quantity            => $quantity,
                 });
             }
             default {
-                $self->log("warn","Unknown mission item: %s",$_);
+                $self->log("warn","Unknown mission item: '%s'",$_);
             }
         }
     }
