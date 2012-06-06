@@ -73,7 +73,6 @@ sub _build_dbh {
     
     # Connect database
     {
-        no warnings 'once';
         $dbh = DBI->connect("dbi:SQLite:dbname=$file","","",{ sqlite_unicode => 1 })
             or $self->abort('Could not connect to database: %s',$DBI::errstr);
     }

@@ -15,7 +15,7 @@ no Moose::Role;
     package Moose::Meta::Class::Custom::Trait::NoAutomatic;
     use strict;
     use warnings;
-    sub register_implementation { 'Games::Lacuna::Task::Meta::Class::Trait::NoAutomatic' }
+    sub register_implementation { return 'Games::Lacuna::Task::Meta::Class::Trait::NoAutomatic' }
 }
 
 1;
