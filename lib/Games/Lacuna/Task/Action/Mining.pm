@@ -135,13 +135,24 @@ sub process_planet {
             
             # Send mining platform to best asteroid
             
-            my $send_data = $self->request(
+            my $response = $self->request(
                 object  => $spaceport_object,
                 method  => 'send_ship',
                 params  => [ $mining_ship,{ "body_id" => $asteroid->{id} } ],
+                catch   => [
+                    [
+                        1010,
+                        qr/Only .+ members can mine asteroids in the jurisdiction of the space station/,
+                        sub {
+                            $self->log('warn',"Could not send mining ship to %s",$asteroid->{name});
+                            return 0;
+                        }
+                    ],
+                ],
             );
             
-            next MINING_SHIP;
+            next MINING_SHIP
+                if $response;
         }
     }
     

@@ -217,7 +217,7 @@ sub dispatch_excavators {
             catch   => [
                 [
                     1010,
-                    qr/already has an excavator from your empire or one is on the way/,
+                    qr/(already has an excavator from your empire or one is on the way|jurisdiction of the space station)/,
                     sub {
                         $self->log('debug',"Could not send excavator to %s",$body->{name});
                         push(@avaliable_excavators,$excavator);
