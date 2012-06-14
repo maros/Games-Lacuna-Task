@@ -85,7 +85,7 @@ sub process_planet {
     }
     
     # Get closest asteroids
-    my @asteroids = $self->closest_asteroids($planet_stats->{x},$planet_stats->{y},25);
+    my @asteroids = $self->closest_asteroids($planet_stats->{x},$planet_stats->{y},35);
     
     foreach my $asteroid (@asteroids) {
         my $asteroid_quality = 1;
@@ -171,6 +171,13 @@ sub closest_asteroids {
     $self->search_stars_callback(
         sub {
             my ($star_data) = @_;
+            
+            foreach my $body (@{$star_data->{bodies}}) {
+                # Check if solar system is inhabited by hostile empires
+                return 1
+                    if defined $body->{empire}
+                    && $body->{empire}{alignment} =~ m/hostile/;
+            }
             
             foreach my $body (@{$star_data->{bodies}}) {
                 next 
