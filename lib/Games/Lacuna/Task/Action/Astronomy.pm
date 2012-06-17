@@ -14,11 +14,6 @@ sub description {
     return q[Explore solar systems in your vincity];
 }
 
-before 'run' => sub {
-    my $self = shift;
-    $self->check_for_destroyed_probes();
-};
-
 sub process_planet {
     my ($self,$planet_stats) = @_;
         
@@ -87,65 +82,6 @@ sub process_planet {
             
             $self->log('notice',"Sending probe from from %s to %s",$planet_stats->{name},$response->{ship}{to}{name});
         }
-    }
-}
-
-sub check_for_destroyed_probes {
-    my ($self) = @_;
-    
-    my $inbox_object = $self->build_object('Inbox');
-    
-    # Get inbox for attacks
-    my $inbox_data = $self->request(
-        object  => $inbox_object,
-        method  => 'view_inbox',
-        params  => [{ tags => ['Attack','Probe'],page_number => 1 }],
-    );
-    
-    my @archive_messages;
-    
-    foreach my $message (@{$inbox_data->{messages}}) {
-        next
-            unless $message->{from_id} == $message->{to_id};
-        
-        if ($message->{subject} ~~ ['Probe Destroyed','Lost Contact With Probe']) {
-            # Get message
-            my $message_data = $self->request(
-                object  => $inbox_object,
-                method  => 'read_message',
-                params  => [$message->{id}],
-            );
-            
-            # Parse star id,x,y
-            next
-                unless $message_data->{message}{body} =~ m/\{Starmap\s(?<x>-*\d+)\s(?<y>-*\d+)\s(?<star_name>[^}]+)\}/;
-            
-            my $star_name = $+{star_name};
-            my $star_data = $self->get_star_by_xy($+{x},$+{y});
-            
-            next
-                unless $star_data;
-            next
-                unless $message_data->{message}{body} =~ m/{Empire\s(?<empire_id>\d+)\s(?<empire_name>[^}]+)}/;
-            
-            $self->log('warn','A probe in the %s system was destroyed by %s',$star_name,$+{empire_name});
-            
-            # Fetch star data from api and check if solar system is still probed
-            $self->_get_star_api($star_data->{id},$star_data->{x},$star_data->{y});
-            
-            push(@archive_messages,$message->{id});
-        }
-    }
-    
-    # Archive
-    if (scalar @archive_messages) {
-        $self->log('notice',"Archiving %i messages",scalar @archive_messages);
-        
-        $self->request(
-            object  => $inbox_object,
-            method  => 'archive_messages',
-            params  => [\@archive_messages],
-        );
     }
 }
 
