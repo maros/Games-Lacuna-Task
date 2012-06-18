@@ -165,10 +165,12 @@ sub process_planet {
         my $build_spaceport = $self->find_building($build_planet_id,'SpacePort');
         my $build_spaceport_object = $self->build_object($build_spaceport);
         
-        my (@ships_mining,@ships_general);
+        my (@ships_mining,@ship_chain,@ships_general);
         foreach my $old_ship (@{$old_ships}) {
             if ($old_ship->{task} eq 'Mining') {
-                push(@ships_mining,$old_ship);    
+                push(@ships_mining,$old_ship); 
+            } elsif ($old_ship->{task} =~ /\sChain/) {   
+                push(@ship_chain,$old_ship);
             } else {
                 push(@ships_general,$old_ship); 
             }
@@ -198,6 +200,13 @@ sub process_planet {
                     spaceport   => $build_spaceport_object,
                     ship        => $new_ship,
                     prefix      => [ $planet_stats->{name},'Mining' ],
+                    name        => $new_ship->{type_human},
+                );
+            } elsif ($old_ship = pop(@ship_chain)) {
+                $self->name_ship(
+                    spaceport   => $build_spaceport_object,
+                    ship        => $new_ship,
+                    prefix      => [ $planet_stats->{name},'Chain' ],
                     name        => $new_ship->{type_human},
                 );
             } else {
