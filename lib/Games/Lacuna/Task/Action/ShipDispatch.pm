@@ -86,16 +86,46 @@ sub process_planet {
                 method  => 'scuttle_ship',
                 params  => [$ship->{id}],
             );
+        # Add to chain
+        } elsif ( $ship->{name} =~ m/\b chain \b/ix) {
+            my $trade_object = $self->get_building_object($planet_stats->{id},'Trade');
+            next
+                unless $trade_object;
+            next
+                if $ship->{berth_level} > $max_berth;
+            
+            $self->log('notice','Adding ship %s to chain on %s',$ship->{name},$planet_stats->{name});
+            
+            # Waste chain
+            if ($ship->{type} =~ m/\bscow\b/) {
+                $self->request(
+                    object  => $trade_object,
+                    method  => 'add_waste_ship_to_fleet',
+                    params  => [$ship->{id}],
+                );
+            # Supply chain
+            } else {
+                $self->request(
+                    object  => $trade_object,
+                    method  => 'add_supply_ship_to_fleet',
+                    params  => [$ship->{id}],
+                );
+            }
+            
         # Start mining
         } elsif ( $ship->{name} =~ m/\b(mining|miner)\b/i) {
             next
                 unless $ship->{hold_size} > 0;
             next
                 if $ship->{berth_level} > $max_berth;
-            
-            $self->log('notice','Starting to mine with ship %s on %s',$ship->{name},$planet_stats->{name});
+            next
+                if $ship->{type} =~ m/\bscow\b/;
             
             my $mining_object = $self->get_building_object($planet_stats->{id},'MiningMinistry');
+            next
+                unless $mining_object;
+
+            $self->log('notice','Starting to mine with ship %s on %s',$ship->{name},$planet_stats->{name});
             
             $self->request(
                 object  => $mining_object,
