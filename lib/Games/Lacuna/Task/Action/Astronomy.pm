@@ -137,3 +137,17 @@ sub closest_unprobed_stars {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::Astronomy - Explore solar systems in your vincity
+
+=head1 DESCRIPTION
+
+This task will automate the probing of solar system in your vincity. Whenever
+your observatory can handle additional probes it will launch a probe to
+the closest, yet unprobed system.
+
+=cut

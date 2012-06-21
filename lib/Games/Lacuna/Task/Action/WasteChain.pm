@@ -69,3 +69,16 @@ sub process_planet {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::WasteChain - Manage waste chains for waste disposal
+
+=head1 DESCRIPTION
+
+This task will try to maintain an optimal waste disposal rate for waste 
+chains. If waste levels are running low the waste disposal rate is decreased.
+
+=cut

@@ -86,3 +86,16 @@ sub process_planet {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::VrbanskCombine - Combine glyphs to get Halls of Vrbansk plans
+
+=head1 DESCRIPTION
+
+This task will combine all available glyphs to create Halls of Vrbansk plans,
+leaving a defined quantity of each glyph untouched.
+
+=cut

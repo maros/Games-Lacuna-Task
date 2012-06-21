@@ -39,3 +39,16 @@ sub process_planet {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::WasteProduction - Maintain minimum waste levels for waste recycling buildings
+
+=head1 DESCRIPTION
+
+This task will produce waste if waste levels are running low in order to 
+avoid damage to waste recycling buildings.
+
+=cut

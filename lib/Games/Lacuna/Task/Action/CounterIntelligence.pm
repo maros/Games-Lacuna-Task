@@ -132,3 +132,16 @@ sub process_planet {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::CollectExcavatorBooty - Manage counter intelligence activities (not working due to captcha)
+
+=head1 DESCRIPTION
+
+This task used to manage counter intelligence activities, but currently
+is non-functional due to captchas being asked for intelligence calls.
+
+=cut

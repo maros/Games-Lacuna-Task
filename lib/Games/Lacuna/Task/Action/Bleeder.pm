@@ -95,3 +95,17 @@ sub process_planet {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::Bleeder - Report deployed bleeders
+
+=head1 DESCRIPTION
+
+This task will notify you whenever there is a deployed bleeder on one of your
+planets.
+
+=cut

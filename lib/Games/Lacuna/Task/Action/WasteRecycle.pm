@@ -115,3 +115,17 @@ sub process_planet {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::WasteRecycle - Recycle waste with the Waste Recycling Center and Waste Exchanger buildings
+
+=head1 DESCRIPTION
+
+This task automates the recycling of waste via the Waste Recycling Center and 
+Waste Exchanger buildings. It will only recycle if waste levels are above a
+defined threshold. The recycling process produces the most needed resources.
+
+=cut

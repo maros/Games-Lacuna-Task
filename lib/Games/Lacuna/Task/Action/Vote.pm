@@ -134,3 +134,16 @@ sub process_space_station {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::Vote - Parliament vote script
+
+=head1 DESCRIPTION
+
+This task will automate parliament voting.
+
+=cut

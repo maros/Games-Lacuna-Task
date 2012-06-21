@@ -102,3 +102,17 @@ sub run {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::VrbanskBuild - Build Halls of Vrbansk plans 
+
+=head1 DESCRIPTION
+
+This task will build the selected quantity of Halls of Vrbansk plans.
+
+Note that this method of waste disposal is somewhat deprecated since it 
+enough to build a single Hall of Vrbansk to upgrade a glyph building.
+=cut

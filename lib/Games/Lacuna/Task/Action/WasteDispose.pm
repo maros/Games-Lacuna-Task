@@ -82,3 +82,19 @@ sub process_planet {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::WasteDispose - Dispose overflowing waste with scows
+
+=head1 DESCRIPTION
+
+This task will dispose waste by dipatching scows to the local star if waste
+levels surpass a certain level. 
+
+Note that this method of waste disposal is somewhat deprecated. Use waste
+chains with the waste_chain task instead.
+
+=cut

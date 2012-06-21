@@ -122,3 +122,17 @@ sub process_planet {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::WasteMonument - Demolish and rebuild waste monuments
+
+=head1 DESCRIPTION
+
+This task will dispose waste by demolishing level 1 waste monuments and 
+rebuilding them instanteniously. In order to do so the build queue must be 
+empty and the waste levels must reach a certain level.
+
+=cut

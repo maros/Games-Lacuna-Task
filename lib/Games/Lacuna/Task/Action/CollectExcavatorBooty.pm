@@ -176,3 +176,16 @@ sub process_planet {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::CollectExcavatorBooty - Ship excavator booty to a selected planet
+
+=head1 DESCRIPTION
+
+This task automates the shipping of excavator booty (natural plans, old race
+plan and glyphs) to another planet.
+
+=cut
