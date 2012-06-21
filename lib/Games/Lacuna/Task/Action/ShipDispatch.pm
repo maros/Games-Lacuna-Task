@@ -97,7 +97,7 @@ sub process_planet {
             $self->log('notice','Adding ship %s to chain on %s',$ship->{name},$planet_stats->{name});
             
             # Waste chain
-            if ($ship->{type} =~ m/\bscow\b/) {
+            if ($ship->{type} =~ m/^scow/i) {
                 $self->request(
                     object  => $trade_object,
                     method  => 'add_waste_ship_to_fleet',
