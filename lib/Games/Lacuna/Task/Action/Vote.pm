@@ -25,6 +25,8 @@ has 'accept_proposition' => (
         |
         Seize \s $NAME_RE
         |
+        Members Only
+        |
         Transfer \s Station
     )/xi },
 );
