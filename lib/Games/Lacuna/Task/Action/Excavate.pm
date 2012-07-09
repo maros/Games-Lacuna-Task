@@ -147,10 +147,10 @@ sub dispatch_excavators {
             my @possible_bodies;
             # Check all bodies
             foreach my $body (@{$star_data->{bodies}}) {
-                # Check if solar system is inhabited by hostile empires
-                return 1
-                    if defined $body->{empire}
-                    && $body->{empire}{alignment} =~ m/hostile/;
+#                # Check if solar system is inhabited by hostile empires
+#                return 1
+#                    if defined $body->{empire}
+#                    && $body->{empire}{alignment} =~ m/hostile/;
                 
                 # Check if body is inhabited
                 next
