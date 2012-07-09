@@ -221,8 +221,11 @@ sub process_planet {
                             && $plan->{extra_build_level} == $offer->{extra_build_level}
                             && $plan->{quantity} >= $needed_quantity) {
                             push (@offer_data,{
-                                "type"      => "plan",
-                                "quantity"  => $needed_quantity,
+                                "type"              => "plan",
+                                "quantity"          => $needed_quantity,
+                                "plan_type"         => $plan->{plan_type},
+                                "level"             => $plan->{level},
+                                "extra_build_level" => $plan->{extra_build_level},
                             });
                             $needed_quantity = 0;
                             last PLAN;
@@ -250,6 +253,7 @@ sub process_planet {
                             push (@offer_data,{
                                 "type"      => "glyph",
                                 "quantity"  => $needed_quantity,
+                                "name"      => $glyph->{name},
                             });
                             $needed_quantity = 0;
                             last GLYPH;
