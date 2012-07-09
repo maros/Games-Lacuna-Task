@@ -6,6 +6,7 @@ our $VERSION = $Games::Lacuna::Task::VERSION;
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun);
+use List::Util qw(min max);
 
 use Games::Lacuna::Client::Types qw(ore_types);
 
@@ -42,42 +43,43 @@ sub process_planet {
     my $archaeology_ministry_object = $self->build_object($archaeology_ministry);
     my $gylph_data = $self->request(
         object  => $archaeology_ministry_object,
-        method  => 'get_glyphs',
+        method  => 'get_glyph_summary',
     );
 
-    my $available_gylphs = { map { $_ => [] } ore_types() };
+    my $available_gylphs = { map { $_ => 0 } ore_types() };
     
     foreach my $glyph (@{$gylph_data->{glyphs}}) {
-        push(@{$available_gylphs->{$glyph->{type}}},$glyph->{id});
+        $available_gylphs->{$glyph->{type}} = $glyph->{quantity} - $self->keep_gylphs;
     }
 
-    # Sutract keep_glyphs
-    foreach my $glyph (keys %$available_gylphs) {
-        for (1..$self->keep_gylphs) {
-            pop(@{$available_gylphs->{$glyph}});
-        }
-    }
-    
     # Get possible recipies
     RECIPIES: 
     foreach my $recipie (@RECIPIES) {
+        
         while (1) {
-            my (@recipie,@recipie_name);
+            my (@recipie);
+            
             foreach my $glyph (@{$recipie}) {
                 next RECIPIES
-                    unless scalar @{$available_gylphs->{$glyph}};
+                    unless $available_gylphs->{$glyph};
+                push(@recipie,$available_gylphs->{$glyph});
             }
+            
+            my $quantity = min(@recipie,50);
+            
+            next RECIPIES
+                unless $quantity > 0;
+            
             foreach my $glyph (@{$recipie}) {
-                push(@recipie_name,$glyph);
-                push(@recipie,pop(@{$available_gylphs->{$glyph}}));
+                $available_gylphs->{$glyph} -= $quantity;
             }
-             
-            $self->log('notice','Combining glyphs %s',join(', ',@recipie_name));
+            
+            $self->log('notice','Combining %i glyphs %s',$quantity,join(', ', @{$recipie}));
                        
             $self->request(
                 object  => $archaeology_ministry_object,
                 method  => 'assemble_glyphs',
-                params  => [\@recipie],
+                params  => [$recipie,$quantity],
             );
         }
     }
