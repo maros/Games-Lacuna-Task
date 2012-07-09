@@ -147,16 +147,16 @@ sub max_resource_building_level {
         unless $body_id;
     
     my $max_resource_level = 15;
-    my $stockpile = $self->find_building($body_id,'Stockpile');
+    my $stockpile = $self->find_busilding($body_id,'Stockpile');
     if (defined $stockpile) {
        $max_resource_level += int(sprintf("%i",$stockpile->{level}/3));
     }
     my $university_level = $self->university_level;
     
     if ($university_level <= 25) {
-        return min($max_resource_level,$university_level + 1);
+        return min($max_resource_level,$university_level + 1,30);
     } else {
-        return $max_resource_level + $university_level - 25;
+        return min($max_resource_level + $university_level - 25,30);
     }
 }
 

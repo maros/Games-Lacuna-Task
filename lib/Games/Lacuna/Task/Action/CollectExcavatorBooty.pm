@@ -98,13 +98,13 @@ sub process_planet {
     # Get glyphs
     my $available_glyphs = $self->request(
         object  => $tradeministry_object,
-        method  => 'get_glyphs',
+        method  => 'get_glyph_summary',
     );
     
     # Get plans
     my $available_plans = $self->request(
         object  => $tradeministry_object,
-        method  => 'get_plans',
+        method  => 'get_plan_summary',
     );
     
     my $total_cargo;
@@ -114,9 +114,10 @@ sub process_planet {
     foreach my $glyph (@{$available_glyphs->{glyphs}}) {
         push(@cargo,{
             "type"      => "glyph",
-            "glyph_id"  => $glyph->{id},
+            "quantity"  => $glyph->{quantity},
+            "name"      => $glyph->{name},
         });
-        $total_cargo += $available_glyphs->{cargo_space_used_each};
+        $total_cargo += $glyph->{quantity} * $available_glyphs->{cargo_space_used_each};
     }
     
     # Get all plans
@@ -128,12 +129,14 @@ sub process_planet {
             unless $plan->{name} ~~ $self->plans;
         next PLANS
             if $plan->{extra_build_level} > $self->{extra_build_level};
-        
         push(@cargo,{
-            "type"      => "plan",
-            "plan_id"  => $plan->{id},
+            "type"              => "plan",
+            "quantity"          => $plan->{quantity},
+            "plan_type"         => $plan->{plan_type},
+            "level"             => $plan->{level},
+            "extra_build_level" => $plan->{extra_build_level},
         });
-        $total_cargo += $available_plans->{cargo_space_used_each};
+        $total_cargo += $plan->{quantity} * $available_plans->{cargo_space_used_each};
     }
     
     return

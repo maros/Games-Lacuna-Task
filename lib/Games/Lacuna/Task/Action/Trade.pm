@@ -210,7 +210,7 @@ sub process_planet {
                         unless $trade_complete;
                     $stored_plans ||= $self->request(
                         object  => $tradeministry_object,
-                        method  => 'get_plans',
+                        method  => 'get_plan_summary',
                     )->{plans};
                     
                     my $needed_quantity = $offer->{quantity};
@@ -218,14 +218,14 @@ sub process_planet {
                     foreach my $plan (@{$stored_plans}) {
                         if (lc($plan->{name}) eq lc($offer->{type})
                             && $plan->{level} == $offer->{level}
-                            && $plan->{extra_build_level} == $offer->{extra_build_level}) {
+                            && $plan->{extra_build_level} == $offer->{extra_build_level}
+                            && $plan->{quantity} >= $needed_quantity) {
                             push (@offer_data,{
                                 "type"      => "plan",
-                                "plan_id"  => $plan->{id},
+                                "quantity"  => $needed_quantity,
                             });
-                            $needed_quantity --;
-                            last PLAN
-                                if $needed_quantity == 0;
+                            $needed_quantity = 0;
+                            last PLAN;
                         }
                     }
                     
@@ -239,20 +239,20 @@ sub process_planet {
                         unless $trade_complete;
                     $stored_glyphs ||= $self->request(
                         object  => $tradeministry_object,
-                        method  => 'get_glyphs',
+                        method  => 'get_glyph_summary',
                     )->{glyphs};
                     
                     my $needed_quantity = $offer->{quantity};
-                    GLYPH:
+                    GLYPH:                    
                     foreach my $glyph (@{$stored_glyphs}) {
-                        if (lc($glyph->{type}) eq lc($offer->{type})) {
+                        if (lc($glyph->{type}) eq lc($offer->{type})
+                            && $needed_quantity >= $glyph->{quantity}) {
                             push (@offer_data,{
                                 "type"      => "glyph",
-                                "glyph_id"  => $glyph->{id},
+                                "quantity"  => $needed_quantity,
                             });
-                            $needed_quantity --;
-                            last GLYPH
-                                if $needed_quantity == 0;
+                            $needed_quantity = 0;
+                            last GLYPH;
                         }
                     }
                     unless ($needed_quantity == 0) {

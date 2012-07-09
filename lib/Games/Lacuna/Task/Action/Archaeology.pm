@@ -40,12 +40,11 @@ sub all_glyphs {
         my $archaeology_ministry_object = $self->build_object($archaeology_ministry);
         my $glyph_data = $self->request(
             object  => $archaeology_ministry_object,
-            method  => 'get_glyphs',
+            method  => 'get_glyph_summary',
         );
         
         foreach my $glyph (@{$glyph_data->{glyphs}}) {
-            $all_glyphs->{$glyph->{type}} ||= 0;
-            $all_glyphs->{$glyph->{type}} ++;
+            $all_glyphs->{$glyph->{type}} ||= $glyph->{quantity};
         }
     }
     

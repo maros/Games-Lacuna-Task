@@ -49,14 +49,14 @@ sub _report_glyph_planet {
     my $archaeology_ministry_object = $self->build_object($archaeology_ministry);
     my $gylph_data = $self->request(
         object  => $archaeology_ministry_object,
-        method  => 'get_glyphs',
+        method  => 'get_glyph_summary',
     );
     
     my $total_glyphs = 0;
     my %all_glyphs = ( map { $_ => 0 } ore_types() );
     foreach my $glyph (@{$gylph_data->{glyphs}}) {
-        $all_glyphs{$glyph->{type}} ++;
-        $total_glyphs ++;
+        $all_glyphs{$glyph->{type}} = $glyph->{quantity};
+        $total_glyphs += $glyph->{quantity};
     }
     
     $table->add_row({
