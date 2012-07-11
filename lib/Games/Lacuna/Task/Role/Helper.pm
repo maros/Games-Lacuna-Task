@@ -147,7 +147,7 @@ sub max_resource_building_level {
         unless $body_id;
     
     my $max_resource_level = 15;
-    my $stockpile = $self->find_busilding($body_id,'Stockpile');
+    my $stockpile = $self->find_building($body_id,'Stockpile');
     if (defined $stockpile) {
        $max_resource_level += int(sprintf("%i",$stockpile->{level}/3));
     }
