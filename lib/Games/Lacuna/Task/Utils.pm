@@ -20,6 +20,7 @@ our @EXPORT_OK = qw(
     parse_ship_type
     parse_date
     format_date
+    format_duration
 ); 
 
 sub class_to_name {
@@ -138,16 +139,42 @@ sub parse_date {
 }
 
 sub format_date {
-    my ($date) = @_;
+    my ($timestamp) = @_;
     
     return
-        unless defined $date && $date =~ m/^\d+$/;
+        unless defined $timestamp && $timestamp =~ m/^\d+$/;
     
-    my ($sec,$min,$hour,$mday,$mon,$year) = gmtime($date);
+    my ($sec,$min,$hour,$mday,$mon,$year) = gmtime($timestamp);
     $year += 1900;
     $mon++;
     
     return sprintf('%04i.%02i.%02i %02i:%02i',$year,$mon,$mday,$hour,$min);
+}
+
+sub format_duration {
+    my ($timestamp) = @_;
+    
+    return
+        unless defined $timestamp && $timestamp =~ m/^\d+$/;
+    
+    $timestamp -= time();
+    
+    return 
+        if $timestamp <= 0;
+    
+    my $days = int($timestamp / (60 * 60 * 24));
+    $timestamp -= $days * (60 * 60 * 24);
+    
+    my $hours = int($timestamp / (60 * 60));
+    $timestamp -= $hours * (60 * 60);
+    
+    my $minutes = int($timestamp / 60);
+    
+    if ($days > 0) {
+        return sprintf('%id %ih',$days,$hours);   
+    } else {
+        return sprintf('%ih %im',$hours,$minutes);   
+    }
 }
 
 1;
