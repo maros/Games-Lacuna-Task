@@ -45,6 +45,13 @@ has 'excavated_bodies' => (
     }
 );
 
+has 'spare_excavators' => (
+    is              => 'rw',
+    isa             => 'Int',
+    documentation   => 'Ensure that spare excavators are available [Default 2]',
+    default         => 2,
+);
+
 sub description {
     return q[Building and dispatch excavators to best suited bodies];
 }
@@ -126,11 +133,19 @@ sub dispatch_excavators {
     # Get available excavators
     my @avaliable_excavators = $self->get_ships(
         planet          => $planet_stats,
-        quantity        => $possible_excavators,
+        quantity        => $possible_excavators + $self->spare_excavators,
         travelling      => 1,
         type            => 'excavator',
         build           => 1,
     );
+    
+    # Remove spare excavators from list
+    my $ignore_excavators = scalar(@avaliable_excavators) - $possible_excavators;
+    if ($ignore_excavators > 0) {
+        for (1..$ignore_excavators) {
+            pop(@avaliable_excavators);
+        }   
+    }
     
     # Check if we have available excavators
     return
