@@ -52,12 +52,12 @@ sub plans_stored {
         if ref($planet_id) eq 'HASH';
     
     my $cache_key = 'body/'.$planet_id.'/plans';
-    
-    my $plans = $self->get_cache($cache_key);
-    
-    return $plans
-        if defined $plans;
-    
+   
+#    my $plans = $self->get_cache($cache_key);
+#    
+#    return $plans
+#        if defined $plans;
+#    
     my $command = $self->find_building($planet_id,'PlanetaryCommand');
     $command ||= $self->find_building($planet_id,'StationCommand');
     
@@ -67,7 +67,7 @@ sub plans_stored {
         method  => 'view_plans',
     );
     
-    $plans = $response->{plans};
+    my $plans = $response->{plans};
     
     $self->set_cache(
         key     => $cache_key,
