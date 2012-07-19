@@ -23,6 +23,7 @@ sub process_planet {
     my $waste_capacity = $planet_stats->{waste_capacity};
     my $waste_filled = ($waste_stored / $waste_capacity) * 100;
     my $waste_disposeable = $self->disposeable_waste($planet_stats);
+    my $max_waste_chain_hour = $waste_stored / 6; # keep enough waste for six hours
     
     # Get trade ministry
     my ($trade) = $self->find_building($planet_stats->{id},'Trade');
@@ -40,7 +41,7 @@ sub process_planet {
     my $waste_chain = $waste_chain_data->{waste_chain}[0];
 
     my $new_waste_chain_hour;
-    #Initialize disposal
+    # Initialize disposal
     if ($waste_chain->{percent_transferred} == 0) {
         $new_waste_chain_hour = $waste_chain->{waste_hour};
     # Start disposal
@@ -53,7 +54,9 @@ sub process_planet {
     
     $new_waste_chain_hour = 1
         if $new_waste_chain_hour < 1;
-        
+    
+    $new_waste_chain_hour = min($new_waste_chain_hour,$max_waste_chain_hour);
+    
     if ($new_waste_chain_hour != $waste_chain->{waste_hour}) {
         $self->log('info','Updating waste chain on %s to dispose %i waste per hour',$planet_stats->{name},$new_waste_chain_hour);
         $self->request(
