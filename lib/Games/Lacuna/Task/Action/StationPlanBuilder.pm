@@ -6,17 +6,10 @@ our $VERSION = $Games::Lacuna::Task::VERSION;
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Storage',
-    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['home_planet'] };
+    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['home_planet','space_station'] };
 
 use Games::Lacuna::Task::Utils qw(parse_date format_date);
 use List::Util qw(min max);
-
-has 'space_station' => (
-    isa         => 'Str',
-    is          => 'ro',
-    predicate   => 'has_space_station',
-    documentation=> q[Space station to be managed],
-);
 
 has 'plans' => (
     is              => 'rw',

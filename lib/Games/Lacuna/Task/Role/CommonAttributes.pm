@@ -13,6 +13,33 @@ parameter 'attributes' => (
 role {
     my $p = shift;
 
+    if ('space_station' ~~ $p->attributes) {
+        has 'space_station' => (
+            isa         => 'Str',
+            is          => 'ro',
+            predicate   => 'has_space_station',
+            documentation=> q[Space station to be managed],
+        );
+        
+        has 'space_station_data' => (
+            isa             => 'HashRef',
+            is              => 'rw',
+            traits          => ['NoGetopt'],
+            lazy_build      => 1,
+        );
+        
+        method '_build_space_station_data' => sub {
+            my ($self) = @_;
+            my $space_station = $self->my_body_status($self->space_station);
+            unless (defined $space_station
+                && $space_station->{type} eq 'space station') {
+                $self->abort('Could not find space station "%s"',$self->space_station);
+            }
+            
+            return $space_station;
+        };
+    }
+
     if ('dispose_percentage' ~~ $p->attributes) {
         has 'dispose_percentage' => (
             isa     => 'Int',
