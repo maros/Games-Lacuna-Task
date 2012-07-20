@@ -17,79 +17,6 @@ has 'trades' => (
     documentation   => 'Automatic trades per planet [Required in config]',
 );
 
-=pod
-
-=encoding utf8
-
-=head1 NAME
-
-NAME - Games::Lacuna::Task::Action::Trade
-
-=head1 DESCRIPTION
-
-Usually you will need to set up automatic trades in your config file to 
-use this action. The trade will only be created if you have the needed goods
-on stock. Ships that are not on stock will be built.
-
-trade:
-  trades:
-    "[PLANET NAME OR ID]":
-      -
-        ask: [ESSENTIA ASKING]
-        offers:
-          -
-            class: "[ship|glyph|resource|plan|prisoner]"
-            type: "[NAME/TYPE OF ITEM]"
-            quantity: [QUANTITY]
-            level: [PLAN LEVEL]
-            extra_build_level: [PLAN EXTRA BUILD LEVEL]
-          -
-            ...
-      -
-        ...
-
-Some example configurations:
-
-trade:
-  trades:
-    "Home Sweet Home":
-      -
-        ask: 3
-        offers:
-          -
-            class: "ship"
-            type: "Galleon"
-            quantity: 3
-      -
-        ask: 10
-        offers:
-          -
-            class: "plan"
-            type: "Geo Thermal Vent"
-            level: 1
-            extra_build_level: 1
-          -
-            class: "plan"
-            type: "Vulcano"
-            level: 1
-          -
-            class: "plan"
-            type: "Natural Spring"
-            level: 1
-      -
-        ask: 0.5
-        offers:
-          -
-            class: "resouce"
-            type: "trona"
-            quantity: 100000
-          -
-            class: "resouce"
-            type: "sulphur"
-            quantity: 100000
-
-=cut
-
 sub description {
     return q[Add recurring trades to Trade Ministry];
 }
@@ -382,3 +309,80 @@ sub _trade_serialize_response {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=pod
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::Trade - Add recurring trades to Trade Ministry
+
+=head1 DESCRIPTION
+
+This task adds automatic recurring trades to the Trade Ministry. 
+
+Usually you will need to set up automatic trades in your config file to 
+use this action. The trade will only be created if you have the needed goods
+on stock. Ships that are not on stock will be built.
+
+trade:
+  trades:
+    "[PLANET NAME OR ID]":
+      -
+        ask: [ESSENTIA ASKING]
+        offers:
+          -
+            class: "[ship|glyph|resource|plan|prisoner]" # required
+            type: "[NAME/TYPE OF ITEM]" # required
+            quantity: [QUANTITY] # default 1
+            level: [PLAN LEVEL] # default 1
+            extra_build_level: [PLAN EXTRA BUILD LEVEL] # default 0
+          -
+            ...
+      -
+        ...
+
+Some example configurations:
+
+trade:
+  trades:
+    "Home Sweet Home":
+      -
+        ask: 2
+        offers:
+          -
+            class: "ship"
+            type: "Galleon"
+            quantity: 3
+      -
+        ask: 3
+        offers:
+          -
+            class: "plan"
+            type: "Geo Thermal Vent"
+            level: 1
+            extra_build_level: 5
+          -
+            class: "plan"
+            type: "Vulcano"
+            quantity: 3
+            level: 1
+          -
+            class: "plan"
+            type: "Natural Spring"
+            level: 1
+            quantity: 3
+      -
+        ask: 0.5
+        offers:
+          -
+            class: "resouce"
+            type: "trona"
+            quantity: 100000
+          -
+            class: "resouce"
+            type: "sulphur"
+            quantity: 100000
+
+=cut

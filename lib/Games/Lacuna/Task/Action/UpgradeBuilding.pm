@@ -212,3 +212,26 @@ sub find_upgrade_buildings {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::UpgradeBuilding - Upgrade buildings if the build queue is empty
+
+=head1 DESCRIPTION
+
+This task will start upgrading buildings once the build queue is empty. The 
+best suitable buildings are determined by
+
+=over
+
+=item * checking for overflowing waste
+
+=item * checking production numbers
+
+=item * Upgrading anything that is possible
+
+=back
+
+=cut

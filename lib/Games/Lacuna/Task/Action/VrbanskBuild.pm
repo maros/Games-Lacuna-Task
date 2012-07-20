@@ -113,6 +113,7 @@ Games::Lacuna::Task::Action::VrbanskBuild - Build Halls of Vrbansk plans
 
 This task will build the selected quantity of Halls of Vrbansk plans.
 
-Note that this method of waste disposal is somewhat deprecated since it 
-enough to build a single Hall of Vrbansk to upgrade a glyph building.
+Note that this method is somewhat deprecated since it enough to build a 
+single Hall of Vrbansk to upgrade a glyph building.
+
 =cut

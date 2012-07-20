@@ -135,7 +135,6 @@ __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
 
-
 =encoding utf8
 
 =head1 NAME
@@ -144,6 +143,7 @@ Games::Lacuna::Task::Action::Vote - Parliament vote script
 
 =head1 DESCRIPTION
 
-This task will automate parliament voting.
+This task will automate parliament voting. This task requires the main
+empire password to be used.
 
 =cut
