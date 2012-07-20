@@ -9,7 +9,7 @@ use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Waste',
     'Games::Lacuna::Task::Role::PlanetRun',
-    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage'] };
+    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['dispose_percentage','keep_waste_hours'] };
 
 sub description {
     return q[Manage waste chains];
@@ -23,7 +23,7 @@ sub process_planet {
     my $waste_capacity = $planet_stats->{waste_capacity};
     my $waste_filled = ($waste_stored / $waste_capacity) * 100;
     my $waste_disposeable = $self->disposeable_waste($planet_stats);
-    my $max_waste_chain_hour = $waste_stored / 6; # keep enough waste for six hours
+    my $max_waste_chain_hour = $waste_stored / $self->keep_waste_hours;
     
     # Get trade ministry
     my ($trade) = $self->find_building($planet_stats->{id},'Trade');
