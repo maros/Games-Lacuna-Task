@@ -17,8 +17,8 @@ role {
         has 'space_station' => (
             isa         => 'Str',
             is          => 'ro',
-            predicate   => 'has_space_station',
             documentation=> q[Space station to be managed],
+            required    => 1,
         );
         
         has 'space_station_data' => (
