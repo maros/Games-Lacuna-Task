@@ -23,11 +23,13 @@ sub run {
     
     MODULE:
     foreach my $module_data ($self->buildings_body($space_station)) {
+        
         next MODULE
             if $module_data->{name} eq 'Supply Pod';
         
         next MODULE
-            if $module_data->{level} >= $station_command_level;
+            if $module_data->{level} >= $station_command_level 
+            && $module_data->{name} ne 'Station Command Center';
         
         if (defined $module_data->{pending_build}) {
             my $date_end = parse_date($module_data->{pending_build}{end});
