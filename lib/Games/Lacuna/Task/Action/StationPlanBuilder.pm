@@ -11,6 +11,13 @@ with 'Games::Lacuna::Task::Role::Storage',
 use Games::Lacuna::Task::Utils qw(parse_date format_date);
 use List::Util qw(min max);
 
+has 'space_station' => (
+    isa         => 'Str',
+    is          => 'ro',
+    documentation=> q[Space station to be managed],
+    predicate   => 'has_space_station',
+);
+
 has 'plans' => (
     is              => 'rw',
     isa             => 'HashRef',
@@ -25,7 +32,7 @@ has 'plans' => (
             Parliament          => { skip => 1 },
             PoliceStation       => { name => 'Police Station', level => -3 },
             StationCommand      => { name => 'Station Command Center', skip => 1 },
-            Warehouse           => { count => 13, level => 18 },
+            Warehouse           => { count => 14, level => 20 },
         }
     },
 );
@@ -60,9 +67,7 @@ sub run {
     # Get plans on space station
     my ($space_station,$space_station_plans,$space_station_modules);
     if ($self->has_space_station) {
-        $space_station = $self->my_body_status($self->space_station);
-        return $self->log('error','Could not find space station')
-            unless (defined $space_station);
+        $space_station = $self->space_station_data;
         $space_station_plans = $self->get_plans_stored($space_station->{id});
         $space_station_modules = $self->get_modules_built($space_station->{id});
     }
