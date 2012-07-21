@@ -189,6 +189,16 @@ sub get_modules_built {
         my $type = Games::Lacuna::Client::Buildings::type_from_url($module->{url});
         next
             unless defined $self->plans->{$type};
+        
+        # Add building level 
+        if ($module->{pending_build}) {
+            my $level = $module->{level};
+            $level ++;
+            $modules_built{$type}->{$level} ||= 0;
+            $modules_built{$type}->{$level} ++;
+        }
+        
+        # Add levels
         foreach my $level (1..$module->{level}) {
             $modules_built{$type} ||= {};
             $modules_built{$type}->{$level} ||= 0;
