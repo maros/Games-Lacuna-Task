@@ -27,9 +27,6 @@ sub _report_incoming_planet {
     
     my $planet_stats = $self->my_body_status($planet_id);
     
-    return
-        unless defined($planet_stats->{incoming_enemy_ships});
-    
     # Get space port
     my $spaceport = $self->find_building($planet_stats->{id},'SpacePort');
     
