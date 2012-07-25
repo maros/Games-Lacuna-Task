@@ -26,6 +26,7 @@ has 'data' => (
     handles => {
         rows            => 'elements',
         add_row         => 'push',
+        has_rows        => 'count',
     },
 );
 

@@ -56,6 +56,8 @@ sub run {
     foreach my $report (@{$self->report}) {
         my $method = 'report_'.$report;
         foreach my $report_data ($self->$method()) {
+            next    
+                unless $report_data->has_rows;
             push(@report_tables,$report_data);
         }
     }
