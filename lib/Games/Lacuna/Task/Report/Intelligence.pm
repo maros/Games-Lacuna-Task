@@ -17,8 +17,8 @@ sub report_intelligence {
         columns => ['Planet','Defensive spies','Offensive spies','Idle spies','Foreign spies','Foreign active spies'],
     );
     
-    foreach my $planet_id ($self->my_planets) {
-       $self->_report_intelligence_body($planet_id,$table);
+    foreach my $planet_id ($self->my_bodies) {
+        $self->_report_intelligence_body($planet_id,$table);
     }
     
     return $table;
@@ -30,18 +30,21 @@ sub _report_intelligence_body {
     my $timestamp = time();
     my $planet_stats = $self->my_body_status($planet_id);
     
+    return
+        unless lc($planet_stats->{empire}{name}) eq lc($self->empire_name);
+    
     # Get security & intelligence ministry
     my ($security_ministry) = $self->find_building($planet_stats->{id},'Security');
     my ($intelligence_ministry) = $self->find_building($planet_stats->{id},'Intelligence');
+    $security_ministry ||= $self->find_building($planet_stats->{id},'PoliceStation');
     
     return
-        unless $security_ministry && $intelligence_ministry;
+        unless $security_ministry;
     
     my @foreign_spies_active;
     my @foreign_spies;
     
     my $security_ministry_object = $self->build_object($security_ministry);
-    my $intelligence_ministry_object = $self->build_object($intelligence_ministry);
     
     my $foreign_spy_data = $self->paged_request(
         object  => $security_ministry_object,
@@ -61,23 +64,26 @@ sub _report_intelligence_body {
         }
     }
     
-    my $my_spy_data = $self->request(
-        object  => $intelligence_ministry_object,
-        method  => 'view_spies',
-    );
-    
     my $defensive_spies = 0;
     my $offensive_spies = 0;
     my $idle_spies = 0;
-    foreach my $spy (@{$my_spy_data->{spies}}) {
-        if ($spy->{assignment} eq 'Idle') {
-            $idle_spies ++;
-        }
-        my $assigned_type = $self->assigned_to_type($spy->{assigned_to});
-        if ($assigned_type ~~ [qw(own ally)]) {
-            $defensive_spies ++
-        } else {
-            $offensive_spies ++;
+    if ($intelligence_ministry) {
+        my $intelligence_ministry_object = $self->build_object($intelligence_ministry);
+        my $my_spy_data = $self->request(
+            object  => $intelligence_ministry_object,
+            method  => 'view_spies',
+        );
+        
+        foreach my $spy (@{$my_spy_data->{spies}}) {
+            if ($spy->{assignment} eq 'Idle') {
+                $idle_spies ++;
+            }
+            my $assigned_type = $self->assigned_to_type($spy->{assigned_to});
+            if ($assigned_type ~~ [qw(own ally)]) {
+                $defensive_spies ++
+            } else {
+                $offensive_spies ++;
+            }
         }
     }
     
