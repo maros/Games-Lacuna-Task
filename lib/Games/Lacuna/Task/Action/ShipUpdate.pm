@@ -210,7 +210,24 @@ sub process_planet {
                     name        => $new_ship->{type_human},
                 );
             } else {
-                $old_ship = pop(@ships_general)   
+                $old_ship = pop(@ships_general);
+                my $old_name = $old_ship->{name};
+                my $ignore = ($old_name =~ s/!// ? 1:0);
+                my ($prefix,$name); 
+                if ($old_ship->{name} =~ m/^(.+):(.+)$/) {
+                    $prefix = [ split(/,/,$1) ];
+                    push(@{$prefix},$planet_stats->{name})
+                        unless $planet_stats->{name} ~~ $prefix;
+                    $name = $2;
+                }
+                
+                $self->name_ship(
+                    spaceport   => $build_spaceport_object,
+                    ship        => $new_ship,
+                    prefix      => $prefix,
+                    ignore      => $ignore,
+                    name        => $name,
+                );
             }
             
             $self->name_ship(
