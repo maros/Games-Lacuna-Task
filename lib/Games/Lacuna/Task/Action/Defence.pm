@@ -351,7 +351,7 @@ sub dispatch_defender {
         
         next LOCAL_SHIPS
             if $ship->{type} eq 'sweeper'
-            && $ship->{name} !~ m/(dispatch|\$|\+)/;
+            && $ship->{name} !~ m/\bdispatch\b/i;
         
         next LOCAL_SHIPS
             if $ship->{combat} < $self->min_defender_combat;

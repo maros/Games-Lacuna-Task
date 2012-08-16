@@ -36,29 +36,30 @@ sub name_ship {
     $ignore //= $old_ignore;
     $name //= $old_name;
     
-    $prefix = join(',', grep { defined $_ && $_ !~ /^\s*$/ } @{$prefix} )
+    $prefix = join(',', sort grep { defined $_ && $_ !~ /^\s*$/ } @{$prefix} )
         if ref $prefix eq 'ARRAY';
     
     # Normalize name
     $prefix = Games::Lacuna::Task::Utils::clean_name($prefix);
     $name = Games::Lacuna::Task::Utils::clean_name($name);
     
-    # Get max name length
+    # Build new name
+    my $new_name = '';
+
     my $max_length = 30;
     $max_length -= 1
         if $ignore;
-    $max_length -= ( 1 + length($prefix))
-        if $prefix; 
+        
+    if (defined $prefix && $prefix ne =~ m/^\s*$/) {
+        $max_length -= ( 1 + length($prefix));
+        $new_name .= $prefix.':';
+    }
     
-    # Build new name
-    my $new_name = '';
-    $new_name .= $prefix.':'
-        if defined $prefix;
     $new_name .= substr($name,0,$max_length);
     $new_name .= '!'
         if $ignore;
     
-    
+    # Rename ship if name differs
     if ($new_name ne $ship->{name}) {
         $self->log('notice',"Renaming ship from '%s' to '%s'",$ship->{name},$new_name);
         $ship->{name} = $new_name;
@@ -552,7 +553,7 @@ sub build_ships {
                 my $ship_building =  pop(@{$response->{ships_building}});
                 push(@ships_building,$ship_building);
                 
-                if (defined $name_prefix && $name_prefix ne '') {
+                if (defined $name_prefix) {
                     $self->name_ship(
                         spaceport   => $spaceport_object,
                         ship        => $ship_building,
