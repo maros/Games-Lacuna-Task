@@ -5,8 +5,9 @@ our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-with 'Games::Lacuna::Task::Role::Storage',
-    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['home_planet','space_station'] };
+with 'Games::Lacuna::Task::Role::PlanetRun',
+    'Games::Lacuna::Task::Role::Storage',
+    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['space_station'] };
 
 use Games::Lacuna::Task::Utils qw(parse_date format_date);
 use List::Util qw(min max);
@@ -44,26 +45,6 @@ sub description {
 sub run {
     my ($self) = @_;
     
-    my $planet_home = $self->home_planet_data();
-    my $timestamp = time();
-    
-    # Get space station lab
-    my $spacestaion_lab = $self->find_building($planet_home->{id},'SSLA');
-    return $self->log('error','Could not find space station labs')
-        unless $spacestaion_lab;
-
-    if (defined $spacestaion_lab->{work}) {
-        my $work_end = parse_date($spacestaion_lab->{work}{end});
-        if ($work_end > $timestamp) {
-            return $self->log('info','Space station lab is busy until %s',format_date($work_end))
-        }
-    }
-
-    my $spacestaion_lab_object = $self->build_object($spacestaion_lab);
-    
-    # Get plans on planet
-    my $planet_plans = $self->get_plans_stored($planet_home->{id});
-    
     # Get plans on space station
     my ($space_station,$space_station_plans,$space_station_modules);
     if ($self->has_space_station) {
@@ -72,32 +53,101 @@ sub run {
         $space_station_modules = $self->get_modules_built($space_station->{id});
     }
     
-    # TODO: Get plans in transit
+    # Get plans on bodies
+    my (@planet_plans);
+    foreach my $planet_stats ($self->get_planets) {
+        $self->log('info',"Check planet %s",$planet_stats->{name});
+        push(@planet_plans,$self->check_planet($planet_stats));
+    }
     
     # Get total plans
-    my $total_plans = _merge_plan_hash($planet_plans,$space_station_plans,$space_station_modules);
+    my $total_plans = _merge_plan_hash(@planet_plans,$space_station_plans,$space_station_modules);
     
-    # Get space station lab details
+    # Build plans
+    foreach my $planet_stats ($self->get_planets) {
+        $self->log('info',"Process planet %s",$planet_stats->{name});
+        #push(@planet_plans,$self->process_planet($planet_stats,$total_plans));
+    }
+}
+
+sub check_planet {
+    my ($self,$planet_stats) = @_;
+    
+    my $timestamp = time();
+    
+    # Get space station lab
+    my $spacestaion_lab = $self->find_building($planet_stats->{id},'SSLA');
+    
+    return
+        unless $spacestaion_lab;
+
+    # Get plans on planet
+    my $planet_plans = $self->get_plans_stored($planet_stats->{id});
+
+    # Get working plans
+    if (defined $spacestaion_lab->{work}) {
+        my $spacestaion_lab_object = $self->build_object($spacestaion_lab);
+        my $spacestaion_lab_data = $self->request(
+            object  => $spacestaion_lab_object,
+            method  => 'view',
+        );
+        
+        if (defined $spacestaion_lab_data->{building}{work}
+            && $spacestaion_lab_data->{make_plan}{making} =~ m/^(.+)\s\((\d+)\+0\)$/) {
+            my $plan_name = $1;
+            my $plan_level = $2;
+            my $plan_ident;
+            foreach (keys %{$self->plans}) {
+                my $plan_check_name = $self->plans->{$_}{name} || $_;
+                if ($plan_name eq $plan_check_name) {
+                    $plan_ident = $_;
+                    last;   
+                }  
+            }
+            $planet_plans->{$plan_ident} ||= {};
+            $planet_plans->{$plan_ident}{$plan_level} ||= 0;
+            $planet_plans->{$plan_ident}{$plan_level}++;
+        }
+    }
+    
+    # TODO: Get plans in transit
+    
+    return ($planet_plans);
+}
+
+sub process_planet {
+    my ($self,$planet_stats,$total_plans) = @_;
+
+    # Get space station lab
+    my $spacestaion_lab = $self->find_building($planet_stats->{id},'SSLA');
+    
+    return
+        unless $spacestaion_lab;
+
+    my $timestamp = time();
+
+    if (defined $spacestaion_lab->{work}) {
+        my $work_end = parse_date($spacestaion_lab->{work}{end});
+        if ($work_end > $timestamp) {
+            $self->log('debug','Space station lab is busy until %s',format_date($work_end));
+            return;
+        }
+    }
+
+    # Get max level
+    my $max_level = max(map { keys %{$_} } values %{$total_plans});
+    $max_level = min($spacestaion_lab->{level},$max_level+1);
+    
+    my $spacestaion_lab_object = $self->build_object($spacestaion_lab);
     my $spacestaion_lab_data = $self->request(
         object  => $spacestaion_lab_object,
         method  => 'view',
     );
     
-    if (defined $spacestaion_lab_data->{building}{work}) {
-        my $work_end = parse_date($spacestaion_lab_data->{building}{work}{end});
-        return $self->log('info','Space station lab is busy until %s',format_date($work_end))
-    }
-    
-    # Get max level
-    my $max_level = min(
-        $spacestaion_lab_data->{building}{level},
-        max(map { keys %{$_} } values %{$total_plans}) + 1
-    );
-    
     PLAN_LEVEL:
     foreach my $level (1..$max_level) {
         last PLAN_LEVEL
-            unless $self->can_afford($planet_home,$spacestaion_lab_data->{make_plan}{level_costs}[$level-1]);
+            unless $self->can_afford($planet_stats,$spacestaion_lab_data->{make_plan}{level_costs}[$level-1]);
         
         PLAN_TYPE:
         foreach my $plan (keys %{$self->plans}) {
@@ -116,7 +166,7 @@ sub run {
             
             $total_plans->{$plan}{$level} //= 0;
             if ($total_plans->{$plan}{$level} < $count) {
-                $self->log('notice','Building plan %s (%i) on %s',$plan_name,$level,$planet_home->{name});
+                $self->log('notice','Building plan %s (%i) on %s',$plan_name,$level,$planet_stats->{name});
                 my ($plan_type) = map { $_->{type} } grep { $_->{name} eq $plan_name } @{$spacestaion_lab_data->{make_plan}{types}};
                 
                 my $response = $self->request(
@@ -124,7 +174,9 @@ sub run {
                     method  => 'make_plan',
                     params  => [$plan_type,$level],
                 );
-                #$response->{building}{work}{end};
+                
+                $total_plans->{$plan}{$level}++;
+                
                 return;
             }
         }
