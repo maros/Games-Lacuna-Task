@@ -66,7 +66,7 @@ sub run {
     # Build plans
     foreach my $planet_stats ($self->get_planets) {
         $self->log('info',"Process planet %s",$planet_stats->{name});
-        #push(@planet_plans,$self->process_planet($planet_stats,$total_plans));
+        $self->process_planet($planet_stats,$total_plans);
     }
 }
 
@@ -146,7 +146,7 @@ sub process_planet {
     
     PLAN_LEVEL:
     foreach my $level (1..$max_level) {
-        last PLAN_LEVEL
+         last PLAN_LEVEL
             unless $self->can_afford($planet_stats,$spacestaion_lab_data->{make_plan}{level_costs}[$level-1]);
         
         PLAN_TYPE:
