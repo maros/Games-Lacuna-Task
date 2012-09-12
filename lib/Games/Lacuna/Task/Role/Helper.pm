@@ -224,6 +224,8 @@ sub can_afford {
     $planet_data = $self->my_body_status($planet_data);
     
     foreach my $resource (qw(food ore water energy)) {
+        next
+            unless $cost->{$resource};
         return 0
             if (( $planet_data->{$resource.'_stored'} - 1000 ) < $cost->{$resource});
     }
