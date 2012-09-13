@@ -44,14 +44,14 @@ sub process_planet {
             
             $self->request(
                 object  => $fissure_object,
-                method  => 'downgrade',
+                method  => 'demolish',
             );
         } elsif ($building_data->{downgrade}{can}) {
             $self->log('notice','Downgrade fissure on %s',$planet_stats->{name});
             
             $self->request(
                 object  => $fissure_object,
-                method  => 'demolish',
+                method  => 'downgrade',
             );
         }
     }
