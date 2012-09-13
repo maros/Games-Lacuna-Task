@@ -37,22 +37,28 @@ sub process_planet {
             method  => 'view',
         );
         
-        my $building_data = $fissure_data->{building};
-        
-        if ($building_data->{level} == 1) {
-            $self->log('notice','Demolish fissure on %s',$planet_stats->{name});
+        while (1) {
+            my $building_data = $fissure_data->{building};
             
-            $self->request(
-                object  => $fissure_object,
-                method  => 'demolish',
-            );
-        } elsif ($building_data->{downgrade}{can}) {
-            $self->log('notice','Downgrade fissure on %s',$planet_stats->{name});
-            
-            $self->request(
-                object  => $fissure_object,
-                method  => 'downgrade',
-            );
+            if ($building_data->{level} == 1) {
+                $self->log('notice','Demolish fissure on %s',$planet_stats->{name});
+                
+                $self->request(
+                    object  => $fissure_object,
+                    method  => 'demolish',
+                );
+                
+                last;
+            } elsif ($building_data->{downgrade}{can}) {
+                $self->log('notice','Downgrade fissure on %s',$planet_stats->{name});
+                
+                $fissure_data = $self->request(
+                    object  => $fissure_object,
+                    method  => 'downgrade',
+                );
+            } else {
+                last;
+            }
         }
     }
 }
