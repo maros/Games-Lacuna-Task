@@ -16,19 +16,20 @@ sub run {
     
     my $inbox_object = $self->build_object('Inbox');
     
-    # Get inbox for attacks
-    my $inbox_data = $self->paged_request(
+    my $inbox_data = $self->request(
         object  => $inbox_object,
         method  => 'view_inbox',
-        params  => [{ tags => ['Attack','Probe','']}],
-        total   => 'message_count',
-        data    => 'messages',
+        params  => [{ tags => ['Spies','Probe'],page_number => 1 }],
     );
+    
+    die $inbox_data;
     
     my @star_checked;
     my @archive_messages;
     
     foreach my $message (@{$inbox_data->{messages}}) {
+        warn $message;
+        
         next
             unless $message->{from_id} == $message->{to_id};
         
