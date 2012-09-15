@@ -50,7 +50,7 @@ sub name_ship {
     $max_length -= 1
         if $ignore;
         
-    if (defined $prefix && $prefix ne =~ m/^\s*$/) {
+    if (defined $prefix && $prefix !~ m/^\s*$/) {
         $max_length -= ( 1 + length($prefix));
         $new_name .= $prefix.':';
     }
