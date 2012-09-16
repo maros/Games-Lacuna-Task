@@ -11,6 +11,7 @@ use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::Notify',all_reports();
 
+use Try::Tiny;
 use Games::Lacuna::Task::Table;
 use Moose::Util::TypeConstraints;
 use Games::Lacuna::Task::Utils qw(pretty_dump class_to_name);
@@ -55,7 +56,14 @@ sub run {
     my @report_tables;
     foreach my $report (@{$self->report}) {
         my $method = 'report_'.$report;
-        foreach my $report_data ($self->$method()) {
+        
+        unless ($self->can($method)) {
+            $self->log('error','Could not find report %s',$report);
+            next;  
+        }
+        
+        my @data = $self->$method();
+        foreach my $report_data (@data) {
             next    
                 unless $report_data->has_rows;
             push(@report_tables,$report_data);
