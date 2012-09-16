@@ -2,6 +2,7 @@ package Games::Lacuna::Task::Report::Alerts;
 
 use 5.010;
 our $VERSION = $Games::Lacuna::Task::VERSION;
+use Games::Lacuna::Task::Utils qw(parse_date);
 
 use Moose::Role;
 
@@ -18,6 +19,8 @@ sub report_alerts {
         $self->_report_alert_happiness($planet_id,$table);
         $self->_report_alert_damage($planet_id,$table);
         $self->_report_alert_waste($planet_id,$table);
+        $self->_report_alert_build_queue($planet_id,$table);
+        $self->_report_alert_buildings($planet_id,$table);
     }
     
     return $table;
@@ -121,6 +124,42 @@ sub _report_alert_waste {
         $table->add_row({
             planet          => $planet_stats->{name},
             alert           => 'Not enough waste',
+        });
+    }
+}
+
+sub _report_alert_build_queue {
+    my ($self,$planet_id,$table) = @_;
+    
+    my $planet_stats = $self->my_body_status($planet_id);
+    
+    my $build_queue_size = $self->build_queue_size($planet_id);
+    
+    if ($build_queue_size == 0) {
+        $table->add_row({
+            planet          => $planet_stats->{name},
+            alert           => 'Empty build queue',
+        });
+    }
+}
+
+sub _report_alert_buildings {
+    my ($self,$planet_id,$table) = @_;
+    
+    my $planet_stats = $self->my_body_status($planet_id);
+    
+    foreach my $building_data ($self->buildings_body($planet_id)) {
+        next
+            unless $building_data->{url} eq '/deployedbleeder'
+            || $building_data->{url} eq '/fissure';
+            
+        $table->add_row({
+            planet          => $planet_stats->{name},
+            alert           => sprintf(
+                '%s level %i',
+                $building_data->{name},
+                $building_data->{level},
+            ),
         });
     }
 }
