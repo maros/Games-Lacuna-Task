@@ -4,6 +4,7 @@ use 5.010;
 our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose::Role;
+with qw(Games::Lacuna::Task::Role::Building);
 
 sub report_alerts {
     my ($self) = @_;
