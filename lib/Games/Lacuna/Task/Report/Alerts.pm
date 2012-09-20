@@ -64,7 +64,7 @@ sub _report_alert_damage {
         $table->add_row({
             planet          => $planet_stats->{name},
             alert           => sprintf(
-                'Building %s(%i) damaged (%i%)',
+                'Building %s(%i) damaged (%i%%)',
                 $building_data->{name},
                 $building_data->{level},
                 $building_data->{efficiency},
