@@ -47,7 +47,7 @@ sub _report_build_queue_body {
         planet          => $planet_stats->{name},
         size            => $building_count,
         finished_at     => ($max_date_end ? format_date($max_date_end) : 'now'),
-        finished_in     => format_duration($max_date_end),
+        finished_in     => (format_duration($max_date_end) // '-'),
     });
 }
 
