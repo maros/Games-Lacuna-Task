@@ -92,7 +92,7 @@ sub run {
         method  => 'get_stored_resources',
     );
     
-    # Cacl food & ore totals
+    # Calc food & ore totals
     my %resources_stored = %{$resources_stored_response->{resources}};
     $resources_stored{ore} = 0;
     $resources_stored{food} = 0;

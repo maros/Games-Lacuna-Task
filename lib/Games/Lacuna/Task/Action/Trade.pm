@@ -237,7 +237,11 @@ sub process_planet {
             my $response = $self->request(
                 object  => $tradeministry_object,
                 method  => 'add_to_market',
-                params  => [ \@offer_data, $trade->{ask}, { ship_id => $trade_ships[0] } ]
+                params  => [ 
+                    \@offer_data, 
+                    $trade->{ask}, 
+                    { ship_id => $trade_ships[0] } 
+                ]
             );
             $self->log('notice','Adding trade on %s',$planet_stats->{name});
         }
