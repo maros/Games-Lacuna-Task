@@ -145,35 +145,25 @@ sub process_planet {
     return
         if scalar @cargo < $self->min_items;
     
-    # Get trade ships
-    my $available_trade_ships = $self->request(
-        object  => $tradeministry_object,
-        method  => 'get_trade_ships',
-        params  => [ $self->home_planet_data->{id} ],
-    );
+    my $trade_ships = $self->trade_ships($planet_stats->{id},\@cargo);
+    my @trade_ships = keys %{$trade_ships};
     
-    return
-        unless scalar @{$available_trade_ships->{ships}};
-    
-    my $trade_ship_id;
-    TRADE_SHIP:
-    foreach my $ship (sort { $b->{speed} <=> $a->{speed} } @{$available_trade_ships->{ships}}) {
-        # TODO send multiple ships if cargo requirements exceed capacity of single ship
-        next TRADE_SHIP
-            if $ship->{hold_size} < $total_cargo;
-        next TRADE_SHIP
-            if $ship->{name} =~ m/!/;
-        $trade_ship_id = $ship->{id};
-        last TRADE_SHIP; 
-    }
-    
-    my $response = $self->request(
-        object  => $tradeministry_object,
-        method  => 'push_items',
-        params  => [ $self->home_planet_data->{id} , \@cargo, { ship_id => $trade_ship_id } ]
-    );
+    next TRADE
+        if scalar @trade_ships == 0;
     
     $self->log('notice','Sending %i item(s) from %s to %s',scalar(@cargo),$planet_stats->{name},$self->home_planet_data->{name});
+    
+    foreach my $trade_ship (@trade_ships) {
+        $self->request(
+            object  => $tradeministry_object,
+            method  => 'push_items',
+            params  => [ 
+                $self->home_planet_data->{id},
+                $trade_ships->{$trade_ship}, 
+                { ship_id => $trade_ship } 
+            ]
+        );
+    }
 }
 
 __PACKAGE__->meta->make_immutable;
