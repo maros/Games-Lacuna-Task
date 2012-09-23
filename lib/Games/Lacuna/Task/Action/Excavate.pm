@@ -7,7 +7,8 @@ use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::Stars
     Games::Lacuna::Task::Role::Ships
-    Games::Lacuna::Task::Role::PlanetRun);
+    Games::Lacuna::Task::Role::PlanetRun
+    Games::Lacuna::Task::Role::Storage);
 
 use List::Util qw(sum);
 use Games::Lacuna::Client::Types qw(ore_types);
@@ -15,30 +16,25 @@ use Games::Lacuna::Client::Types qw(ore_types);
 has 'min_ore' => (
     is              => 'rw',
     isa             => 'Int',
-    documentation   => 'Only select bodies with mininimal ore quantities [Default 5000]',
-    default         => 5000,
+    documentation   => 'Only select bodies with mininimal ore quantities [Default 4000]',
+    default         => 4000,
     required        => 1,
 );
 
 has 'ores' => (
     is              => 'rw',
-    isa             => 'HashRef',
+    isa             => 'HashRef[Num]',
     traits          => ['Hash','NoGetopt'],
-    default         => sub {
-        return {
-            map { $_ => 0 } ore_types()
-        }
-    },
     required        => 1,
     handles         => {
         get_ore         => 'get',
-    }
+    },
+    lazy_build      => 1,
 );
 
 has 'excavated_bodies' => (
-    is          => 'rw',
-    isa         => 'ArrayRef[Int]',
-    traits      => [qw(NoGetopt Array)],
+    is              => 'rw',
+    isa             => 'ArrayRef[Int]',
     traits          => ['Array','NoGetopt'],
     handles         => {
         add_excavated_body => 'push',
@@ -58,24 +54,33 @@ sub description {
 
 sub process_planet {}
 
+sub _build_ores {
+    my ($self) = @_;
+    
+    my $all_glyphs = $self->all_glyphs_stored;
+    
+    my $return = { map { $_ => 0 } ore_types() };
+    my $ore_type_count = scalar ore_types();
+    my $total_ores = sum(values %{$all_glyphs});
+    while (my ($key,$value) = each %{$all_glyphs}) {
+        $return->{$key} = (1/$ore_type_count) / ($value / $total_ores);
+    }
+    
+    return $return;
+}
+
 sub run {
     my ($self) = @_;
     
     my %planets;
     
     foreach my $planet_stats ($self->get_planets) {
-        $self->log('info',"Processing planet %s",$planet_stats->{name});
-        my $available = $self->current_excavators($planet_stats);
+        $self->log('info',"Checking planet %s",$planet_stats->{name});
+        my $available = $self->check_planet($planet_stats);
         
         if ($available) {
             $planets{$planet_stats->{id}} = $available;
         }
-    }
-    
-    my $ore_type_count = scalar ore_types();
-    my $total_ores = sum(values %{$self->ores});
-    while (my ($key,$value) = each %{$self->ores}) {
-        $self->ores->{$key} = (1/$ore_type_count) / ($value / $total_ores);
     }
     
     while (my ($key,$value) = each %planets) {
@@ -83,9 +88,12 @@ sub run {
         $self->dispatch_excavators($planet_stats,$value);
     }
     
+    $self->log('debug',"Updating excavator cache");
+    my $excavated = join(',',@{$self->excavated_bodies});
+    $self->storage_do('UPDATE body SET is_excavated = 0 WHERE is_excavated = 1 AND id NOT IN ('.$excavated.')');
 }
 
-sub current_excavators {
+sub check_planet {
     my ($self,$planet_stats) = @_;
     
     # Get archaeology ministry
@@ -107,9 +115,9 @@ sub current_excavators {
     
     # Get all excavated bodies
     foreach my $excavator (@{$response->{excavators}}) {
-        while (my ($key,$value) = each %{$excavator->{body}{ore}}) {
-            $self->ores->{$key} += $value * ($excavator->{glyph} / 100);
-        }
+#        while (my ($key,$value) = each %{$excavator->{body}{ore}}) {
+#            $self->ores->{$key} += $value * ($excavator->{glyph} / 100);
+#        }
         next
             if $excavator->{id} == 0;
         
@@ -121,6 +129,8 @@ sub current_excavators {
 
 sub dispatch_excavators {
     my ($self,$planet_stats,$possible_excavators) = @_;
+    
+    $self->log('info',"Process planet %s",$planet_stats->{name});
     
     # Get space port
     my $spaceport = $self->find_building($planet_stats->{id},'Space Port');
@@ -198,6 +208,7 @@ sub dispatch_excavators {
                 foreach my $ore (keys %{$body->{ore}}) {
                     $weighted_ores += $body->{ore}{$ore} * $self->get_ore($ore);
                 }
+                
                 push(@available_bodies,[ $weighted_ores, $body ]);
             }
             
@@ -256,15 +267,6 @@ sub dispatch_excavators {
     }
 }
 
-after 'run' => sub {
-    my ($self) = @_;
-    
-    my $excavated = join(',',@{$self->excavated_bodies});
-    
-    $self->log('debug',"Updating excavator cache");
-    
-    $self->storage_do('UPDATE body SET is_excavated = 0 WHERE is_excavated = 1 AND id NOT IN ('.$excavated.')');
-};
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
