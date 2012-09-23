@@ -5,7 +5,8 @@ our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
-with qw(Games::Lacuna::Task::Role::PlanetRun);
+with qw(Games::Lacuna::Task::Role::PlanetRun
+    Games::Lacuna::Task::Role::Storage);
 
 use List::Util qw(max sum);
 use Games::Lacuna::Client::Types qw(ore_types);
@@ -15,53 +16,10 @@ sub description {
     return q[Search for glyphs via Archaeology Ministry];
 }
 
-sub all_glyphs {
-    my ($self) = @_;
-    
-    # Fetch total glyph count from cache
-    my $all_glyphs = $self->get_cache('glyphs');
-    
-    return $all_glyphs
-        if defined $all_glyphs;
-    
-    # Set all glyphs to zero
-    $all_glyphs = { map { $_ => 0 } ore_types() };
-    
-    # Loop all planets
-    PLANETS:
-    foreach my $planet_stats ($self->my_planets) {
-        # Get archaeology ministry
-        my $archaeology_ministry = $self->find_building($planet_stats->{id},'Archaeology');
-        
-        next
-            unless defined $archaeology_ministry;
-        
-        # Get all glyphs
-        my $archaeology_ministry_object = $self->build_object($archaeology_ministry);
-        my $glyph_data = $self->request(
-            object  => $archaeology_ministry_object,
-            method  => 'get_glyph_summary',
-        );
-        
-        foreach my $glyph (@{$glyph_data->{glyphs}}) {
-            $all_glyphs->{$glyph->{type}} ||= $glyph->{quantity};
-        }
-    }
-    
-    # Write total glyph count to cache
-    $self->set_cache(
-        key     => 'glyphs',
-        value   => $all_glyphs,
-        max_age => (60*60*24),
-    );
-    
-    return $all_glyphs;
-}
-
 sub process_planet {
     my ($self,$planet_stats) = @_;
     
-    my $all_glyphs = $self->all_glyphs;
+    my $all_glyphs = $self->all_glyphs_stored;
     
     my $total_glyphs = sum(values %{$all_glyphs});
     my $max_glyphs = max(values %{$all_glyphs});

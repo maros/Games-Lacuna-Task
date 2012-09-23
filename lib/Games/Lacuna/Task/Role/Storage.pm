@@ -33,16 +33,41 @@ sub check_stored {
         when ('happiness') {
             return $planet_stats->{$_};
         }
-        when ([ ore_types() ]) {
-            my $ores = $self->ore_stored($planet_stats->{id});
-            return $ores->{$_}
-        }
-        when ([ food_types() ]) {
-            my $foods = $self->food_stored($planet_stats->{id});
-            return $foods->{$_}
+        # 
+        when ([ ore_types(),food_types() ]) {
+            my $resources = $self->resources_stored($planet_stats);
+            return $resources->{$resource}
+                if defined $resources && defined $resources->{$resource};
         }
     }
+    
     return;
+}
+
+sub resources_stored {
+    my ($self,$planet_stats) = @_;
+    
+    my $cache_key = 'body/'.$planet_stats->{id}.'/resources';
+    my $stored = $self->get_cache($cache_key);
+    return $stored
+        if defined $stored;
+    
+    # Get trade ministry
+    my $trade_object = $self->get_building_object($planet_stats->{id},'Trade');
+    return
+        unless $trade_object;
+    my $stored_response = $self->request(
+        object  => $trade_object,
+        method  => 'get_stored_resources',
+    );
+    
+    $self->set_cache(
+        key     => $cache_key,
+        value   => $stored_response->{resources},
+        max_age => (60*60),
+    );
+    
+    return $stored_response->{resources};
 }
 
 sub plans_stored {
@@ -52,12 +77,10 @@ sub plans_stored {
         if ref($planet_id) eq 'HASH';
     
     my $cache_key = 'body/'.$planet_id.'/plans';
-   
-#    my $plans = $self->get_cache($cache_key);
-#    
-#    return $plans
-#        if defined $plans;
-#    
+    my $plans = $self->get_cache($cache_key);
+    return $plans
+        if defined $plans;
+    
     my $command = $self->find_building($planet_id,'PlanetaryCommand');
     $command ||= $self->find_building($planet_id,'StationCommand');
     
@@ -66,65 +89,79 @@ sub plans_stored {
         object  => $command_object,
         method  => 'view_plans',
     );
-    
-    my $plans = $response->{plans};
+    $plans = $response->{plans};
     
     $self->set_cache(
         key     => $cache_key,
         value   => $plans,
+        cache   => (60*60),
     );
     
     return $plans;
 }
 
-sub ore_stored {
-    my ($self,$planet_id) = @_;
-    $self->_resource_stored($planet_id,'ore','OreStorage');
-}
-
-sub food_stored {
-    my ($self,$planet_id) = @_;
-    $self->_resource_stored($planet_id,'food','FoodReserve');
-}
-
-sub _resource_stored {
-    my ($self,$planet_id,$resource,$building_name) = @_;
+sub glyphs_stored {
+    my ($self,$planet_stats) = @_;
     
-    $planet_id = $planet_id->{id}
-        if ref($planet_id) eq 'HASH';
-    
-    my $cache_key = 'body/'.$planet_id.'/storage/'.$resource;
-    
+    my $cache_key = 'body/'.$planet_stats->{id}.'/glyphs';
     my $stored = $self->get_cache($cache_key);
-    
     return $stored
         if defined $stored;
     
-    my $storage_builiding = $self->find_building($planet_id,$building_name);
-    
+    # Get trade ministry
+    my $trade_object = $self->get_building_object($planet_stats->{id},'Trade');
     return
-        unless $storage_builiding;
-    
-    my $storage_builiding_object = $self->build_object($storage_builiding);
-    
-    my ($resource_subtype,@dump_params);
-    
-    my $response = $self->request(
-        object  => $storage_builiding_object,
-        method  => 'view',
+        unless $trade_object;
+    my $stored_response = $self->request(
+        object  => $trade_object,
+        method  => 'get_glyph_summary',
     );
     
-    $stored = $response->{lc($resource).'_stored'};
+    $stored = { map { $_ => 0 } ore_types() };
+    foreach my $element (@{$stored_response->{glyphs}}) {
+        $stored->{$element->{type}} = $element->{quantity};
+    }
     
     $self->set_cache(
         key     => $cache_key,
         value   => $stored,
-        max_age => 600,
+        max_age => (60*60),
     );
     
     return $stored;
 }
 
+sub all_glyphs_stored {
+    my ($self) = @_;
+    
+    # Fetch total glyph count from cache
+    my $all_glyphs = $self->get_cache('glyphs');
+    return $all_glyphs
+        if defined $all_glyphs;
+    
+    # Set all glyphs to zero
+    $all_glyphs = { map { $_ => 0 } ore_types() };
+    
+    # Loop all planets
+    PLANETS:
+    foreach my $planet_stats ($self->my_planets) {
+        my $glyph_data = $self->glyphs_stored($planet_stats);
+        next 
+            unless $glyph_data;
+        foreach my $glyph ( ore_types() ) {
+            $all_glyphs->{$glyph} += $glyph_data->{$glyph};
+        }
+    }
+    
+    # Write total glyph count to cache
+    $self->set_cache(
+        key     => 'glyphs',
+        value   => $all_glyphs,
+        max_age => (60*60*24),
+    );
+    
+    return $all_glyphs;
+}
 
 no Moose::Role;
 1;
