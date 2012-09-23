@@ -365,7 +365,8 @@ sub _raw_request {
             max_age => 60*70, # One hour+
         );
     }
-    if ($response->{buildings}) {
+    if ($response->{buildings}
+        && ref $response->{buildings} eq 'HASH') {
         $self->set_cache(
             key     => 'body/'.$status->{body}{id}.'/buildings',
             value   => $response->{buildings},
