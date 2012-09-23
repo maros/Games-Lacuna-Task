@@ -28,8 +28,6 @@ sub run {
     my @archive_messages;
     
     foreach my $message (@{$inbox_data->{messages}}) {
-        warn $message;
-        
         next
             unless $message->{from_id} == $message->{to_id};
         

@@ -271,7 +271,6 @@ sub get_local_defending_ships {
                     if $arrives > $first_attacker_arrive;
             }
             when('Building') {
-                warn $ship;
                 # Check arrival time
                 my $arrives = parse_date($ship->{date_arrives});
                 next LOCAL_SHIPS

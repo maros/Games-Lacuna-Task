@@ -180,7 +180,6 @@ sub push_ships {
                     [
                         1010,
                         sub {
-                            warn $trade_ships->{$ship_id};
                             $self->log('debug',"Could not push ships");
                             return 0;
                         }
