@@ -418,3 +418,17 @@ sub recall_defender {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::Defence - Defend against enemy attacks by dispatching fighters and sweepers
+
+=head1 DESCRIPTION
+
+This task dispatches fighters and sweepers to bodies under attack. 
+Fighters will be allways be dispatched whereas only Sweepers with 
+"dispatch" in their name will be considered.
+
+=cut
