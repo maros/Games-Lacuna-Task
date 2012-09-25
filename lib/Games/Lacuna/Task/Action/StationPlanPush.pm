@@ -6,6 +6,7 @@ our $VERSION = $Games::Lacuna::Task::VERSION;
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with 'Games::Lacuna::Task::Role::PlanetRun',
+    'Games::Lacuna::Task::Role::Ships',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['space_station'] };
 
 our @MODULES = (
@@ -45,7 +46,6 @@ sub process_planet {
     foreach my $plan (@{$plans->{plans}}) {
         next
             unless $plan->{name} ~~ \@MODULES;
-        push(@modules,$plan);
         $cargo_size += $plan->{quantity} * $Games::Lacuna::Task::Constants::CARGO{plan};
         $module_count += $plan->{quantity};
         push(@modules, {
@@ -60,33 +60,22 @@ sub process_planet {
     return
         unless scalar @modules;
     
-    my $ships = $self->request(
-        object  => $trade_object,
-        method  => 'get_trade_ships',
-    );
+    my $trade_ships = $self->trade_ships($planet_stats->{id},\@modules);
+    my @trade_ships = keys %{$trade_ships};
     
-    my $cargo_ship;
-    foreach my $ship (sort { $b->{speed} <=> $a->{speed} } @{$ships->{ships}}) {
-        next
-            if $ship->{name} =~ m/!/;
-        next
-            unless $ship->{hold_size} >= $cargo_size;
-        $cargo_ship = $ship;
-        last;
-    }
+    next TRADE
+        if scalar @trade_ships == 0;
     
-    if ($cargo_ship) {
-        $self->log('notice','Shipping %i module plans to %s',$module_count,$self->space_station_data->{name});
+    $self->log('notice','Shipping %i module plans to %s',$module_count,$self->space_station_data->{name});
+    
+    foreach my $trade_ship (@trade_ships) {
         $self->request(
             object  => $trade_object,
             method  => 'push_items',
             params  => [ 
-                $self->space_station_data->{id}, 
-                \@modules, 
-                { 
-                    ship_id => $cargo_ship->{id},
-                    stay    => 0,
-                } 
+                $self->space_station_data->{id},
+                $trade_ships->{$trade_ship}, 
+                { ship_id => $trade_ship, stay => 0 } 
             ]
         );
     }

@@ -35,8 +35,23 @@ sub process_planet {
         method  => 'view_platforms',
     );
     
+    
+    my $abandoned_platforms = 0;
+    foreach my $platform (@{$mining_data->{platforms}}) {
+        next
+            unless $platform->{asteroid}{image} =~ m/^debris\d/;
+        
+        $self->log('notice','Abandoned platform on %s',$platform->{asteroid}{name});
+        $self->request(
+            object  => $mining_object,
+            method  => 'abandon_platform',
+            params  => [$platform->{id}],
+        );
+        $abandoned_platforms++;
+    }
+    
     # Check if we can have more platforms
-    my $available_platforms = ($mining_data->{max_platforms} - scalar @{$mining_data->{platforms}});
+    my $available_platforms = ($mining_data->{max_platforms} - scalar @{$mining_data->{platforms}}) + $abandoned_platforms;
     
     return
         if $available_platforms == 0;

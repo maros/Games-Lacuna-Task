@@ -145,3 +145,17 @@ sub remove_empire {
     $self->storage_do('DELETE FROM empire WHERE id = ?',$id);
     $self->storage_do('UPDATE body SET empire = NULL WHERE empire = ?',$id);
 }
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::EmpireCache - Build the empire info cache
+
+=head1 DESCRIPTION
+
+This task queries the Lacuna API to get as much information about other
+empires as possible. The "empire_find" task can be used to query
+the empire cache without further API-calls.
+
+=cut
