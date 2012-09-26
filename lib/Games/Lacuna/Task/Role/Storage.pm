@@ -52,6 +52,8 @@ sub resources_stored {
     return $stored
         if defined $stored;
     
+    # TODO: better via PCC
+    
     # Get trade ministry
     my $trade_object = $self->get_building_object($planet_stats->{id},'Trade');
     return

@@ -185,11 +185,16 @@ The following accessors and helper methods are available on request
 
 =head2 home_planet
 
-Own planet. Planet stast can be accessed via the C<home_planet_data> method.
+Own planet. Planet stats can be accessed via the C<home_planet_data> method.
 
 =head2 target_planet
 
-Foreign planet. Planet stast can be accessed via the C<target_planet_data> 
+Foreign planet. Planet stats can be accessed via the C<target_planet_data> 
+method.
+
+=head2 mytarget_planet
+
+Own target planet. Planet stats can be accessed via the C<target_planet_data> 
 method.
 
 =head2 dispose_percentage
@@ -207,5 +212,9 @@ Plan N hours ahead
 =head2 keep_waste_hours
 
 Keep enough waste for N hours',
+
+=head2 space_station
+
+Own space station. Station stats can be accessed via the C<space_station_data> method.
 
 =cut

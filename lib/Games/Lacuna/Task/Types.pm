@@ -56,7 +56,6 @@ MooseX::Getopt::OptionTypeMap->add_option_type_to_map(
     'Lacuna::Task::Type::Resource'   => '=s',
     'Lacuna::Task::Type::Coordinates'=> '=s@',
     'Lacuna::Task::Type::Resources'  => '=s@',
-    
 );
 
 1;

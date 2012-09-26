@@ -71,8 +71,8 @@ has 'threshold' => (
     is              => 'rw',
     isa             => 'Int',
     required        => 1,
-    default         => 20,
-    documentation   => "Threshold for ship attributes [Default: 20%]",
+    default         => 15,
+    documentation   => "Threshold for ship attributes [Default: 15%]",
 );
 
 sub description {
@@ -349,3 +349,19 @@ sub get_buildable_ships {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::ShipUpdate - Keeps your fleet up to date by building new ships and scuttling old ones
+
+=head1 DESCRIPTION
+
+This task replaces outdated ships. It does so by checking the best possible 
+stats for each ship type and comparing the existing ships with this figures.
+Outdated ships will be scuttled and replacements will be built.
+
+Only works in conjunction with the ship_dispatch task
+
+=cut

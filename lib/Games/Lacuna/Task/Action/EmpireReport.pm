@@ -97,6 +97,35 @@ __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
 
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::EmpireReport - Generates informative empire status report
+
+=head1 DESCRIPTION
+
+This task generates an extensive report for your empire. It currently reports
+
+=over
+
+=item * Various alerts such as damaged buildings, bleeders and fissures, overflowing waste, ...
+=item * Battle logs
+=item * Build queue for each planet
+=item * Glyphs summary
+=item * Fleet summary
+=item * Inbox summary
+=item * Spy activity
+=item * Mining platform status
+=item * Halls of Vrbansk plans for each planet
+
+=back 
+
+The reports can either be mailed to a given address or just printed to STDOUT.
+Since this tasks comsumes many RPC calls it shouldn't be run often.
+
+=cut
+
 __DATA__
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
 <html>

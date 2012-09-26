@@ -78,7 +78,7 @@ sub process_planet {
         }
         
         # Scuttle
-        if ( $ship->{name} =~ m/\b scuttle \b/ix) {
+        if ( $ship->{name} =~ m/\bscuttle\b/i) {
             $self->log('notice','Scuttling ship %s on %s',$ship->{name},$planet_stats->{name});
             
             $self->request(
@@ -87,7 +87,7 @@ sub process_planet {
                 params  => [$ship->{id}],
             );
         # Add to chain
-        } elsif ( $ship->{name} =~ m/\b chain \b/ix) {
+        } elsif ( $ship->{name} =~ m/\bchain\b/i) {
             my $trade_object = $self->get_building_object($planet_stats->{id},'Trade');
             next
                 unless $trade_object;
@@ -145,3 +145,36 @@ sub process_planet {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::ShipDispatch - Dispatch ships based on their name
+
+=head1 DESCRIPTION
+
+This task dispatches ships based on their name. Currently the following
+name prefixed are supported:
+
+=over
+
+=item * Mining or Miner
+
+Asigns the ship to the mining minsitry
+
+=item * Chain
+
+Asigns the ship to the waste or supply chain (based on its type)
+
+=item * Scuttle
+
+Scuttles the ship at the next opportunity
+
+=item * Planet name
+
+Dispatches the ship to the given planet
+
+=back
+
+=cut

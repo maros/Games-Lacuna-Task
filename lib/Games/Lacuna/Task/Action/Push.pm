@@ -229,3 +229,23 @@ sub run {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::Push - Push goods between your colonies
+
+=head1 DESCRIPTION
+
+This task can be used to push goods beetween bodies. 
+
+=over
+
+=item * Large shipments will be distributed among multiple ships
+=item * Can calculate the required resources automatically based on the senders and targets stock
+=item * Can be used to ship generic 'ore' and 'food'
+ 
+=back
+
+=cut

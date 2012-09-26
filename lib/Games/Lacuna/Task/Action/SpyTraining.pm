@@ -140,3 +140,16 @@ sub process_planet {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::SpyTraining - Automate the training of spies
+
+=head1 DESCRIPTION
+
+This task automates the training of spies. It will try to level them
+up evenly.
+
+=cut

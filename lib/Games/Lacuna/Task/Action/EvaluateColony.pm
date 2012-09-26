@@ -11,7 +11,7 @@ use Games::Lacuna::Task::Utils qw(distance);
 use Games::Lacuna::Task::Table;
 
 sub description {
-    return q[Evaluate colonizeable worlds];
+    return q[Evaluate colonizable worlds];
 }
 
 has 'max_distance' => (
@@ -201,3 +201,17 @@ sub calculate_score {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::EvaluateColony - Evaluate colonizable worlds
+
+=head1 DESCRIPTION
+
+This manual task generates evaluates all habitable worlds within a given
+distances for colonization. Multiple options can be used to customize the
+search.
+
+=cut

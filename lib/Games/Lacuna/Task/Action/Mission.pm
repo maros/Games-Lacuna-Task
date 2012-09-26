@@ -259,3 +259,15 @@ sub parse_mission {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::Mission - Automatically accept missions
+
+=head1 DESCRIPTION
+
+This task tries to complete the selected missions if possible.
+
+=cut

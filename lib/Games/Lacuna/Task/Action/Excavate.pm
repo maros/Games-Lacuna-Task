@@ -271,3 +271,17 @@ sub dispatch_excavators {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::Excavate - Building and dispatch excavators to best suited bodies
+
+=head1 DESCRIPTION
+
+This task automatically builds and dispatches excavators to bodies in the
+vincity. Bodies with scare ores are ranked higher than bodies with common
+ores.
+
+=cut

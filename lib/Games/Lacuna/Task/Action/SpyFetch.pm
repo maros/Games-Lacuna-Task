@@ -65,3 +65,15 @@ sub run {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::SpyFetch - Fetch spies from enemy planets
+
+=head1 DESCRIPTION
+
+This task manual task fetches a given number of spies from a selected planet
+
+=cut

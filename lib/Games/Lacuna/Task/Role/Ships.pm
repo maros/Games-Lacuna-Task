@@ -650,4 +650,12 @@ Returns a hashref with cargo ship ids as keys and cargo lists as values.
 
 Pushes the selected ships from one body to another
 
+=head2 build_ships
+
+=head2 name_ship
+
+=head2 shipyard_slots
+
+=head2 spaceport_slots
+
 =cut

@@ -64,3 +64,17 @@ sub process_planet {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::Repair - Repair damaged buildings
+
+=head1 DESCRIPTION
+
+This task automatically repaird damaged buildings. Especially useful to
+contain fissures.
+
+=cut

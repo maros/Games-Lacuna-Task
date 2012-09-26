@@ -193,6 +193,8 @@ Games::Lacuna::Task::Utils - Helper functions for Games::Lacuna::Task
 
 No functions are exported by default.
 
+
+
 =head3 class_to_name
 
 Class name to moniker (lowercase, uderscore separated)
@@ -215,7 +217,15 @@ Stringifies any value
 
 =head3 normalize_name
 
-Removes diacritic marks and uppercases a string for better compareability
+ my $normalized = normalize_name($name);
+
+Removes diacritic marks and uppercases a string for better comparability
+
+=head3 clean_name
+
+ my $cleaned = clean_name($name);
+ 
+Removes all diacritic marks from a string eg. turining "Käse" into "Kase"
 
 =head3 parse_ship_type
 
@@ -223,12 +233,16 @@ Removes diacritic marks and uppercases a string for better compareability
 
 Converts a human ship name into the ship type
 
-=head2 parse_date
+=head3 parse_date
 
 Returns a epoch timestamp for the given timestamp from the api response
 
-=head2 format_date
+=head3 format_date
 
 Formats an epoch timestamp
+
+=head3 format_duration
+
+Formats a duration
 
 =cut

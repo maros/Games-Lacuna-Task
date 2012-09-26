@@ -95,3 +95,15 @@ sub run {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::SpyFetch - Send spies to another planet
+
+=head1 DESCRIPTION
+
+This task manual task send a given number of spies to a selected planet
+
+=cut

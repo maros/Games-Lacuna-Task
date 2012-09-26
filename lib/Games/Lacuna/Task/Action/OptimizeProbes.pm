@@ -100,3 +100,17 @@ sub process_planet {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::OptimizeProbes - Check for duplicate probes
+
+=head1 DESCRIPTION
+
+This task checks for systems that have been probed by more than one probe, 
+and automatically abandons such probes.
+
+=cut

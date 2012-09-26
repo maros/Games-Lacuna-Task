@@ -100,11 +100,15 @@ sub closest_unprobed_stars {
         sub {
             my ($star_data) = @_;
             
+            # TODO cache star data calls for run
+            
             # Fetch star data from api and check if solar system is still unprobed
             $star_data = $self->_get_star_api($star_data->{id},$star_data->{x},$star_data->{y});
             
             next
                 if $star_data->{is_probed};
+            
+            # TODO cache incoming probes data for run
             
             # Get incoming probe info
             my $star_incomming = $self->request(

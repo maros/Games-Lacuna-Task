@@ -227,3 +227,17 @@ sub closest_asteroids {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::Excavate - Deploy mining platforms to best available asteroids
+
+=head1 DESCRIPTION
+
+This task automates the deployment and destruction (if asteroids turn into
+debris) of mining platforms. Asteroids with scare ores are ranked higher than 
+asteroids with common ores.
+
+=cut
