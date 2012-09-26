@@ -35,6 +35,9 @@ sub run {
     my $planet_home = $self->home_planet_data();
     my $global_found = 0;
     
+    $self->abort('Build queue must be empty to run vrbansk_upgrade')
+        if $self->build_queue_size($planet_home);
+    
     HALLS:
     while (1) {
         # Get pcc 
