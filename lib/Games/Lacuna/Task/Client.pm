@@ -4,8 +4,7 @@ use 5.010;
 our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose;
-with qw(Games::Lacuna::Task::Role::Logger
-    Games::Lacuna::Task::Role::Captcha);
+with qw(Games::Lacuna::Task::Role::Logger);
 
 use Try::Tiny;
 use IO::Interactive qw(is_interactive);
@@ -13,6 +12,7 @@ use YAML::Any qw(LoadFile);
 use Games::Lacuna::Client;
 use Games::Lacuna::Task::Utils qw(name_to_class);
 use Games::Lacuna::Task::Storage;
+use Term::ReadKey;
 
 our $API_KEY = '6ca1d525-bd4d-4bbb-ae85-b925ed3ea7b7';
 our $URI = 'https://us1.lacunaexpanse.com/';
@@ -160,6 +160,45 @@ sub get_stash {
     
     # Return stash
     return $self->stash->{$key};
+}
+
+sub get_captcha {
+    my ($self) = @_;
+    
+    return 0
+        unless is_interactive();
+
+    my $captcha_object = $self->build_object('Captcha');
+
+    CAPTCHA:
+    for (1..3) {
+        my $captcha_data = $captcha_object->fetch();
+
+        my $captcha_solution;
+        say "Please solve the captcha image at ".$captcha_data->{url};
+        while ( not defined( $captcha_solution = ReadLine(-1) ) ) {
+            # no key pressed yet
+        }
+        
+        chomp($captcha_solution);
+            
+        return 0
+            if $captcha_solution =~ /^\s*$/;
+        
+        my $captcha_ok = 0;
+        try {
+            $self->log('debug','Solving captcha %s with %s',$captcha_object->guid,$captcha_solution);
+            $captcha_object->solve($captcha_solution);
+            $captcha_ok = 1;
+        } catch {
+            $self->log('error','Captcha solution for %s not valid',$captcha_object->guid);
+            
+        };
+        return 1
+            if $captcha_ok;
+    }
+    
+    return 0;
 }
 
 sub task_config {
