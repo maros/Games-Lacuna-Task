@@ -100,7 +100,7 @@ sub process_planet {
     }
     
     # Get closest asteroids
-    my @asteroids = $self->closest_asteroids($planet_stats->{x},$planet_stats->{y},35);
+    my @asteroids = $self->closest_asteroids($planet_stats->{x},$planet_stats->{y},45);
     
     foreach my $asteroid (@asteroids) {
         my $asteroid_quality = 1;
@@ -159,7 +159,15 @@ sub process_planet {
                         1010,
                         qr/Only .+ members can mine asteroids in the jurisdiction of the space station/,
                         sub {
-                            $self->log('warn',"Could not send mining ship to %s",$asteroid->{name});
+                            $self->log('warn',"Could not send mining ship to %s: Members only",$asteroid->{name});
+                            return 0;
+                        }
+                    ],
+                    [
+                        1010,
+                        qr/.+ cannot support any additional mining platforms/,
+                        sub {
+                            $self->log('warn',"Could not send mining ship to %s: Max platforms reached",$asteroid->{name});
                             return 0;
                         }
                     ],
