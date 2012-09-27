@@ -52,24 +52,30 @@ sub resources_stored {
     return $stored
         if defined $stored;
     
-    # TODO: better via PCC
+    my $command = $self->find_building($planet_stats->{id},'PlanetaryCommand');
+    $command ||= $self->find_building($planet_stats->{id},'StationCommand');
     
-    # Get trade ministry
-    my $trade_object = $self->get_building_object($planet_stats->{id},'Trade');
-    return
-        unless $trade_object;
-    my $stored_response = $self->request(
-        object  => $trade_object,
-        method  => 'get_stored_resources',
+    my $command_object = $self->build_object($command);
+    my $response = $self->request(
+        object  => $command_object,
+        method  => 'view',
     );
+    
+    my $stored_response = {
+        %{$response->{ore}},
+        %{$response->{food}},
+        $response->{planet}{water_stored},
+        $response->{planet}{energy_stored},
+        $response->{planet}{waste_stored},
+    };
     
     $self->set_cache(
         key     => $cache_key,
-        value   => $stored_response->{resources},
+        value   => $stored_response,
         max_age => (60*60),
     );
     
-    return $stored_response->{resources};
+    return $stored_response;
 }
 
 sub plans_stored {
