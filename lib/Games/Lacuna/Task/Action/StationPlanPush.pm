@@ -9,17 +9,6 @@ with 'Games::Lacuna::Task::Role::PlanetRun',
     'Games::Lacuna::Task::Role::Ships',
     'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['space_station'] };
 
-our @MODULES = (
-    'Art Museum',
-    'Culinary Institute',
-    'Interstellar Broadcast System',
-    'Opera House',
-    'Parliament',
-    'Police Station',
-    'Station Command Center',
-    'Warehouse',
-);
-
 sub description {
     return q[Transport Space Station module plans];
 }
@@ -45,7 +34,7 @@ sub process_planet {
     
     foreach my $plan (@{$plans->{plans}}) {
         next
-            unless $plan->{name} ~~ \@MODULES;
+            unless grep { $plan->{name} eq $_ } values %Games::Lacuna::Task::Constants::MODULES;
         $cargo_size += $plan->{quantity} * $Games::Lacuna::Task::Constants::CARGO{plan};
         $module_count += $plan->{quantity};
         push(@modules, {

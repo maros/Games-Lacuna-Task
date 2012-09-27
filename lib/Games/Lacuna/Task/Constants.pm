@@ -24,4 +24,15 @@ our $MAX_MAP_QUERY = 30; # 30 x 30 units
 our $MAX_STAR_CACHE_AGE = 60*60*24*31*3; # Three months
 
 
+our %MODULES = (
+    ArtMuseum           => 'Art Museum',
+    CulinaryInstitute   => 'Culinary Institute',
+    IBS                 => 'Interstellar Broadcast System',
+    OperaHouse          => 'Opera House',
+    Parliament          => 'Parliament',
+    PoliceStation       => 'Police Station',
+    StationCommand      => 'Station Command Center',
+    Warehouse           => 'Warehouse',
+);
+
 1;
