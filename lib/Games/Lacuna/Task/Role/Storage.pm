@@ -201,28 +201,26 @@ Returns the type of the requested resource
 
 Returns the stored quantity for the given resource
 
-=head2 food_stored
-
- $self->food_stored($planet_id);
-
-Returns a hashref of all stored foods
-
-=head2 ore_stored
-
- $self->ore_stored($planet_id);
-
-Returns a hashref of all stored ores
-
 =head2 plans_stored
 
- $self->ore_stored($planet_id);
+ my $plans = $self->plans_stored($planet_id);
 
 Returns an arrayref of all stored plans
 
-=head2 _resource_stored
+=head2 glyphs_stored
 
- $self->_resource_stored($planet_id,'ore','OreStorage');
+ my $glyphs = $self->glyphs_stored($planet_id);
 
-Helper method to query storage building for details.
+Returns a hashref of stored glyphs for the given body
+
+=head2 all_glyphs_stored
+
+ my $glyphs = $self->all_glyphs_stored;
+
+Returns a hashref of stored glyphs over all bodies
+
+=head2 resources_stored
+
+Returns a hashref of all stored resources.
 
 =cut

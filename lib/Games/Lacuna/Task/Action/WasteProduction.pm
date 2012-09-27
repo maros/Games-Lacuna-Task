@@ -48,7 +48,7 @@ Games::Lacuna::Task::Action::WasteProduction - Maintain minimum waste levels for
 
 =head1 DESCRIPTION
 
-This task will produce waste if waste levels are running low in order to 
-avoid damage to waste recycling buildings.
+This task will produce waste by dumping abundant resources if waste levels are 
+running low in order to avoid damage to waste recycling buildings.
 
 =cut

@@ -526,6 +526,10 @@ Simple Stash for storing various temporary values.
 
 =head1 METHODS
 
+=head2 get_stash
+
+Returns the stash which can be used to store global temporary values
+
 =head2 task_config 
 
  my $config = $client->task_config($task_name);

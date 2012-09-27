@@ -10,7 +10,7 @@ with qw(Games::Lacuna::Task::Role::Stars);
 use List::Util qw(max min);
 
 sub description {
-    return q[Build a star cache, reducing subsequent api calls made by various tasks];
+    return q[Build a star cache];
 }
 
 has 'coordinate' => (
@@ -87,3 +87,17 @@ sub get_star_step {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=pod
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::StarReport - Build a star cache
+
+=head1 DESCRIPTION
+
+Builds a star cache, reducing subsequent api calls made by various tasks
+
+=cut

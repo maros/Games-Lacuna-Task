@@ -63,3 +63,17 @@ sub run {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=pod
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::StarCacheUnknown - Builds the star cache for all solar systems which have not been checked yet
+
+=head1 DESCRIPTION
+
+This task builds a star cache for all solar systems which have not yet been checked.
+
+=cut

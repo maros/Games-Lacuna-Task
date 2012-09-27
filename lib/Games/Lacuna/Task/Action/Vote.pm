@@ -144,6 +144,6 @@ Games::Lacuna::Task::Action::Vote - Parliament vote script
 =head1 DESCRIPTION
 
 This task will automate parliament voting. This task requires the main
-empire password to be used.
+empire password and not just the sitter password to be used.
 
 =cut

@@ -43,3 +43,17 @@ sub run {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=pod
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::StarCacheExport - Export the star cache database
+
+=head1 DESCRIPTION
+
+Exports the star cache database to a new file
+
+=cut

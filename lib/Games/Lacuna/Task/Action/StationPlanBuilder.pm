@@ -264,3 +264,17 @@ sub get_modules_built {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=pod
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::StationPlanBuilder - Build Space Station module plans
+
+=head1 DESCRIPTION
+
+This task automates the building of space station modules.
+
+=cut

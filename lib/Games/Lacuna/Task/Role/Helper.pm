@@ -358,3 +358,13 @@ Send yourself a notification via the in-game messaging system.
 Returns the max possible ressource building level for the given planet.
 
 =head2 can_afford
+
+ if ($self->can_afford($planet_stats,$cost_hash)) {
+    say "Yes, we can!"   
+ }
+
+Checks if a build/upgrade can be afforded.S
+
+=head2 my_affinity
+
+Returns your own species affinity

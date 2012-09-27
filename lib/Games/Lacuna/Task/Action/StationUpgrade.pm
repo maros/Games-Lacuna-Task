@@ -62,3 +62,17 @@ sub run {
 __PACKAGE__->meta->make_immutable;
 no Moose;
 1;
+
+=pod
+
+=encoding utf8
+
+=head1 NAME
+
+Games::Lacuna::Task::Action::StationUpgrade - Upgrade Space Station modules
+
+=head1 DESCRIPTION
+
+This task upgrades space station modules if plans are avaialable
+
+=cut
