@@ -14,6 +14,13 @@ sub description {
     return q[Explore solar systems in your vincity];
 }
 
+has '_incoming_cache' => (
+    is              => 'rw',
+    isa             => 'HashRef',
+    default         => sub { return {} },
+    traits          => ['NoGetopt'],
+);
+
 sub process_planet {
     my ($self,$planet_stats) = @_;
         
@@ -53,7 +60,6 @@ sub process_planet {
     
     return 
         if (scalar @avaliable_probes == 0);
-    
     
     my $spaceport_object = $self->build_object($spaceport);
     
@@ -100,29 +106,31 @@ sub closest_unprobed_stars {
         sub {
             my ($star_data) = @_;
             
-            # TODO cache star data calls for run
+            my $star_id = $star_data->{id};
             
             # Fetch star data from api and check if solar system is still unprobed
-            $star_data = $self->_get_star_api($star_data->{id},$star_data->{x},$star_data->{y});
+            $star_data = $self->_get_star_api($star_id,$star_data->{x},$star_data->{y});
             
-            next
+            return 1
                 if $star_data->{is_probed};
             
             # TODO cache incoming probes data for run
             
-            # Get incoming probe info
-            my $star_incomming = $self->request(
-                object  => $self->build_object('Map'),
-                params  => [ $star_data->{id} ],
-                method  => 'check_star_for_incoming_probe',
-            );
+            unless (defined $self->_incoming_cache->{$star_id}) {
+                # Get incoming probe info
+                my $star_incomming = $self->request(
+                    object  => $self->build_object('Map'),
+                    params  => [ $star_id ],
+                    method  => 'check_star_for_incoming_probe',
+                );
+                $self->_incoming_cache->{$star_id} = $star_incomming->{incoming_probe} // 0;
+            }
             
             return 1
-                if (defined $star_incomming->{incoming_probe}
-                && $star_incomming->{incoming_probe} ne '0');
+                if $self->_incoming_cache->{$star_id};
             
             # Add to todo list
-            push(@unprobed_stars,$star_data->{id});
+            push(@unprobed_stars,$star_id);
             
             return 0
                 if scalar(@unprobed_stars) >= $limit;
