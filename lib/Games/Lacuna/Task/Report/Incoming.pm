@@ -5,7 +5,7 @@ our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose::Role;
 
-use Games::Lacuna::Task::Utils qw(parse_date);
+use Games::Lacuna::Task::Utils qw(format_date parse_date);
 
 sub report_incoming {
     my ($self) = @_;
@@ -47,19 +47,25 @@ sub _report_incoming_planet {
     
     foreach my $element (@{$ships_data->{ships}}) {
         my $type;
-        if ($element->{is_own}) {
+        
+        unless (defined $element->{from} 
+            && defined $element->{from}{empire}) {
+            $type = 'hostile';
+        } elsif ($element->{from}{empire}{id} == $planet_stats->{empire}{id}) {
             $type = 'own';
-        } elsif ($element->{is_ally}) {
-            $type = 'ally';
+        # Check for ally
+        #} elsif ($from->{empire}{id} == $ally) {
+        #   $type = 'ally';
         } else {
             $type = 'hostile';
         }
+        
         my $from = 'unknown';
         $incoming{$element->{id}} = {
             type    => $type,
             from    => $from,
             ship    => $element->{type_human},
-            eta     => parse_date($element->{date_arrives}),
+            eta     => format_date(parse_date($element->{date_arrives})),
         };
         if (defined $element->{from}) {
             $incoming{$element->{id}}{from} = ($element->{from}{empire}{name} // 'unknown').' '.($element->{from}{name} // 'unknown');
