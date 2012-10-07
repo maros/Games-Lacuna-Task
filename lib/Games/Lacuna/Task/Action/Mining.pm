@@ -11,6 +11,7 @@ with qw(Games::Lacuna::Task::Role::Stars
 
 use List::Util qw(sum);
 use Games::Lacuna::Client::Types qw(ore_types);
+use Games::Lacuna::Task::Utils qw(distance);
 
 sub description {
     return q[Deploy mining platforms to best available asteroids];
@@ -35,11 +36,12 @@ sub process_planet {
         method  => 'view_platforms',
     );
     
-    
     my $abandoned_platforms = 0;
     foreach my $platform (@{$mining_data->{platforms}}) {
+        my $distance = distance($platform->{asteroid}{x},$platform->{asteroid}{y},$planet_stats->{x},$planet_stats->{y});
         next
-            unless $platform->{asteroid}{image} =~ m/^debris\d/;
+            unless $platform->{asteroid}{image} =~ m/^debris\d/
+            || $distance > 120;
         
         $self->log('notice','Abandoned platform on %s',$platform->{asteroid}{name});
         $self->request(
