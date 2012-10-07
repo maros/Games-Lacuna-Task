@@ -173,10 +173,22 @@ sub process_planet {
                     object  => $spacestaion_lab_object,
                     method  => 'make_plan',
                     params  => [$plan_type,$level],
+                    catch       => [
+                        [
+                            1011,
+                            sub {
+                                my ($error) = @_;
+                                $self->log('debug',"Could not build module %s (%i): %s",$plan_type,$level,$error->message);
+                                return 0;
+                            }
+                        ]
+                    ],
                 );
                 
-                $total_plans->{$plan}{$level}++;
-                
+                if (defined $response) {
+                    $total_plans->{$plan}{$level}++;
+                }
+                            
                 return;
             }
         }
