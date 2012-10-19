@@ -5,7 +5,8 @@ our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose -traits => 'NoAutomatic';
 extends qw(Games::Lacuna::Task::Action);
-with qw(Games::Lacuna::Task::Role::Stars);
+with 'Games::Lacuna::Task::Role::Stars',
+    'Games::Lacuna::Task::Role::CommonAttributes' => { attributes => ['orbit'] };
 
 use Games::Lacuna::Task::Utils qw(distance);
 use Games::Lacuna::Task::Table;
@@ -22,20 +23,6 @@ has 'max_distance' => (
     documentation   => 'Maximum distance from home planet [Default: 75]',
 );
 
-has 'min_orbit' => (
-    is              => 'rw',
-    isa             => 'Int',
-    lazy_build      => 1,
-    documentation   => 'Min orbit. Defaults to your species min orbit',
-);
-
-has 'max_orbit' => (
-    is              => 'rw',
-    isa             => 'Int',
-    lazy_build      => 1,
-    documentation   => 'Max orbit. Defaults to your species max orbit',
-);
-
 has 'min_size' => (
     is              => 'rw',
     isa             => 'Int',
@@ -46,8 +33,8 @@ has 'min_size' => (
 has 'min_gas_giant_size' => (
     is              => 'rw',
     isa             => 'Int',
-    default         => 105,
-    documentation   => 'Min gas giant size [Default: 105]',
+    default         => 100,
+    documentation   => 'Min gas giant size [Default: 100]',
 );
 
 has 'gas_giant' => (
@@ -56,36 +43,6 @@ has 'gas_giant' => (
     default         => 0,
     documentation   => 'Consider gas giants [Flag, Default: false]',
 );
-
-sub _build_min_orbit {
-    my ($self) = @_;
-    return $self->_get_orbit->{min};
-}
-
-sub _build_max_orbit {
-    my ($self) = @_;
-    return $self->_get_orbit->{max};
-}
-
-sub _get_orbit {
-    my ($self) = @_;
-    
-    my $species_stats = $self->request(
-        object  => $self->build_object('Empire'),
-        method  => 'view_species_stats',
-    )->{species};
-    
-    
-    $self->min_orbit($species_stats->{min_orbit})
-        unless $self->meta->get_attribute('min_orbit')->has_value($self);
-    $self->max_orbit($species_stats->{max_orbit})
-        unless $self->meta->get_attribute('max_orbit')->has_value($self);
-    
-    return {
-        min => $species_stats->{min_orbit},
-        max => $species_stats->{max_orbit},
-    }
-}
 
 sub run {
     my ($self) = @_;
