@@ -160,7 +160,7 @@ sub process_planet {
             params  => [ 
                 $self->home_planet_data->{id},
                 $trade_ships->{$trade_ship}, 
-                { ship_id => $trade_ship } 
+                { ship_id => $trade_ship, stay => 0 } 
             ]
         );
     }
