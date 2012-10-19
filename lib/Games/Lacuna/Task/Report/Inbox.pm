@@ -12,7 +12,8 @@ has 'archive' => (
     default         => sub { 
         qr/^ ( 
             Trade \s Accepted |
-            Mission \s completed
+            Mission \s completed |
+            Transport \s Workers \s Strike
         ) $/x;
     },
 );
@@ -31,7 +32,7 @@ has 'delete' => (
             Trade \s Withdrawn |
             Excavator \s Results |
             Excavator \s Deployed |
-            Excavator \s Uncovered \s Plan
+            Excavator \s Uncovered \s Plan 
         ) $/x;
     },
 );
