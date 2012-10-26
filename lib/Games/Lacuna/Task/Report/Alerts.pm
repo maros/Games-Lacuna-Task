@@ -38,6 +38,13 @@ sub _report_alert_happiness {
             alert           => "Negative happiness",
         });
     }
+    
+    if ($planet_stats->{happiness_hour} < 0) {
+        $table->add_row({
+            planet          => $planet_stats->{name},
+            alert           => "Negative happiness flow",
+        });
+    }
 }
 
 sub _report_alert_damage {
