@@ -90,7 +90,7 @@ sub _report_alert_resources {
         my $capacity = $planet_stats->{$ressource.'_capacity'};
         my $production  = $planet_stats->{$ressource.'_hour'};
 
-        if ($stored <= $capacity * 0.1) {
+        if ($stored <= $capacity * 0.01) {
             $table->add_row({
                 planet          => $planet_stats->{name},
                 alert           => sprintf(
