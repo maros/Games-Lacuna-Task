@@ -7,9 +7,8 @@ use Moose;
 # -traits => 'NoAutomatic';
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun
-    Games::Lacuna::Task::Role::Ships);
-
-our @ATTRIBUTES = qw(hold_size combat speed stealth);
+    Games::Lacuna::Task::Role::Ships
+    Games::Lacuna::Task::Role::BestShips);
 
 use List::Util qw(min max);
 use Games::Lacuna::Task::Utils qw(normalize_name);
@@ -42,31 +41,6 @@ has 'handle_ships' => (
     },
 );
 
-has 'best_ships' => (
-    is              => 'rw',
-    isa             => 'HashRef',
-    traits          => ['NoGetopt','Hash'],
-    lazy_build      => 1,
-    handles         => {
-        available_best_ships    => 'count',
-        get_best_ship           => 'get',
-        best_ship_types         => 'keys',
-    },
-);
-
-has 'best_planets' => (
-    is              => 'rw',
-    isa             => 'HashRef',
-    traits          => ['NoGetopt','Hash'],
-    lazy_build      => 1,
-    handles         => {
-        get_best_planet         => 'get',
-        remove_best_planet      => 'delete',
-        has_best_planet         => 'count',
-        best_planet_ids         => 'keys',
-    },
-);
-
 has 'threshold' => (
     is              => 'rw',
     isa             => 'Int',
@@ -88,7 +62,6 @@ sub run {
     }
     
     foreach my $planet_stats ($self->get_planets) {
-        $self->check_best_planets();
         last 
             unless $self->has_best_planet;
         $self->log('info',"Processing planet %s",$planet_stats->{name});
@@ -135,7 +108,7 @@ sub process_planet {
         
         my $ship_is_ok = 1;
         
-        foreach my $attribute (@ATTRIBUTES) {
+        foreach my $attribute (@Games::Lacuna::Task::Constants::SHIP_ATTRIBUTES) {
             if ($ship->{$attribute} > $best_ship->{$attribute}) {
                 next SHIPS;
             }
@@ -242,109 +215,6 @@ sub process_planet {
     }
 }
 
-sub _build_best_ships {
-    my ($self) = @_;
-    
-    my $best_ships = {};
-    foreach my $planet_stats ($self->get_planets) {
-        $self->log('info',"Checking best ships at planet %s",$planet_stats->{name});
-        my ($buildable_ships,$docks_available) = $self->get_buildable_ships($planet_stats);
-        
-        BUILDABLE_SHIPS:
-        while (my ($type,$data) = each %{$buildable_ships}) {
-            $data->{planet} = $planet_stats->{id};
-            $best_ships->{$type} ||= $data;
-            foreach my $attribute (@ATTRIBUTES) {
-                if ($best_ships->{$type}{$attribute} < $data->{$attribute}) {
-                    
-                    $best_ships->{$type} = $data;
-                    next BUILDABLE_SHIPS;
-                }
-            }
-        }
-    }
-    
-    return $best_ships;
-}
-
-sub _build_best_planets {
-    my ($self) = @_;
-    
-    my $best_planets = {};
-    foreach my $best_ship ($self->best_ship_types) {
-        my $planet_id = $self->get_best_ship($best_ship)->{planet};
-        
-        unless (defined $best_planets->{$planet_id}) {
-            my ($available_shipyard_slots,$available_shipyards) = $self->shipyard_slots($planet_id);
-            my ($available_spaceport_slots) = $self->spaceport_slots($planet_id);
-            
-            my $shipyard_slots = max($available_shipyard_slots,0);
-            my $spaceport_slots = max($available_spaceport_slots,0);
-            my $total_slots = min($shipyard_slots,$spaceport_slots);
-            
-            $best_planets->{$planet_id} = {
-                shipyard_slots  => $shipyard_slots,
-                spaceport_slots => $spaceport_slots,
-                total_slots     => $total_slots,
-                shipyards       => $available_shipyards,
-            };
-        }
-        
-        $self->log('info',"Best %s can be buildt at %s",$best_ship,$self->my_body_status($planet_id)->{name});
-    }
-    
-    return $best_planets;
-}
-
-sub check_best_planets {
-    my ($self) = @_;
-    
-    foreach my $planet_id ($self->best_planet_ids) {
-        $self->remove_best_planet($planet_id)
-            if $self->get_best_planet($planet_id)->{total_slots} <= 0;
-    }
-    return;
-}
-
-sub get_buildable_ships {
-    my ($self,$planet_stats) = @_;
-    
-    my $shipyard = $self->find_building($planet_stats->{id},'Shipyard');
-    
-    return
-        unless defined $shipyard;
-    
-    my $shipyard_object = $self->build_object($shipyard);
-    
-    my $ship_buildable = $self->request(
-        object  => $shipyard_object,
-        method  => 'get_buildable',
-    );
-    
-    my $ships = {};
-    while (my ($type,$data) = each %{$ship_buildable->{buildable}}) {
-        my $ship_type = $type;
-        $ship_type =~ s/\d$//;
-        
-        next
-            unless $ship_type ~~ $self->handle_ships;
-        next
-            if $data->{can} == 0 
-            && $data->{reason}[1] !~ m/^You can only have \d+ ships in the queue at this shipyard/i
-            && $data->{reason}[1] !~ m/^You do not have \d docks available at the Spaceport/i;
-        next
-            if defined $ships->{$ship_type}
-            && grep { $data->{attributes}{$_} < $ships->{$ship_type}{$_} } @ATTRIBUTES;
-        
-        $ships->{$ship_type} = {
-            (map { $_ => $data->{attributes}{$_} } @ATTRIBUTES),
-            type    => $type,
-        };
-    }
-    
-    #,$ship_buildable->{docks_available}
-    return $ships;
-}
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
@@ -359,8 +229,9 @@ Games::Lacuna::Task::Action::ShipUpdate - Keeps your fleet up to date by buildin
 =head1 DESCRIPTION
 
 This task replaces outdated ships. It does so by checking the best possible 
-stats for each ship type and comparing the existing ships with this figures.
-Outdated ships will be scuttled and replacements will be built.
+stats for each ship type at each shipyard of your empire and comparing the 
+existing ships with this figures. Outdated ships will be scuttled and 
+replacements will be built.
 
 Only works in conjunction with the ship_dispatch task
 

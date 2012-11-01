@@ -35,4 +35,6 @@ our %MODULES = (
     Warehouse           => 'Warehouse',
 );
 
+our @SHIP_ATTRIBUTES = qw(hold_size combat speed stealth);
+
 1;
