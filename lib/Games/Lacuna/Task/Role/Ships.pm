@@ -525,7 +525,7 @@ sub build_ships {
             unless defined $shipyard;
         
         # Get build quantity
-        my $build_per_shipyard = int(($max_build_quantity - $new_building) / scalar (keys %{$available_shipyards}) / 1.5) || 1;
+        my $build_per_shipyard = int(($max_build_quantity - $new_building) / scalar (keys %{$available_shipyards}) / 1.2) || 1;
         my $build_quantity = min($shipyard->{available},$max_build_quantity,$build_per_shipyard);
         
         eval {
@@ -547,11 +547,18 @@ sub build_ships {
             delete $available_shipyards->{$shipyard->{id}}
                 if $shipyard->{available} <= 0;
             
+            my $counter=0;
             # Add ship to list and rename
-            for (1..$build_quantity) {
+            while (scalar @{$response->{ships_building}}) {
                 my $ship_building =  pop(@{$response->{ships_building}});
+                next
+                    if grep { $ship_building->{id} == $_->{id} } @ships_building;
+                next
+                    if $ship_building->{type} ne $type;
+                next
+                    if $counter > $build_quantity;
                 push(@ships_building,$ship_building);
-                
+                $counter++;
                 if (defined $name_prefix) {
                     $self->name_ship(
                         spaceport   => $spaceport_object,
