@@ -34,9 +34,8 @@ has 'accept_proposition' => (
 has 'reject_proposition' => (
     isa             => 'RegexpRef',
     is              => 'rw',
-    required        => 1,
     documentation   => 'Propositions matching this regexp should be rejected',
-    default         => sub { qr//xi },
+    predicate       => 'has_reject_proposition',
 );
 
 sub description {
@@ -114,7 +113,8 @@ sub process_space_station {
         
         if ($proposition->{name} =~ $self->accept_proposition) {
             $vote = 1;
-        } elsif ($proposition->{name} =~ $self->reject_proposition) {
+        } elsif ($self->has_reject_proposition
+            && $proposition->{name} =~ $self->reject_proposition) {
             $vote = 0;
         } else {
             next PROPOSITION;
