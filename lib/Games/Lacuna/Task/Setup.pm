@@ -117,7 +117,7 @@ sub saycolor {
 sub readline {
     my ($self,$prompt,$expect) = @_;
     
-    state $term ||= Term::ReadLine->new();
+    state $term ||= Term::ReadLine->new($prompt);
     while (defined (my $response = $term->readline($prompt.' '))) {
         if (defined $expect) {
             return $response
