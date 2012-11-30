@@ -1,7 +1,27 @@
 Changes for Game-Lacuna-Task
 
+2.06 ?
+    * Add alerts report: bleeder/fissures, overflowing waste, build queue ...
+    * Deprecate bleeder action (now handled by alert reports)
+    * Add glyph building upgrade action
+    * Add station module push action
+    * Add station module builder action
+    * Add fissure downgrade/demolition action
+    * Add action to check for destroyed ships and probes
+    * Add waste chain management action
+    * Add ship build action
+    * Add platform upgrade action
+    * Fix collect_excavator_booty bug when cargo exceeded capacity
+      of available ships
+    * Keep ship name when upgrading old ships
+    * Catch various api exceptions
+    * Refactor storage, captcha ans ships roles
+    * Upgrade to latest trade, mission and push api and parsing
+    * Use latest game rules
+    * Improve excavator action
+
 2.05 Fri, Apr 07, 2012
-    * Fix bugs in ship_update, ship_dispatch and building_upgrade tasks
+    * Fix bugs in ship_update, ship_dispatch and building_upgrade action
     * Check for shot down excavators
     * Better ship renaming
     * Dist maintenance
