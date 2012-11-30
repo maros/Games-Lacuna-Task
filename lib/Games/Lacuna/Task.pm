@@ -49,7 +49,7 @@ sub BUILD {
         if ($lockcounter > 10) {
             $self->abort('Could not aquire lock (%s)',$lockfile);
         } else {
-            $self->log('warn','Another process is currently running. Waiting until it has finished');
+            $self->log('warn','Another process is currently running. Waiting until it has finished (%s)',$lockfile);
         }
         $lockcounter++;
         sleep 15;
