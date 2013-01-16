@@ -33,7 +33,7 @@ has 'plans' => (
             Parliament          => { skip => 1 },
             PoliceStation       => { name => 'Police Station', level => -3 },
             StationCommand      => { name => 'Station Command Center', skip => 1 },
-            Warehouse           => { count => 20 },
+            Warehouse           => { count => 5 },
         }
     },
 );
@@ -156,6 +156,10 @@ sub process_planet {
             my $plan_name = $plan_data->{name} || $plan;
             my $plan_skip = $plan_data->{skip} || 0;
             my $count = $plan_data->{count} // 1;
+            
+            $count += $max_level
+                if $count > 1;
+            
             $plan_level = $max_level + $plan_level
                 if ($plan_level < 0);
            
