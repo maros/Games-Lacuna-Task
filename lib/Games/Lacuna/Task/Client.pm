@@ -313,7 +313,7 @@ sub request {
             qr/^Slow down/,
             sub {
                 my ($error,$error_count) = @_;
-                if ($error =~ m/Slow\sdown!/) {
+                if ($error =~ m/Slow\sdown/) {
                     if ($error_count < 3) {
                         $self->log('warn',$error);
                         $self->log('warn','Too many requests (wait a while)');
