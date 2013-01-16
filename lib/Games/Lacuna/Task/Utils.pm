@@ -1,5 +1,6 @@
 package Games::Lacuna::Task::Utils;
 
+use 5.010;
 use strict;
 use warnings;
 
