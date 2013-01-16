@@ -19,8 +19,8 @@ has 'rename_spies' => (
 has 'max_training' => (
     isa             => 'Int',
     is              => 'rw',
-    default         => 10,
-    documentation   => 'Max number of spies in training [Default: 10]',
+    default         => 50,
+    documentation   => 'Max number of spies in training [Default: 50%]',
 );
 
 our @SPY_SKILLS = qw(intel theft politics mayhem);
@@ -73,7 +73,7 @@ sub process_planet {
     }
     
     # Check if we can have more spies
-    my $spy_slots = $intelligence_ministry->{level} - $spies_count;
+    my $spy_slots = $intelligence_ministry->{level} * 3 - $spies_count;
     
     # Train new spies
     if ($spy_slots > 0) {
