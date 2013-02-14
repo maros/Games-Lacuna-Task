@@ -36,8 +36,18 @@ sub name_ship {
     $ignore //= $old_ignore;
     $name //= $old_name;
     
-    $prefix = join(',', sort grep { defined $_ && $_ !~ /^\s*$/ } @{$prefix} )
-        if ref $prefix eq 'ARRAY';
+    unless (ref ref $prefix eq 'ARRAY') {
+        $prefix = [ split(',',$prefix) ];  
+    }
+    
+    # Remove empty and duplicates    
+    my %prefix_uniqe;
+    foreach (grep { defined $_ && $_ !~ /^\s*$/ } @{$prefix}) {
+        $prefix_uniqe{$_} = 1;
+    }
+    
+    # Prefix to string
+    $prefix = join(',',keys %prefix_uniqe);
     
     # Normalize name
     $prefix = Games::Lacuna::Task::Utils::clean_name($prefix);
