@@ -20,6 +20,28 @@ sub assigned_to_type {
     return $body_data->{empire}{alignment}; 
 }
 
+sub assign_spy {
+    my ($self,$building,$spy,$assignment) = @_;
+    
+    return
+        unless $spy->{is_available};
+    return 
+        if $spy->{assignment} eq $assignment;
+    return
+        if $spy->{name} !~ m/!/; 
+    return
+        unless grep { $_->{task} eq $assignment } @{$spy->{possible_assignments}};
+    
+    my $response = $self->request(
+        object  => $building,
+        method  => 'assign_spy',
+        params  => [$spy->{id},$assignment],
+    );
+    
+    $self->log('notice','Assigning spy %s to %s',$spy->{name},$assignment);
+    return;
+}
+
 no Moose::Role;
 1;
 
