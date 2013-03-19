@@ -148,7 +148,7 @@ sub process_planet {
     my $trade_ships = $self->trade_ships($planet_stats->{id},\@cargo);
     my @trade_ships = keys %{$trade_ships};
     
-    next TRADE
+    return
         if scalar @trade_ships == 0;
     
     $self->log('notice','Sending %i item(s) from %s to %s',scalar(@cargo),$planet_stats->{name},$self->home_planet_data->{name});

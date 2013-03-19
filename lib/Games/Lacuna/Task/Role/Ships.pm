@@ -229,7 +229,7 @@ sub trade_ships {
         @{$trade_ships};
     
     # Get max hold size
-    my $max_hold_size = max map { $_->{hold_size} } @available_trade_ships;
+    my $max_hold_size = max(0,map { $_->{hold_size} } @available_trade_ships);
     
     my $return = {};
     
@@ -244,7 +244,6 @@ sub trade_ships {
     # We need multiple cargo ships
     } else {
         foreach my $cargo_ship (sort { $b->{hold_size} <=> $a->{hold_size} } @available_trade_ships) {
-            
             my $available_hold_size = $cargo_ship->{hold_size};
             my @cargo_for_ship;
             
@@ -252,11 +251,11 @@ sub trade_ships {
                 next
                     if $position->{quantity} == 0; 
                 if ($available_hold_size > $position->{hold_size_per_item}) {
-                    my $this_position = \%{$position}; # shallow copy
-                    $this_position->{quantity} = min( int($available_hold_size/$position->{hold_size_per_item}), $position->{quantity} );
-                    $position->{quantity} -= $this_position->{quantity};
-                    $available_hold_size -= $this_position->{quantity} * $position->{hold_size_per_item};
-                    push(@cargo_for_ship,$this_position);
+                    my %this_position = %$position; # shallow copy
+                    $this_position{quantity} = min( int($available_hold_size/$position->{hold_size_per_item}), $position->{quantity} );
+                    $position->{quantity} -= $this_position{quantity};
+                    $available_hold_size -= $this_position{quantity} * $position->{hold_size_per_item};
+                    push(@cargo_for_ship,\%this_position);
                 }
             }
             
