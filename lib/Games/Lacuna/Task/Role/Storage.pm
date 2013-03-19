@@ -64,10 +64,12 @@ sub resources_stored {
     my $stored_response = {
         %{$response->{ore}},
         %{$response->{food}},
-        $response->{planet}{water_stored},
-        $response->{planet}{energy_stored},
-        $response->{planet}{waste_stored},
     };
+    
+    foreach my $resource (qw(water energy waste)) {
+        $stored_response->{$resource.'_stored'} = $response->{planet}{$resource.'_stored'};
+        $stored_response->{$resource.'_hour'} = $response->{planet}{$resource.'_hour'};
+    }
     
     $self->set_cache(
         key     => $cache_key,
