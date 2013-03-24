@@ -13,7 +13,7 @@ sub report_vrbansk {
     
     my $table = Games::Lacuna::Task::Table->new(
         headline=> 'Halls of Vrbansk Report',
-        columns => ['Planet','Plans','Built','Total'],
+        columns => ['Planet','Plans'],
     );
     
     my $total = 0;
@@ -36,7 +36,7 @@ sub _report_vrbansk_body {
     my $plans_stored = $self->plans_stored($planet_id);
     my @buildings = $self->buildings_body($planet_stats);
     
-    my ($plans,$built,$total) = (0,0,0);
+    my ($plans) = 0;
     foreach my $plan (@{$plans_stored}) {
         next
             unless $plan->{name} eq 'Halls of Vrbansk';
@@ -44,22 +44,12 @@ sub _report_vrbansk_body {
         last;
     }
     
-    foreach my $building (@buildings) {
-        next
-            unless $building->{name} eq 'Halls of Vrbansk';
-        $built++;
-    }
-    
-    $total = $built+$plans;
-    
     $table->add_row({
         planet          => $planet_stats->{name},
         plans           => $plans,
-        built           => $built,
-        total           => $total,
     });
     
-    return $total;
+    return $plans;
 }
 
 no Moose::Role;
