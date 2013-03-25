@@ -46,7 +46,7 @@ sub _report_vrbansk_body {
     
     $table->add_row({
         planet          => $planet_stats->{name},
-        plans           => $plans,
+        total           => $plans,
     });
     
     return $plans;
