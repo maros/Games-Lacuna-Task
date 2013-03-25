@@ -28,7 +28,7 @@ sub assign_spy {
     return 
         if $spy->{assignment} eq $assignment;
     return
-        if $spy->{name} !~ m/!/; 
+        if $spy->{name} =~ m/!/; 
     return
         unless grep { $_->{task} eq $assignment } @{$spy->{possible_assignments}};
     
