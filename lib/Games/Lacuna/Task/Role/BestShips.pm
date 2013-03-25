@@ -78,8 +78,8 @@ sub get_buildable_ships {
         };
     }
     
-    #,$ship_buildable->{docks_available}
     return $ships;
+    # $ship_buildable->{docks_available}
 }
 
 sub _build_best_ships {
@@ -88,7 +88,7 @@ sub _build_best_ships {
     my $best_ships = {};
     foreach my $planet_stats ($self->get_planets) {
         $self->log('info',"Checking best ships at planet %s",$planet_stats->{name});
-        my ($buildable_ships,$docks_available) = $self->get_buildable_ships($planet_stats);
+        my $buildable_ships = $self->get_buildable_ships($planet_stats);
         
         BUILDABLE_SHIPS:
         while (my ($type,$data) = each %{$buildable_ships}) {

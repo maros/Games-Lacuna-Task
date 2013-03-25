@@ -47,13 +47,11 @@ sub run {
         if ! defined $build_stats 
         ||$build_stats->{total_slots} <= 0;
             
-    my $build_spaceport = $self->find_building($build_planet_id,'SpacePort');
-    my $build_spaceport_object = $self->build_object($build_spaceport);
-    
     $self->build_ships(
         planet              => $build_planet_stats,
         quantity            => $self->count,
         type                => $best_ship->{type},
+        
         spaceports_slots    => $build_stats->{spaceport_slots},
         shipyard_slots      => $build_stats->{shipyard_slots},
         shipyards           => $build_stats->{shipyards},

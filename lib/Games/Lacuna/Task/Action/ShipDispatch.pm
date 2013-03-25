@@ -65,7 +65,6 @@ sub process_planet {
     
     SHIPS:
     foreach my $ship (@{$ships_data->{ships}}) {
-        
         if ( uc($ship->{name}) =~ $self->_planet_re ) {
             my $target_planet = $self->my_body_status($1);
             unless ($target_planet->{id} == $planet_stats->{id}) {

@@ -33,7 +33,6 @@ sub process_planet {
     foreach my $spy (@{$spy_data->{spies}}) {
         if ($spy->{assigned_to}{body_id} ~~ \@bodies) {
             $self->assign_spy($intelligence_ministry_object,$spy,"Counter Espionage")
-
         }
     }
     
