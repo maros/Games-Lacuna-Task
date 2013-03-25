@@ -326,6 +326,7 @@ sub shipyard_slots {
             
         $available_shipyards->{$shipyard_id} = {
             id                  => $shipyard_id,
+            queue               => $shipyard_queue_data->{ships_building},
             object              => $shipyard_object,
             level               => $shipyard->{level},
             seconds_remaining   => ($shipyard_queue_data->{building}{work}{seconds_remaining} // 0),
@@ -519,7 +520,11 @@ sub build_ships {
     return 0
         unless ($max_build_quantity > 0);
     
+    # Add existing ships
     my @ships_building;
+    foreach my $shipyard (values %{$available_shipyards}) {
+        push(@ships_building,@{$shipyard->{queue}});
+    }
     
     # Repeat until we have enough ships
     BUILD_QUEUE:
@@ -558,8 +563,7 @@ sub build_ships {
             
             my $counter=0;
             # Add ship to list and rename
-            while (scalar @{$response->{ships_building}}) {
-                my $ship_building =  pop(@{$response->{ships_building}});
+            foreach my $ship_building (@{$response->{ships_building}}) {
                 next
                     if grep { $ship_building->{id} == $_->{id} } @ships_building;
                 next
@@ -568,7 +572,9 @@ sub build_ships {
                     if $counter > $build_quantity;
                 push(@ships_building,$ship_building);
                 $counter++;
+                
                 if (defined $name_prefix) {
+                    warn "RENAME SHIP";
                     $self->name_ship(
                         spaceport   => $spaceport_object,
                         ship        => $ship_building,
