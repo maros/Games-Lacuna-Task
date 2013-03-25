@@ -19,7 +19,7 @@ sub run {
     my ($self) = @_;
     
     $self->query_empire_stats();
-    $self->query_species_affinity();
+    #$self->query_species_affinity();
 }
 
 sub query_species_affinity {
