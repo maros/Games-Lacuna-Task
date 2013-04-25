@@ -37,6 +37,9 @@ sub run {
                 when ('Probe Destroyed') {
                     $type = 'probe';
                 }
+                when ('Probe Lost') {
+                    $type = 'probe';
+                }
                 when ('Lost Contact With Probe') {
                     $type = 'probe';
                 }
