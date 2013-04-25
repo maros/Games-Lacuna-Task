@@ -140,6 +140,23 @@ role {
             traits          => ['NoGetopt'],
             lazy_build      => 1,
         );
+        
+        method 'target_planet_hash' => sub {
+            my ($self) = @_;
+            
+            given ($self->target_planet) {
+                when (/^\d+$/) {
+                    return { 'body_id' => $_ };
+                }
+                when (/^(?<x>-?\d+),(?<y>-?\d+)$/) {
+                    return { 'x' => $+{x}, 'y' => $+{y} };
+                }
+                default {
+                    return { 'body_name' => $_ };
+                }
+            }
+        };
+        
         method '_build_target_planet_data' => sub {
             my ($self) = @_;
             my $target_planet;
