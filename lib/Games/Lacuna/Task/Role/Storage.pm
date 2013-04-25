@@ -33,11 +33,13 @@ sub check_stored {
         when ('happiness') {
             return $planet_stats->{$_};
         }
-        # 
+        when ('essentia') {
+            return $self->client->get_stash('essentia');   
+        }
         when ([ ore_types(),food_types() ]) {
             my $resources = $self->resources_stored($planet_stats);
-            return $resources->{$resource}
-                if defined $resources && defined $resources->{$resource};
+            return $resources->{$resource.'_stored'}
+                if defined $resources && defined $resources->{$resource.'_stored'};
         }
     }
     
