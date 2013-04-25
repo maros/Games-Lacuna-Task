@@ -89,7 +89,7 @@ sub process_planet {
     
     # Check max extra plots
     $max_plots = min($max_plots,$max_possible_plots);
-    my $possible_extra_plots = $max_plots - $current_plots - $pantheon_level;
+    my $possible_extra_plots = $max_plots - $current_plots;
     
     return
         if ($possible_extra_plots == 0);
