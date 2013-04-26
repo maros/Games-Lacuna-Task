@@ -568,8 +568,8 @@ sub build_ships {
                     if grep { $ship_building->{id} == $_->{id} } @ships_building;
                 next
                     if $ship_building->{type} ne $type;
-                next
-                    if $counter > $build_quantity;
+                #next
+                #    if $counter > $build_quantity;
                 push(@ships_building,$ship_building);
                 $counter++;
                 
@@ -580,7 +580,7 @@ sub build_ships {
                         ship        => $ship_building,
                         prefix      => $name_prefix,
                         name        => $ship_building->{type_human},
-                        ignore      => 1,
+                        #ignore      => 1,
                     );
                 }
             }
