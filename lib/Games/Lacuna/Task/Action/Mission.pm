@@ -6,7 +6,10 @@ our $VERSION = $Games::Lacuna::Task::VERSION;
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
 with qw(Games::Lacuna::Task::Role::PlanetRun
-    Games::Lacuna::Task::Role::Storage);
+    Games::Lacuna::Task::Role::Storage
+    Games::Lacuna::Task::Role::Ships);
+
+use Games::Lacuna::Task::Utils qw(parse_ship_type);
 
 sub description {
     return q[Automatically accept missions];
