@@ -68,9 +68,30 @@ sub process_planet {
                     next MISSIONS
                         unless $found_plan;
                 }
+                when ('ship') {
+                    my @avaliable_ships = $self->get_ships(
+                        planet          => $planet_stats,
+                        quantity        => $objective->{quantity},
+                        type            => parse_ship_type($objective->{ship}),
+                        prefix          => 'Mission',
+                        travelling      => 0,
+                    );
+                    next MISSIONS
+                        if $objective->{quantity} > scalar(@avaliable_ships);
+                }
+                when ('send') {
+                    warn "SEND";
+                }
+                when ('glyph') {
+                    next MISSIONS
+                        if $objective->{quantity} > $self->glyphs_stored($planet_stats)->{$objective->{glyph}};
+                }
                 when ('resource') {
                     next MISSIONS
                         if $objective->{quantity} > $self->check_stored($planet_stats,$objective->{resource});
+                }
+                default {
+                    $self->log('warn','Unknown requirement %s',$_);
                 }
             }
         }
@@ -141,7 +162,7 @@ sub parse_mission {
                 \s*
                 (?<quantity>[0-9,]+)
                 \s
-                (?<plan>[^(]+)
+                (?<plan>.+)
                 \s
                 \(
                     (>=\s)?
@@ -241,6 +262,7 @@ sub parse_mission {
                 my $resource = $+{resource};
                 $quantity =~ s/\D//g;
                 $quantity += 0;
+                $resource =~ s/\.$//;
                 push(@parsed,{
                     type                => 'resource',
                     resource            => $resource,
