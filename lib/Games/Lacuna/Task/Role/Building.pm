@@ -10,6 +10,9 @@ use Games::Lacuna::Task::Utils qw(parse_date);
 sub check_upgrade_building {
     my ($self,$planet_stats,$building_data) = @_;
     
+    return 0
+        if $building_data->{level} >= 30;
+    
     my $building_object = $self->build_object($building_data);
     my $building_detail = $self->request(
         object  => $building_object,

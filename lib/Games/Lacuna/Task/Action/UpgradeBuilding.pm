@@ -20,13 +20,13 @@ has 'upgrade_buildings' => (
             'WasteSequestration'    => ['waste','storage'],
             
             'OreStorage'            => ['ore','storage'],
-            'WaterStorage'          => ['water','storage','max20'],
-            'FoodReserve'           => ['food','storage','max20'],
-            'EnergyReserve'         => ['energy','storage','max20'],
+            'WaterStorage'          => ['water','storage','max25'],
+            'FoodReserve'           => ['food','storage','max25'],
+            'EnergyReserve'         => ['energy','storage','max25'],
             
             'Stockpile'             => ['global','storage'],
             'PlanetaryCommand'      => ['global','storage'],
-            'DistributionCenter'    => ['global','storage','max18'],
+            'DistributionCenter'    => ['global','storage','max20'],
             
             'AtmosphericEvaporator' => ['water','production'],
             'WaterProduction'       => ['water','production'],
@@ -61,7 +61,7 @@ has 'upgrade_buildings' => (
             'WasteExchanger'        => ['waste','production'],
             
             'Shipyard'              => ['extra','maxother'],
-            #'SpacePort'             => ['extra'],
+            'SpacePort'             => ['extra','maxother-1'],
             'SAW'                   => ['extra','maxother'],
             
             'Sand'                  => ['extra'],
@@ -139,7 +139,6 @@ sub process_planet {
             @upgradeable_buildings;
             
         foreach my $building_data (@upgradeable_buildings) {
-            
             my $upgrade = $self->upgrade_building($planet_stats,$building_data);
             
             $build_queue_size ++
@@ -168,7 +167,8 @@ sub find_upgrade_buildings {
         my $building_class = Games::Lacuna::Client::Buildings::type_from_url($building_data->{url});
         my $building_level = $building_data->{level};
         
-        $max_building_type_level->{$building_class} ||= $building_level;
+        $max_building_type_level->{$building_class} ||= [];
+        push(@{$max_building_type_level->{$building_class}},$building_level);
         
         next BUILDING
             unless exists $self->upgrade_buildings->{$building_class};
@@ -192,7 +192,17 @@ sub find_upgrade_buildings {
             
         next BUILDING
             if 'maxother' ~~ $self->upgrade_buildings->{$building_class}
-            && $building_level >= $max_building_type_level->{$building_class};
+            && $building_level >= $max_building_type_level->{$building_class}[0];
+        
+        
+        next BUILDING
+            if 'maxother-1' ~~ $self->upgrade_buildings->{$building_class}
+            && $building_level >= $max_building_type_level->{$building_class}[0];
+        
+        next BUILDING
+            if 'maxother-1' ~~ $self->upgrade_buildings->{$building_class}
+            && defined $max_building_type_level->{$building_class}[1]
+            && $building_level >= $max_building_type_level->{$building_class}[1];
         
         if (defined $building_data->{pending_build}) {
             my $date_end = parse_date($building_data->{pending_build}{end});
