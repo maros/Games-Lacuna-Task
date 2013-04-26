@@ -33,7 +33,7 @@ has 'plans' => (
             Parliament          => { skip => 1 },
             PoliceStation       => { name => 'Police Station', level => -3 },
             StationCommand      => { name => 'Station Command Center', skip => 1 },
-            Warehouse           => { count => 5 },
+            Warehouse           => { count => 3 },
         }
     },
 );
