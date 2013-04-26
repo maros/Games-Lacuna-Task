@@ -4,11 +4,10 @@ use 5.010;
 our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose;
-with qw(Games::Lacuna::Task::Role::Actions);
+with qw(Games::Lacuna::Task::Role::Actions
+    Games::Lacuna::Task::Role::Readline);
 
 use Games::Lacuna::Task::Utils qw(class_to_name name_to_class);
-use Term::ANSIColor qw(color);
-use Term::ReadLine;
 use Try::Tiny;
 use YAML::Any qw(DumpFile);
 
@@ -103,30 +102,7 @@ sub run {
     return $config;
 }
 
-sub sayline {
-    my ($self,$line) = @_;
-    $line ||= '-';
-    say $line x $Games::Lacuna::Task::Constants::SCREEN_WIDTH;
-}
 
-sub saycolor {
-    my ($self,$color,$string) = @_;
-    say color($color).$string.color("reset");
-}
-
-sub readline {
-    my ($self,$prompt,$expect) = @_;
-    
-    state $term ||= Term::ReadLine->new($prompt);
-    while (defined (my $response = $term->readline($prompt.' '))) {
-        if (defined $expect) {
-            return $response
-                if $response =~ $expect;
-        } else {
-            return $response
-        }
-    }
-}
 
 __PACKAGE__->meta->make_immutable;
 no Moose;
