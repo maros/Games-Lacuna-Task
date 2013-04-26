@@ -96,7 +96,7 @@ sub process_planet {
         
         # Filter ships by name, type and task
         next
-            if $ship->{name} =~ m/\b scuttle \b/ix;
+            if $ship->{name} =~ m/\b (scuttle|ignore) \b/ix;
         next
             if $ship->{task} ~~ [qw(Waiting On Trade Building)];
         next
