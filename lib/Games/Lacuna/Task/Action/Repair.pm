@@ -50,10 +50,12 @@ sub process_planet {
         # Repair building
         $self->log('notice',"Repairing %s on %s",$building_data->{name},$planet_stats->{name});
         
-        $self->request(
+        my $response = $self->request(
             object  => $building_object,
             method  => 'repair',
         );
+        
+        $planet_stats = $response->{status}{body};
 
         $waste_hour = $waste_hour_calc;
         
