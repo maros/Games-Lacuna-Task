@@ -17,6 +17,7 @@ use Term::ReadKey;
 our $API_KEY = '6ca1d525-bd4d-4bbb-ae85-b925ed3ea7b7';
 our $URI = 'https://us1.lacunaexpanse.com/';
 our @CONFIG_FILES = qw(lacuna config default);
+our @REQUESTS = ();
 
 has 'client' => (
     is              => 'rw',
@@ -348,11 +349,28 @@ sub _raw_request {
     my $response;
     my $retry = 1;
     my $error_count = 0;
+    my $mintime = time - 60;
+    
+    while (defined $REQUESTS[0]
+        && $REQUESTS[0] <= $mintime) {
+        shift(@REQUESTS);
+    }
+    
+    if (scalar(@REQUESTS) >= 60) {
+        my $sleep = (time - $REQUESTS[0] - 60);
+        if ($sleep < 0) {
+            $sleep *= -1;
+            $sleep++;
+            $self->log('debug','Sleep request %i',$sleep);
+            sleep($sleep);
+        }
+    }
     
     while ($retry) {
         $retry = 0;
         my $handled = 0;
         try {
+            push(@REQUESTS,time);
             $response = $object->$method(@$params);
         } catch {
             my $error = $_;
