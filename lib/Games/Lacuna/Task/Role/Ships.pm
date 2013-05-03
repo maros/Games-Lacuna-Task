@@ -574,7 +574,6 @@ sub build_ships {
                 $counter++;
                 
                 if (defined $name_prefix) {
-                    warn "RENAME SHIP";
                     $self->name_ship(
                         spaceport   => $spaceport_object,
                         ship        => $ship_building,
@@ -583,6 +582,10 @@ sub build_ships {
                         #ignore      => 1,
                     );
                 }
+            }
+            
+            if ($build_quantity != $counter) {
+                $self->log('warn','Could not rename ship');
             }
             
         };

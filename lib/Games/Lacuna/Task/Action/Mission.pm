@@ -83,7 +83,7 @@ sub process_planet {
                         if $objective->{quantity} > scalar(@avaliable_ships);
                 }
                 when ('send') {
-                    warn "SEND";
+                    #warn "SEND";
                 }
                 when ('glyph') {
                     next MISSIONS

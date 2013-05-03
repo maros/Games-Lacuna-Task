@@ -296,7 +296,7 @@ sub _trade_serialize_response {
                     $quantity = $+{quantity};
                 }
                 default {
-                    warn("Unkown offer: $_");
+                    $self->log('warn',"Unkown offer: %s",$_);
                     next TRADES;
                 }
             }
