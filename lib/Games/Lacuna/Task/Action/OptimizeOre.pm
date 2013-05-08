@@ -55,7 +55,12 @@ sub process_planet {
         }
     }
     
-    my $dump_percentage = min(($production * $self->plan_for_hours),$waste_possible) / sum(values %dump);
+    my $sum = sum(values %dump) // 0;
+    
+    return
+        if $sum == 0;
+    
+    my $dump_percentage = min(($production * $self->plan_for_hours),$waste_possible) / $sum;
     
     my $storage_builiding = $self->find_building($planet_stats->{id},'OreStorage');
     my $storage_builiding_object = $self->build_object($storage_builiding);
