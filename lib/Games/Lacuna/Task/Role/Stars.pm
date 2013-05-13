@@ -12,8 +12,6 @@ use Games::Lacuna::Task::Utils qw(normalize_name distance);
 use LWP::Simple;
 use Text::CSV;
 
-
-
 after 'BUILD' => sub {
     my ($self) = @_;
     
@@ -304,24 +302,21 @@ sub get_body_by_xy {
         && $x =~ m/^-?\d+$/
         && $y =~ m/^-?\d+$/;
     
-    return $self->_get_body_cache('body.x = ? AND body.y = ?',$x,$y);
+    my $body_data = $self->_get_body_cache('body.x = ? AND body.y = ?',$x,$y);
     
-#    my ($star_data) = $self->list_stars(
-#        x       => $x,
-#        y       => $y,
-#        limit   => 1,
-#        distance=> 1,
-#    );
-#    
-#    return
-#        unless defined $star_data
-#        && defined $star_data->{bodies};
-#    
-#    foreach my $body_data (@{$star_data->{bodies}}) {
-#        return $body_data
-#            if $body_data->{x} == $x
-#            && $body_data->{y} == $y;
-#    }
+    return $body_data
+        if defined $body_data;
+    
+    # Get star from api
+    my $star_list = $self->_get_area_api_by_xy($x,$y);
+    
+    foreach my $star_data (@{$star_list}) {
+        foreach my $body_data (@{$star_data->{bodies}}) {
+            return $body_data
+                if $body_data->{x} == $x
+                && $body_data->{y} == $y;
+        }
+    }
     
     return;
 }
@@ -348,8 +343,6 @@ sub _find_star {
 sub _get_star_api {
     my ($self,$star_id,$x,$y) = @_;
     
-    my $step = int($Games::Lacuna::Task::Constants::MAX_MAP_QUERY / 2);
-    
     # Fetch x and y unless given
     unless (defined $x && defined $y) {
         ($x,$y) = $self->client->storage_selectrow_array('SELECT x,y FROM star WHERE id = ?',$star_id);
@@ -358,14 +351,9 @@ sub _get_star_api {
     return
         unless defined $x && defined $y;
     
-    # Get area
-    my $min_x = $x - $step;
-    my $min_y = $y - $step;
-    my $max_x = $x + $step;
-    my $max_y = $y + $step;
-    
+
     # Get star from api
-    my $star_list = $self->_get_area_api_by_xy($min_x,$min_y,$max_x,$max_y);
+    my $star_list = $self->_get_area_api_by_xy($x,$y);
     
     # Find star in list
     my $star_data;
@@ -391,6 +379,20 @@ sub _get_star_api {
     
     
     return $star_data;
+}
+
+sub _get_area_api_by_xy {
+    my ($self,$x,$y) = @_;
+    
+    my $step = int($Games::Lacuna::Task::Constants::MAX_MAP_QUERY / 2);
+    
+    # Get area
+    my $min_x = $x - $step;
+    my $min_y = $y - $step;
+    my $max_x = $x + $step;
+    my $max_y = $y + $step;
+    
+    return $self->_get_area_api_by_bounds($min_x,$min_y,$max_x,$max_y);
 }
 
 
@@ -424,7 +426,7 @@ sub get_star {
     return $self->_find_star('star.id = ?',$star_id);
 }
 
-sub _get_area_api_by_xy {
+sub _get_area_api_by_bounds {
     my ($self,$min_x,$min_y,$max_x,$max_y) = @_;
     
     my $bounds = $self->get_stash('star_map_size');
@@ -514,7 +516,7 @@ sub _set_star_cache_bodies {
         (?,?,?,?,?)');
     
     # Insert new bodies
-    my $sth_insert = $self->storage_prepare('INSERT INTO body 
+    my $sth_insert = $self->storage_prepare('INSERT OR REPLACE INTO body 
         (id,star,x,y,orbit,size,name,normalized_name,type,water,ore,empire,is_excavated) 
         VALUES
         (?,?,?,?,?,?,?,?,?,?,?,?,?)');
