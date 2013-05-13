@@ -5,6 +5,7 @@ our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose;
 extends qw(Games::Lacuna::Task::Action);
+with qw(Games::Lacuna::Task::Role::Inbox);
 
 our $BUILDING_COORDINATES_RE = qr/\(-?\d+,-?\d+\)/;
 our $NAME_RE = qr/[[:space:][:alnum:]]+/;
@@ -51,43 +52,18 @@ sub run {
         $self->process_space_station($body_stats);
     }
     
-    my $inbox_object = $self->build_object('Inbox');
-    
-    my @trash_messages;
-    my $page_number = 1;
-    while (1) {
-        # Get inbox for parliament
-        my $inbox_data = $self->request(
-            object  => $inbox_object,
-            method  => 'view_inbox',
-            params  => [{ tags => ['Parliament'],page_number => $page_number }],
-        );
-        
-        MESSAGES:
-        foreach my $message (@{$inbox_data->{messages}}) {
+    $self->inbox_callback(sub {
+            my ($message) = @_;
             if ($message->{subject} =~ m/^(Pass|Reject):\s+/
                 || $message->{subject} =~ $self->accept_proposition
                 || $message->{subject} =~ $self->reject_proposition) {
-                push(@trash_messages,$message->{id});
-            }
-        }
-        
-        last
-            if scalar(@{$inbox_data->{messages}}) < 25;
-        
-        $page_number++;
-    }
-    
-    # Archive
-    if (scalar @trash_messages) {
-        $self->log('notice',"Trashing %i messages",scalar @trash_messages);
-        
-        $self->request(
-            object  => $inbox_object,
-            method  => 'trash_messages',
-            params  => [\@trash_messages],
-        );
-    }
+                return 1;
+            };
+            return 0;
+        },
+        tags    => ['Parliament'],
+        delete  => 1,
+    );
 }
 
 sub process_space_station {
