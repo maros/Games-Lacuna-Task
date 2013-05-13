@@ -66,4 +66,6 @@ This role provides intelligence-related helper methods.
 
 =head2 assigned_to_type
 
+=head2 assign_spy
+
 =cut

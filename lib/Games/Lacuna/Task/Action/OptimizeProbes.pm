@@ -111,6 +111,6 @@ Games::Lacuna::Task::Action::OptimizeProbes - Check for duplicate probes
 =head1 DESCRIPTION
 
 This task checks for systems that have been probed by more than one probe, 
-and automatically abandons such probes.
+and automatically abandons duplicate probes.
 
 =cut
