@@ -61,7 +61,6 @@ lib/Games/Lacuna/Task/Report/Intelligence.pm
 lib/Games/Lacuna/Task/Report/Mining.pm
 lib/Games/Lacuna/Task/Role/Actions.pm
 lib/Games/Lacuna/Task/Role/Building.pm
-lib/Games/Lacuna/Task/Role/Captcha.pm
 lib/Games/Lacuna/Task/Role/Client.pm
 lib/Games/Lacuna/Task/Role/CommonAttributes.pm
 lib/Games/Lacuna/Task/Role/Helper.pm
