@@ -39,7 +39,7 @@ sub run {
             my ($message) = @_;
             
             return 0
-                unless ($message->{subject} =~ m/\b[fF]issure\b/);
+                unless ($message->{subject} ~~ ['Fissure Spawns in neighborhood','Fissure growing nearby']);
             
             my $message_data = $self->inbox_read($message->{id});
             my $body_data = $self->get_body_by_xy($message_data->{starmap}{x},$message_data->{starmap}{y});

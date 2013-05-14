@@ -32,7 +32,8 @@ has 'delete' => (
             Trade \s Withdrawn |
             Excavator \s Results |
             Excavator \s Deployed |
-            Excavator \s Uncovered \s Plan 
+            Excavator \s Uncovered \s Plan |
+            No \s Fissure \s Found
         ) $/x;
     },
 );
