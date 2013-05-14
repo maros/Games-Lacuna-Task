@@ -51,7 +51,7 @@ sub process_planet {
         data    => 'trades',
     )->{trades};
     
-    my @current_trades = _trade_serialize_response($trade_data);
+    my @current_trades = $self->_trade_serialize_response($trade_data);
     
     return
         if scalar @current_trades >= $tradeministry->{level};
@@ -263,7 +263,7 @@ sub _trade_serialize {
 }
 
 sub _trade_serialize_response {
-    my ($trades) = @_;
+    my ($self,$trades) = @_;
     
     my @trade_identifiers;
     
