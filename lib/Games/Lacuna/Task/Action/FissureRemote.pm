@@ -12,6 +12,13 @@ with 'Games::Lacuna::Task::Role::Stars',
 
 use List::Util qw(max sum);
 
+has 'sealer_count' => (
+    is              => 'rw',
+    isa             => 'Int',
+    default         => 3,
+    documentation   => q[Number of fissure sealers to send to each fissure],
+);
+
 sub description {
     return q[Downgrade fissures on remote planets];
 }
@@ -43,12 +50,12 @@ sub run {
             # Get available fissure sealer ships
             my @avaliable_fissure_sealer = $self->get_ships(
                 planet          => $planet_home,
-                quantity        => 3,
+                quantity        => $self->sealer_count,
                 type            => 'fissure_sealer',
             );
             
             return 0
-                unless scalar @avaliable_fissure_sealer == 3;
+                unless scalar @avaliable_fissure_sealer == $self->sealer_count;
             
             my $response = $self->request(
                 object      => $spaceport_object,
