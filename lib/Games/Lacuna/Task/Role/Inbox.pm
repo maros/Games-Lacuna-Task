@@ -54,14 +54,14 @@ sub inbox_callback {
             $self->request(
                 object  => $inbox_object,
                 method  => 'archive_messages',
-                params  => [( map { ref($_) ? $_->{id} : $_ } @messages )],
+                params  => [[( map { ref($_) ? $_->{id} : $_ } @messages )]],
             );
         } elsif ($params{delete}) {
             $self->log('notice',"Deleting %i messages",scalar @messages);
             $self->request(
                 object  => $inbox_object,
                 method  => 'trash_messages',
-                params  => [( map { ref($_) ? $_->{id} : $_ } @messages )],
+                params  => [[( map { ref($_) ? $_->{id} : $_ } @messages )]],
             );
         }
     }
