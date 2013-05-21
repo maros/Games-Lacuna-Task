@@ -39,7 +39,7 @@ sub run {
             my ($message) = @_;
             
             return 0
-                unless ($message->{subject} ~~ ['Fissure Spawns in neighborhood','Fissure growing nearby']);
+                unless ($message->{subject} ~~ ['Fissure Spawns in neighborhood','Fissure growing nearby','Nearby planet about to explode']);
             
             my $message_data = $self->inbox_read($message->{id});
             my $body_data = $self->get_body_by_xy($message_data->{starmap}{x},$message_data->{starmap}{y});
@@ -48,8 +48,9 @@ sub run {
                 unless defined $body_data;
             
             return 1
-                if defined $body_data->{empire};
-                
+                if defined $body_data->{empire}
+                || $body_data->{type} eq 'asteroid';
+                            
             # Get available fissure sealer ships
             my @avaliable_fissure_sealer = $self->get_ships(
                 planet          => $planet_home,
@@ -72,7 +73,14 @@ sub run {
                         sub {
                              return 0;
                         }
-                    ]
+                    ],
+                    [
+                        1009,
+                        qr/Can only be sent to planets/,
+                        sub {
+                             return 0;
+                        }
+                    ],
                 ],
             );
             
