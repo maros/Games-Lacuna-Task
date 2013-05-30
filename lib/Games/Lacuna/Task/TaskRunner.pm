@@ -2,6 +2,7 @@ package Games::Lacuna::TaskRunner;
 
 use 5.010;
 our $VERSION = $Games::Lacuna::Task::VERSION;
+no if $] >= 5.017004, warnings => qw(experimental::smartmatch);
 
 use Moose;
 extends qw(Games::Lacuna::Task);

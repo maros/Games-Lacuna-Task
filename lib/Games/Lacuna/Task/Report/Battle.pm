@@ -2,6 +2,7 @@ package Games::Lacuna::Task::Report::Battle;
 
 use 5.010;
 our $VERSION = $Games::Lacuna::Task::VERSION;
+no if $] >= 5.017004, warnings => qw(experimental::smartmatch);
 
 use Moose::Role;
 with qw(Games::Lacuna::Task::Role::Stars);

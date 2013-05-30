@@ -2,6 +2,7 @@ package Games::Lacuna::Task::Action::EmpireReport;
 
 use 5.010;
 our $VERSION = $Games::Lacuna::Task::VERSION;
+no if $] >= 5.017004, warnings => qw(experimental::smartmatch);
 
 use Module::Pluggable 
     search_path => ['Games::Lacuna::Task::Report'],
