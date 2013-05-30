@@ -31,9 +31,9 @@ has 'plans' => (
             IBS                 => { name => 'Interstellar Broadcast System', level => -3 },
             OperaHouse          => { name => 'Opera House', level => -3 },
             Parliament          => { skip => 1 },
-            PoliceStation       => { name => 'Police Station', level => -3 },
+            PoliceStation       => { name => 'Police Station' },
             StationCommand      => { name => 'Station Command Center', skip => 1 },
-            Warehouse           => { count => 3 },
+            Warehouse           => { count => 3, level => -2 },
         }
     },
 );
