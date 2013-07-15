@@ -20,6 +20,8 @@ sub name_ship {
     my $ship = $params{ship};
     
     my ($old_name,$old_prefix,$old_ignore);
+    
+    # Extract name and ignore from old name
     $ship->{name} ||= $ship->{type_human};
     $old_name = $ship->{name} ;
     if ($old_name =~ s/!//g) {
@@ -27,7 +29,13 @@ sub name_ship {
     } else {
         $old_ignore = 0;
     }
+    
+    # Extract ignore from new name
+    if ($name =~ s/!//g) {
+        $ignore = 1;
+    }
 
+    # Extract prefix from old name
     if ($old_name =~ m/^([^:]+):(.+)$/) {
         $old_prefix = $1;
         $old_name = $2;
@@ -37,21 +45,21 @@ sub name_ship {
     $ignore //= $old_ignore;
     $name //= $old_name;
     
-    unless (ref ref $prefix eq 'ARRAY') {
+    # Convert prefix
+    unless (ref $prefix eq 'ARRAY') {
         $prefix = [ split(',',$prefix) ];  
     }
     
     # Remove empty and duplicates    
     my %prefix_uniqe;
     foreach (grep { defined $_ && $_ !~ /^\s*$/ } @{$prefix}) {
-        $prefix_uniqe{$_} = 1;
+        $prefix_uniqe{Games::Lacuna::Task::Utils::clean_name($_)} = 1;
     }
     
     # Prefix to string
-    $prefix = join(',',keys %prefix_uniqe);
+    $prefix = join(',',sort keys %prefix_uniqe);
     
     # Normalize name
-    $prefix = Games::Lacuna::Task::Utils::clean_name($prefix);
     $name = Games::Lacuna::Task::Utils::clean_name($name);
     
     # Build new name
@@ -63,7 +71,7 @@ sub name_ship {
         
     if (defined $prefix && $prefix !~ m/^\s*$/) {
         $max_length -= ( 1 + length($prefix));
-        $new_name .= $prefix.':';
+        $new_name = $prefix.':';
     }
     
     $new_name .= substr($name,0,$max_length);
@@ -71,7 +79,7 @@ sub name_ship {
         if $ignore;
     
     # Rename ship if name differs
-    if ($new_name ne $ship->{name}) {
+    if (uc($new_name) ne uc($ship->{name})) {
         $self->log('notice',"Renaming ship from '%s' to '%s'",$ship->{name},$new_name);
         $ship->{name} = $new_name;
         $self->request(

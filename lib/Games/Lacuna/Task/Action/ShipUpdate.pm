@@ -97,9 +97,9 @@ sub process_planet {
         
         # Filter ships by name, type and task
         next
-            if $ship->{name} =~ m/\b (scuttle|ignore) \b/ix;
+            if $ship->{name} =~ m/\b (scuttle|ignore|!) \b/ix;
         next
-            if $ship->{task} ~~ [qw(Waiting On Trade Building)];
+            if $ship->{task} ~~ ['Waiting On Trade','Building'];
         next
             unless $ship_type ~~ $self->handle_ships;
         next
@@ -126,15 +126,15 @@ sub process_planet {
         $old_ships->{$ship_type} ||= [];
         push (@{$old_ships->{$ship_type}},$ship);
     }
-    
     foreach my $ship_type (sort { scalar @{$old_ships->{$b}} <=> scalar @{$old_ships->{$a}} } keys %{$old_ships}) {
         my $old_ships = $old_ships->{$ship_type};
         my $best_ships = $self->get_best_ship($ship_type);
         my $build_planet_id = $best_ships->{planet};
         my $build_planet_stats = $self->get_best_planet($build_planet_id);
+        
         next
             if ! defined $build_planet_stats 
-            ||$build_planet_stats->{total_slots} <= 0;
+            || $build_planet_stats->{total_slots} <= 0;
             
         my $build_spaceport = $self->find_building($build_planet_id,'SpacePort');
         my $build_spaceport_object = $self->build_object($build_spaceport);
@@ -150,8 +150,6 @@ sub process_planet {
             }
         }
         
-        my $name_prefix = ($build_planet_id == $planet_stats->{id} ) ? undef : $planet_stats->{name};
-        
         my @new_building = $self->build_ships(
             planet              => $self->my_body_status($build_planet_id),
             quantity            => scalar(@{$old_ships}),
@@ -159,10 +157,10 @@ sub process_planet {
             spaceports_slots    => $build_planet_stats->{spaceport_slots},
             shipyard_slots      => $build_planet_stats->{shipyard_slots},
             shipyards           => $build_planet_stats->{shipyards},
-            name_prefix         => $name_prefix,
+            name_prefix         => $planet_stats->{name},
         );
         
-        my $new_building_count = scalar @new_building;
+        my $new_building_count = scalar(@new_building);
         $build_planet_stats->{spaceport_slots} -= $new_building_count;
         $build_planet_stats->{shipyard_slots} -= $new_building_count;
         $build_planet_stats->{total_slots} -= $new_building_count;
