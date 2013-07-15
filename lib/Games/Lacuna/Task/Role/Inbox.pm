@@ -8,6 +8,7 @@ use Moose::Role;
 sub inbox_callback {
     my ($self,$callback,%params) = @_;
     
+    $params{onlyown} //= 1;
     $params{archive} ||= 0;
     $params{delete} ||= 0;
     if (defined $params{tags}
@@ -31,8 +32,10 @@ sub inbox_callback {
         );
         
         foreach my $message (@{$inbox_data->{messages}}) {
+            warn $message;
             next
-                unless $message->{from_id} == $message->{to_id};
+                if $message->{from_id} != $message->{to_id}
+                && $params{onlyown};
             my $type;
             
             my $return = $callback->($message);

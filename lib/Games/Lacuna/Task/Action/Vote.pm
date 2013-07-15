@@ -54,6 +54,7 @@ sub run {
     
     $self->inbox_callback(sub {
             my ($message) = @_;
+            
             if ($message->{subject} =~ m/^(Pass|Reject):\s+/
                 || $message->{subject} =~ $self->accept_proposition
                 || $message->{subject} =~ $self->reject_proposition) {
@@ -61,6 +62,7 @@ sub run {
             };
             return 0;
         },
+        onlyown => 0,
         tags    => ['Parliament'],
         delete  => 1,
     );
