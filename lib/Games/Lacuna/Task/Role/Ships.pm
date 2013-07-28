@@ -31,7 +31,7 @@ sub name_ship {
     }
     
     # Extract ignore from new name
-    if ($name =~ s/!//g) {
+    if (defined $name && $name =~ s/!//g) {
         $ignore = 1;
     }
 
