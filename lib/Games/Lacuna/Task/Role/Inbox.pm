@@ -32,7 +32,6 @@ sub inbox_callback {
         );
         
         foreach my $message (@{$inbox_data->{messages}}) {
-            warn $message;
             next
                 if $message->{from_id} != $message->{to_id}
                 && $params{onlyown};
