@@ -90,7 +90,7 @@ sub run {
             
             return 1;
         },
-        tags    => 'Alert',
+        tags    => 'Fissure',
         archive => 1,
     );
 }
