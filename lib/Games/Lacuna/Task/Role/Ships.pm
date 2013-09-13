@@ -312,11 +312,15 @@ sub shipyard_slots {
     my $total_current_queue_size = 0;
     my $total_max_queue_size = 0;
     my $available_shipyards = {};
+    my $max_level = max(map { $_->{level} } @shipyards);
     
     SHIPYARDS:
     foreach my $shipyard (@shipyards) {
         my $shipyard_id = $shipyard->{id};
         my $shipyard_object = $self->build_object($shipyard);
+        
+        next
+            if $shipyard->{level} < $max_level;
         
         # Get build queue
         my $shipyard_queue_data = $self->request(
