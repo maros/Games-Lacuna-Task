@@ -416,19 +416,28 @@ sub _raw_request {
     my $status = $response->{status} || $response;
     
     if ($status->{body}) {
+        my $body_cache_key = 'body/'.$status->{body}{id};
+        my $building_cache_key = $body_cache_key.'/buildings';
+        
+        my $cached = $self->get_cache($body_cache_key);
+        if ($cached && $status->{body}{surface_version} > $cached->{surface_version}) {
+            $self->clear_cache($building_cache_key);
+        }
+        
         $self->set_cache(
-            key     => 'body/'.$status->{body}{id},
+            key     => $body_cache_key,
             value   => $status->{body},
             max_age => 60*70, # One hour+
         );
-    }
-    if ($response->{buildings}
-        && ref $response->{buildings} eq 'HASH') {
-        $self->set_cache(
-            key     => 'body/'.$status->{body}{id}.'/buildings',
-            value   => $response->{buildings},
-            max_age => 60*70, # One hour+
-        );
+        
+        if ($response->{buildings}
+            && ref $response->{buildings} eq 'HASH') {
+            $self->set_cache(
+                key     => $building_cache_key,
+                value   => $response->{buildings},
+                max_age => 60*70, # One hour+
+            );
+        }
     }
     
     # Set stash
