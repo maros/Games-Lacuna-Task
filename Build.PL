@@ -45,7 +45,7 @@ my $build = Module::Build->new(
         'Try::Tiny'                     => 0,
         'Term::ReadKey'                 => 0,
 
-        'Email::Stuff'                  => 0,
+        'Email::Stuffer'                => 0,
         'Text::Table'                   => 0,
     },
     

@@ -4,8 +4,8 @@ use 5.010;
 our $VERSION = $Games::Lacuna::Task::VERSION;
 
 use Moose::Role;
+use Email::Stuffer;
 
-use Email::Stuff;
 
 has 'email' => (
     is              => 'rw',
@@ -24,7 +24,7 @@ has 'email_send' => (
 sub notify {
     my ($self,$subject,$message) = @_;
     
-    my $email = Email::Stuff
+    my $email = Email::Stuffer
         ->from($self->email)
         ->to($self->email)
         ->subject($subject);
