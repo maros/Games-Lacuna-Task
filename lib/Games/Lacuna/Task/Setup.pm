@@ -10,6 +10,7 @@ with qw(Games::Lacuna::Task::Role::Actions
 use Games::Lacuna::Task::Utils qw(class_to_name name_to_class);
 use Try::Tiny;
 use YAML::Any qw(DumpFile);
+use Term::ANSIColor qw(color);
 
 has 'configfile' => (
     is              => 'rw',
